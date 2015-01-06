@@ -1,0 +1,55 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="build">
+  <PropertyGroup>
+    <Configuration  Condition="'$(Configuration)'==''">Release</Configuration>
+    <TargetPlatform Condition="'$(TargetPlatform)'==''">win32</TargetPlatform>
+    <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
+    <BuildEnv Condition="'$(BuildEnv)'==''">$(MSBuildProjectDirectory)\common\buildenv</BuildEnv>
+    <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\packages</PackagesDir>
+    <DistDir Condition="'$(DistDir)'==''">$(MSBuildProjectDirectory)\..\salt\dist</DistDir>
+    <ExtractDir Condition="'$(ExtractDir)'==''">$(MSBuildProjectDirectory)\dist.$(TargetPlatform)</ExtractDir>
+    <MakeNSIS Condition="'$(MakeNSIS)'==''">$(registry:HKEY_LOCAL_MACHINE\Software\NSIS)\makensis.exe</MakeNSIS>
+    <NuGet Condition="'$(NuGet)'==''">$(MSBuildProjectDirectory)\.nuget\NuGet.exe</NuGet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Wix Include="$(MSBuildProjectDirectory)\wix.sln" />
+    <NSI Include="$(MSBuildProjectDirectory)\nsis\Salt-Minion-Setup.nsi" />
+  </ItemGroup>
+
+  <Target Name="restore">
+    <Error Condition="!Exists('$(NuGet)')" Text="Cannot find nuget.exe at $(NuGet). Please download from http://nuget.org or pass /p:NuGet=&lt;path to nuget.exe&gt; to msbuild." />
+    <Exec Command="&quot;$(NuGet)&quot; restore" />
+  </Target>
+
+  <Target Name="build" DependsOnTargets="wix;nsis" />
+
+  <Target Name="wix" DependsOnTargets="restore">
+    <PropertyGroup>
+      <SolutionProperties>Configuration=$(Configuration);TargetPlatform=$(TargetPlatform);PackagesDir=$(PackagesDir);ExtractDir=$(ExtractDir);DistDir=$(DistDir);BuildEnv=$(BuildEnv)</SolutionProperties>
+    </PropertyGroup>
+    <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />
+  </Target>
+
+  <Target Name="nsis" DependsOnTargets="restore;StageDistZip"
+    Outputs="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
+    <PropertyGroup>
+      <BuildEnv>/DBUILDENV="$(MSBuildProjectDirectory)\common\buildenv"</BuildEnv>
+      <DistFiles>/DDISTFILES="$(ExtractDir)"</DistFiles>
+      <ProductVersion>/DPRODUCT_VERSION=$(DisplayVersion)</ProductVersion>
+      <DefinedPlatform>/DTARGET_PLATFORM=$(TargetPlatform)</DefinedPlatform>
+    </PropertyGroup>
+    <Warning Condition="'$(MakeNSIS)'==''" Text="Warning: NSIS not found. Not building NSIS setup.exe" />
+    <Error Condition="'$(MakeNSIS)'!='' AND !Exists('%(NSI.Identity)')" Text="Cannot find NSIS setup file." />
+    <Exec Condition="'$(MakeNSIS)'!=''" Command="&quot;$(MakeNSIS)&quot; $(DefinedPlatform) $(BuildEnv) $(DistFiles) $(ProductVersion) &quot;%(NSI.Identity)&quot;" />
+  </Target>
+
+  <Target Name="clean">
+    <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" Targets="clean" />
+    <RemoveDir Directories="$(ExtractDir)" />
+    <Delete Files="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe" />
+  </Target>
+
+  <Target Name="rebuild" DependsOnTargets="clean;build" />
+
+  <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
+</Project>
