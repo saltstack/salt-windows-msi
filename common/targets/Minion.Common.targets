@@ -22,7 +22,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <DistFile Include="$(DistDir)\salt-*.*$(TargetPlatform).zip" />
+      <DistFile Condition="'$(DistFile)'==''" Include="$(DistDir)\salt-*.*$(TargetPlatform).zip" />
     </ItemGroup>
 
     <Error Condition="'%(DistFile.Identity)'==''" Text="No distfiles for $(TargetPlatform) found in $(DistDir)" />

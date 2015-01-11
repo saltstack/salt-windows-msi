@@ -8,6 +8,7 @@
     <ExtractDir Condition="'$(ExtractDir)'==''">$(MSBuildProjectDirectory)\dist.$(TargetPlatform)</ExtractDir>
     <MakeNSIS Condition="'$(MakeNSIS)'==''">$(registry:HKEY_LOCAL_MACHINE\Software\NSIS)\makensis.exe</MakeNSIS>
     <NuGet Condition="'$(NuGet)'==''">$(MSBuildProjectDirectory)\.nuget\NuGet.exe</NuGet>
+    <SolutionProperties>Configuration=$(Configuration);TargetPlatform=$(TargetPlatform);PackagesDir=$(PackagesDir);DistDir=$(DistDir);BuildEnv=$(BuildEnv);ExtractDir=$(ExtractDir)</SolutionProperties>
   </PropertyGroup>
 
   <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
@@ -17,6 +18,49 @@
     <NSI Include="$(MSBuildProjectDirectory)\nsis\Salt-Minion-Setup.nsi" />
   </ItemGroup>
 
+  <Target Name="help">
+
+    <Message Text="
+Usage: msbuild.exe $(MSBuildProjectDirectory)\msbuild.proj [/t:target] [/p:Property1=Value1 .. /p:PropertyN=ValueN]
+
+Available Targets:
+
+  - wix:              Build just the WiX install packages.
+  - nsis:             Build just the NSIS install packages.
+  - build:            Identical to /t:wix,nsis. The default.
+  - rebuild:          Identical to /t:clean,build.
+  - clean:            Removes all build artifacts.
+
+Available Properties:
+
+  - BuildEnv:         Where to find the static/common installer content.
+  - BUILD_NUMBER:     The build number for this build (e.g. set by Jenkins).
+  - Configuration:    Debug or Release.
+  - DistDir:          Where to find the main salt distribution zip files.
+  - DistFile:         Path to the distribution zip file to consume.
+  - DisplayVersion:   The user-facing version being built.
+  - ExtractDir:       Where to extract the distribution zip file.
+  - InternalVersion:  The WiX/MSI ProductVersion.
+  - MakeNSIS:         Where the makensis.exe binary is location.
+  - NuGet:            Where to find NuGet.exe, required for this build.
+  - TargetPlatform:   Which platform to build. Expected values are win32 or amd64.
+
+Current Defaults:
+
+  - BuildEnv:         $(BuildEnv)
+  - BUILD_NUMBER:     0
+  - Configuration:    $(Configuration)
+  - DistDir:          $(DistDir)
+  - DistFile:         $(DistDir)\salt-*.*$(TargetPlatform).zip
+  - DisplayVersion:   Determined from discovered zip file name.
+  - ExtractDir:       $(ExtractDir)
+  - InternalVersion:  Determined from DisplayVersion.
+  - MakeNSIS:         $(MakeNSIS)
+  - NuGet:            $(NuGet)
+  - TargetPlatform:   $(TargetPlatform)
+  " />
+  </Target>
+
   <Target Name="restore">
     <Error Condition="!Exists('$(NuGet)')" Text="Cannot find nuget.exe at $(NuGet). Please download from http://nuget.org or pass /p:NuGet=&lt;path to nuget.exe&gt; to msbuild." />
     <Exec Command="&quot;$(NuGet)&quot; restore" />
@@ -25,9 +69,6 @@
   <Target Name="build" DependsOnTargets="wix;nsis" />
 
   <Target Name="wix" DependsOnTargets="restore">
-    <PropertyGroup>
-      <SolutionProperties>Configuration=$(Configuration);TargetPlatform=$(TargetPlatform);PackagesDir=$(PackagesDir);DistDir=$(DistDir);BuildEnv=$(BuildEnv);ExtractDir=$(ExtractDir)</SolutionProperties>
-    </PropertyGroup>
     <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />
   </Target>
 

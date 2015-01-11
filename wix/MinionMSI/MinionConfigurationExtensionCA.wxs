@@ -4,6 +4,6 @@
     <CustomAction Id="SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='immediate' Return='check'/>
     <CustomAction Id="SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='immediate' Return='check'/>
     <CustomAction Id="SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='immediate' Return='check'/>
-    <Binary Id='MinionConfigExt' SourceFile='MinionConfigurationExtension.CA.dll'/>
+    <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>
 </Wix>
