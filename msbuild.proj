@@ -2,14 +2,15 @@
   <PropertyGroup>
     <Configuration  Condition="'$(Configuration)'==''">Release</Configuration>
     <TargetPlatform Condition="'$(TargetPlatform)'==''">win32</TargetPlatform>
-    <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
-    <BuildEnv Condition="'$(BuildEnv)'==''">$(MSBuildProjectDirectory)\common\buildenv</BuildEnv>
     <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\packages</PackagesDir>
     <DistDir Condition="'$(DistDir)'==''">$(MSBuildProjectDirectory)\..\salt\dist</DistDir>
+    <BuildEnv Condition="'$(BuildEnv)'==''">$(MSBuildProjectDirectory)\common\buildenv</BuildEnv>
     <ExtractDir Condition="'$(ExtractDir)'==''">$(MSBuildProjectDirectory)\dist.$(TargetPlatform)</ExtractDir>
     <MakeNSIS Condition="'$(MakeNSIS)'==''">$(registry:HKEY_LOCAL_MACHINE\Software\NSIS)\makensis.exe</MakeNSIS>
     <NuGet Condition="'$(NuGet)'==''">$(MSBuildProjectDirectory)\.nuget\NuGet.exe</NuGet>
   </PropertyGroup>
+
+  <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
 
   <ItemGroup>
     <Wix Include="$(MSBuildProjectDirectory)\wix.sln" />
@@ -25,12 +26,12 @@
 
   <Target Name="wix" DependsOnTargets="restore">
     <PropertyGroup>
-      <SolutionProperties>Configuration=$(Configuration);TargetPlatform=$(TargetPlatform);PackagesDir=$(PackagesDir);ExtractDir=$(ExtractDir);DistDir=$(DistDir);BuildEnv=$(BuildEnv)</SolutionProperties>
+      <SolutionProperties>Configuration=$(Configuration);TargetPlatform=$(TargetPlatform);PackagesDir=$(PackagesDir);DistDir=$(DistDir);BuildEnv=$(BuildEnv);ExtractDir=$(ExtractDir)</SolutionProperties>
     </PropertyGroup>
     <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />
   </Target>
 
-  <Target Name="nsis" DependsOnTargets="restore;StageDistZip"
+  <Target Name="nsis" DependsOnTargets="restore;DistContent" Inputs="@(DistContent);@(BuildEnvContent)"
     Outputs="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
     <PropertyGroup>
       <BuildEnv>/DBUILDENV="$(MSBuildProjectDirectory)\common\buildenv"</BuildEnv>
@@ -50,6 +51,4 @@
   </Target>
 
   <Target Name="rebuild" DependsOnTargets="clean;build" />
-
-  <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
 </Project>

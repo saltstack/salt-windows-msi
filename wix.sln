@@ -11,10 +11,10 @@ Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MinionEXE", "wix\MinionEXE\
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|amd64 = Debug|amd64
 		Debug|win32 = Debug|win32
-		Release|amd64 = Release|amd64
+		Debug|amd64 = Debug|amd64
 		Release|win32 = Release|win32
+		Release|amd64 = Release|amd64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BA2A4D99-7701-4AC5-A43C-4DD456D158B9}.Debug|amd64.ActiveCfg = Debug|x86

@@ -36,7 +36,7 @@
   <ItemGroup>
     <Compile Include="buildenv.wxs" />
     <Compile Include="service.wxs" />
-    <Compile Include="dist.wxs" />
+    <Compile Include="dist-$(TargetPlatform).wxs" />
     <Compile Include="HostnameCustomizationDlg.wxs" />
     <Compile Include="MinionConfigurationExtensionCA.wxs" />
     <Compile Include="Product.wxs" />

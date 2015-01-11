@@ -4,6 +4,8 @@
 
   <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.WebDownload" />
 
+  <Import Project="Minion.Common.targets" />
+
   <PropertyGroup>
     <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\..\..\packages</PackagesDir>
   </PropertyGroup>
@@ -26,10 +28,8 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="DownloadVCRedist" DependsOnTargets="VCRedistProperties" BeforeTargets="Compile" Outputs="$(VCRedistName)">
-    <Warning Condition="Exists($(VCRedistName))" Text="Using existing $(VCRedistName)" />
-    <WebDownload Condition="!Exists($(VCRedistName))" FileUri="$(VCRedistURL)" FileName="$(VCRedistName)" />
+  <Target Name="DownloadVCRedist" DependsOnTargets="VCRedistProperties" BeforeTargets="Compile">
+    <Warning Condition="Exists($(VCRedistName)) AND $(ForceVCRedistDownload) != 'true'" Text="Using existing $(VCRedistName)" />
+    <WebDownload Condition="!Exists($(VCRedistName)) OR $(ForceVCRedistDownload) == 'true'" FileUri="$(VCRedistURL)" FileName="$(VCRedistName)" />
   </Target>
-
-  <Import Project="Minion.Common.targets" />
 </Project>

@@ -4,18 +4,13 @@
        correct distribution for the compile. Called from both places to
        support WiX and NSIS compiles -->
 
-  <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.Unzip" />
+  <Import Project="Minion.Common.targets" />
 
-  <Target Name="StageDistZip" DependsOnTargets="setProperties" Inputs="$(DistZipFile)" Outputs="$(ExtractDir)">
-    <Error Condition="!Exists('$(DistZipFile)')" Text="No distfile found, nothing to do" />
-    <Unzip ZipFileName="$(DistZipFile)" TargetDirectory="$(ExtractDir)" Quiet="true" />
-  </Target>
-
-  <Target Name="BuildDistFragments" DependsOnTargets="StageDistZip" BeforeTargets="Compile">
+  <Target Name="BuildDistFragments" Inputs="@(DistContent)" Outputs="$(MSBuildProjectDirectory)\..\..\wix\MinionMSI\dist-$(TargetPlatform).wxs" DependsOnTargets="DistContent" BeforeTargets="Compile">
     <HeatDirectory
       NoLogo="true"
       GenerateGuidsNow="true"
-      OutputFile="dist.wxs"
+      OutputFile="dist-$(TargetPlatform).wxs"
       ComponentGroupName="dist"
       DirectoryRefId="INSTALLFOLDER"
       Directory="$(ExtractDir)"
@@ -23,10 +18,7 @@
       PreProcessorVariable="var.dist"
       ToolPath="$(WixToolPath)"
       SuppressRootDirectory="true"
-      SuppressSpecificWarnings="5150"
-      />
+      SuppressSpecificWarnings="5150"/>
   </Target>
-
-  <Import Project="Minion.Common.targets" />
 
 </Project>

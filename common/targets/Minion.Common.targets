@@ -6,22 +6,28 @@
 
   <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.Unzip" />
 
+  <ItemGroup>
+    <BuildEnvContent Include="$(BuildEnv)\**\*.*" />
+  </ItemGroup>
+
   <Target Name="setProperties">
+    <PropertyGroup>
+      <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
+      <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>
+      <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\..\..\packages</PackagesDir>
+      <DistDir Condition="'$(DistDir)'==''">$(MSBuildProjectDirectory)\..\..\..\salt\dist</DistDir>
+      <BuildEnv Condition="'$(BuildEnv)'==''">$(MSBuildProjectDirectory)\..\..\common\buildenv</BuildEnv>
+      <ExtractDir Condition="'$(ExtractDir)'==''">$(MSBuildProjectDirectory)\..\..\dist.$(TargetPlatform)</ExtractDir>
+      <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
+    </PropertyGroup>
+
     <ItemGroup>
       <DistFile Include="$(DistDir)\salt-*.*$(TargetPlatform).zip" />
     </ItemGroup>
 
-    <Error Condition="'%(DistFile.Identity)'==''" Text="No distfiles found in $(DistDir)" />
+    <Error Condition="'%(DistFile.Identity)'==''" Text="No distfiles for $(TargetPlatform) found in $(DistDir)" />
 
     <PropertyGroup>
-      <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
-      <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>
-      <TargetPlatform Condition="'$(TargetPlatform)'==''">win32</TargetPlatform>
-      <PackagesDir Condition="'$(PackagesDir)'==''">$(SolutionDir)packages</PackagesDir>
-      <DistDir Condition="'$(DistDir)'==''">$(SolutionDir)..\salt\dist</DistDir>
-      <BuildEnv Condition="'$(BuildEnv)'==''">$(SolutionDir)common\buildenv</BuildEnv>
-      <ExtractDir Condition="'$(ExtractDir)'==''">$(SolutionDir)dist.$(TargetPlatform)</ExtractDir>
-      <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
       <DistZipFile>%(DistFile.Identity)</DistZipFile>
       <DisplayVersion Condition="'$(DisplayVersion)'==''">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-).*(?=.win.*)'))</DisplayVersion>
       <InternalVersion Condition="'$(InternalVersion)'==''">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-\d\d)[0-9.]*(?=-.*)')).$(BUILD_NUMBER)</InternalVersion>
@@ -37,20 +43,10 @@
     <Unzip ZipFileName="$(DistZipFile)" TargetDirectory="$(ExtractDir)" Quiet="true" />
   </Target>
 
-  <Target Name="BuildDistFragments" DependsOnTargets="StageDistZip" BeforeTargets="Compile">
-    <HeatDirectory
-      NoLogo="true"
-      GenerateGuidsNow="true"
-      OutputFile="dist.wxs"
-      ComponentGroupName="dist"
-      DirectoryRefId="INSTALLFOLDER"
-      Directory="$(ExtractDir)"
-      KeepEmptyDirectories="true"
-      PreProcessorVariable="var.dist"
-      ToolPath="$(WixToolPath)"
-      SuppressRootDirectory="true"
-      SuppressSpecificWarnings="5150"
-      />
+  <Target Name="DistContent" DependsOnTargets="StageDistZip" Outputs="@(DistContent)">
+    <ItemGroup>
+      <DistContent Include="$(ExtractDir)\**\*.*" />
+    </ItemGroup>
   </Target>
 
 </Project>
