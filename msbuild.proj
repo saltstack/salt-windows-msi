@@ -9,6 +9,8 @@
     <MakeNSIS Condition="'$(MakeNSIS)'==''">$(registry:HKEY_LOCAL_MACHINE\Software\NSIS)\makensis.exe</MakeNSIS>
     <NuGet Condition="'$(NuGet)'==''">$(MSBuildProjectDirectory)\.nuget\NuGet.exe</NuGet>
     <SolutionProperties>Configuration=$(Configuration);TargetPlatform=$(TargetPlatform);PackagesDir=$(PackagesDir);DistDir=$(DistDir);BuildEnv=$(BuildEnv);ExtractDir=$(ExtractDir)</SolutionProperties>
+    <StagingDir>$(MSBuildProjectDirectory)\output</StagingDir>
+    <TimestampUrl>http://timestamp.verisign.com/scripts/timstamp.dll</TimestampUrl>
   </PropertyGroup>
 
   <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
@@ -29,6 +31,8 @@ Available Targets:
   - nsis:             Build just the NSIS install packages.
   - build:            Identical to /t:wix,nsis. The default.
   - rebuild:          Identical to /t:clean,build.
+  - sign:             Digitally sign install packages.
+  - stage:            Copy build artifacts to a defined location.
   - clean:            Removes all build artifacts.
 
 Available Properties:
@@ -43,7 +47,10 @@ Available Properties:
   - InternalVersion:  The WiX/MSI ProductVersion.
   - MakeNSIS:         Where the makensis.exe binary is location.
   - NuGet:            Where to find NuGet.exe, required for this build.
+  - StagingDir:       Where to stage built binaries.
   - TargetPlatform:   Which platform to build. Expected values are win32 or amd64.
+  - Thumbprint:       Certificate thumbprint from Certificate Store to use for digital signing.
+  - TimestampUrl:     URL of a time stamp server.
 
 Current Defaults:
 
@@ -57,7 +64,10 @@ Current Defaults:
   - InternalVersion:  Determined from DisplayVersion.
   - MakeNSIS:         $(MakeNSIS)
   - NuGet:            $(NuGet)
+  - StagingDir:       $(StagingDir)
   - TargetPlatform:   $(TargetPlatform)
+  - Thumbprint:       Not set.
+  - TimestampUrl:     $(TimestampUrl)
   " />
   </Target>
 
@@ -83,6 +93,45 @@ Current Defaults:
     <Warning Condition="'$(MakeNSIS)'==''" Text="Warning: NSIS not found. Not building NSIS setup.exe" />
     <Error Condition="'$(MakeNSIS)'!='' AND !Exists('%(NSI.Identity)')" Text="Cannot find NSIS setup file." />
     <Exec Condition="'$(MakeNSIS)'!=''" Command="&quot;$(MakeNSIS)&quot; $(DefinedPlatform) $(BuildEnv) $(DistFiles) $(ProductVersion) &quot;%(NSI.Identity)&quot;" />
+  </Target>
+
+  <Target Name="stage" AfterTargets="build">
+    <ItemGroup>
+      <Artifacts Include="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
+        <OutputType>nsis</OutputType>
+      </Artifacts>
+      <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionMSI\bin\$(Configuration)\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.msi">
+        <OutputType>wix</OutputType>
+      </Artifacts>
+      <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionEXE\bin\$(Configuration)\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
+        <OutputType>wix</OutputType>
+      </Artifacts>
+    </ItemGroup>
+    <Message Text="Copying %(Artifacts.Identity) to $(StagingDir)\%(OutputType)" />
+    <Copy Condition="'$(StagingDir)'!=''" SourceFiles="@(Artifacts)" DestinationFolder="$(StagingDir)\%(Artifacts.OutputType)" />
+  </Target>
+
+  <Target Name="sign" AfterTargets="stage">
+    <!--
+         Requires a Code Signing certificate.
+         Install into the Personal certificate store for the user running the build.
+         Get the thumbprint from the certificate properties and either pass as
+         /p:Thumbprint="thumbprint" or set the Thumbprint environment variable prior
+         to building.
+    -->
+
+    <ItemGroup>
+      <SignTarget Include="@(Artifacts->'$(StagingDir)\%(OutputType)\%(Filename)%(Extension)')" />
+    </ItemGroup>
+
+    <Message Condition="'$(Thumbprint)'==''" Text="No certificate thumbprint provided. Not digitally signing output." />
+    <Message Importance="High" Condition="'$(Thumbprint)'!=''" Text="Digitally signing %(SignTarget.Identity) with certificate $(Thumbprint)" />
+
+    <SignFile Condition="'$(Thumbprint)'!='' AND '$(TimestampUrl)'!=''"
+      CertificateThumbprint="$(Thumbprint)" SigningTarget="@(SignTarget)" TimestampUrl="$(TimestampUrl)" />
+    
+    <SignFile Condition="'$(Thumbprint)'!='' AND '$(TimestampUrl)'==''"
+      CertificateThumbprint="$(Thumbprint)" SigningTarget="@(SignTarget)" />
   </Target>
 
   <Target Name="clean">
