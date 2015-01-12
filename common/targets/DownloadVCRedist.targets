@@ -2,13 +2,13 @@
 
   <!-- Called from MinionEXE.wixproj to stage the correct vcredist for compile -->
 
-  <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.WebDownload" />
-
   <Import Project="Minion.Common.targets" />
 
   <PropertyGroup>
     <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\..\..\packages</PackagesDir>
   </PropertyGroup>
+
+  <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.WebDownload" />
 
   <ItemGroup>
     <VCRedistURI Condition="$(TargetPlatform.Contains('win32'))" Include="http://download.microsoft.com/download/d/d/9/dd9a82d0-52ef-40db-8dab-795376989c03/vcredist_x86.exe">
@@ -19,7 +19,17 @@
     </VCRedistURI>
   </ItemGroup>
 
-  <Target Name="VCRedistProperties" DependsOnTargets="setProperties">
+  <!--
+    ================================================================================
+      VCRedistProperties
+
+         Picks the appropriate vcredist_<arch>.exe to download based on the selected
+         TargetPlatform.
+
+         Adds the selected name and URL to the set of defined constants for WiX.
+    ================================================================================
+  -->
+  <Target Name="VCRedistProperties" DependsOnTargets="setVersionProperties">
     <Error Condition="'$(TargetPlatform)'==''" Text="TargetPlatform not found, cannot determine vcredist to download." />
     <PropertyGroup>
       <VCRedistName>%(VCRedistURI.DestinationFileName)</VCRedistName>
@@ -28,8 +38,34 @@
     </PropertyGroup>
   </Target>
 
+  <!--
+    ================================================================================
+       DownloadVCRedist
+
+         Downloads the Visual C++ redistributable required for the WiX Bundle exe
+         build.
+
+         This does not use Inputs/Outputs to allow ForceVCRedistDL to override
+         the default download behavior.
+
+         Requires the MSBuild Community Tasks WebDownload Task.
+    ================================================================================
+  -->
   <Target Name="DownloadVCRedist" DependsOnTargets="VCRedistProperties" BeforeTargets="Compile">
-    <Warning Condition="Exists($(VCRedistName)) AND $(ForceVCRedistDownload) != 'true'" Text="Using existing $(VCRedistName)" />
-    <WebDownload Condition="!Exists($(VCRedistName)) OR $(ForceVCRedistDownload) == 'true'" FileUri="$(VCRedistURL)" FileName="$(VCRedistName)" />
+    <Warning Condition="Exists($(VCRedistName)) AND $(ForceVCRedistDL) != 'true'"
+      Text="Using existing $(VCRedistName)" />
+    <WebDownload Condition="!Exists($(VCRedistName)) OR $(ForceVCRedistDL) == 'true'"
+      FileUri="$(VCRedistURL)" FileName="$(VCRedistName)" />
+  </Target>
+
+  <!--
+    ================================================================================
+       CleanVCRedist
+
+         Deletes the downloaded vcredist_<arch>.exe (for rebuild).
+    ================================================================================
+  -->
+  <Target Name="CleanVCRedist" DependsOnTargets="VCRedistProperties" BeforeTargets="Clean">
+    <Delete Files="$(VCRedistName)" />
   </Target>
 </Project>

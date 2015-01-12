@@ -1,8 +1,15 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Called from both MinionMSI.wixproj and msbuild.proj to stage the
-       correct distribution for the compile. Called from both places to
-       support WiX and NSIS compiles -->
+  <PropertyGroup>
+    <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
+    <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>
+    <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\..\..\packages</PackagesDir>
+    <DistDir Condition="'$(DistDir)'==''">$(MSBuildProjectDirectory)\..\..\..\salt\dist</DistDir>
+    <BuildEnv Condition="'$(BuildEnv)'==''">$(MSBuildProjectDirectory)\..\..\common\buildenv</BuildEnv>
+    <ExtractDir Condition="'$(ExtractDir)'==''">$(MSBuildProjectDirectory)\..\..\dist.$(TargetPlatform)</ExtractDir>
+    <DefineConstants>$(DefineConstants);buildenv=$(BuildEnv);dist=$(ExtractDir);TargetPlatform=$(TargetPlatform)</DefineConstants>
+    <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
+  </PropertyGroup>
 
   <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.Unzip" />
 
@@ -10,43 +17,76 @@
     <BuildEnvContent Include="$(BuildEnv)\**\*.*" />
   </ItemGroup>
 
-  <Target Name="setProperties">
-    <PropertyGroup>
-      <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
-      <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>
-      <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\..\..\packages</PackagesDir>
-      <DistDir Condition="'$(DistDir)'==''">$(MSBuildProjectDirectory)\..\..\..\salt\dist</DistDir>
-      <BuildEnv Condition="'$(BuildEnv)'==''">$(MSBuildProjectDirectory)\..\..\common\buildenv</BuildEnv>
-      <ExtractDir Condition="'$(ExtractDir)'==''">$(MSBuildProjectDirectory)\..\..\dist.$(TargetPlatform)</ExtractDir>
-      <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
-    </PropertyGroup>
+  <!--
+    ================================================================================
+       setVersionProperties
 
+         Locates the distribution zip file and builds the DisplayVersion and
+         InternalVersion variables based on the name.
+
+         This target rewrites the output TargetName with the discovered version
+         information.
+    ================================================================================
+  -->
+  <Target Name="setVersionProperties">
     <ItemGroup>
       <DistFile Condition="'$(DistFile)'==''" Include="$(DistDir)\salt-*.*$(TargetPlatform).zip" />
+      <DistFile Condition="'$(DistFile)'!=''" Include="$(DistFile)" />
     </ItemGroup>
 
+    <Warning Condition="'@(DistFile->Count())' > 1" Text="Multiple distfiles found: %(DistFile.Identity)." />
+    <Warning Condition="'@(DistFile->Count())' > 1" Text="We may pick the wrong one!" />
     <Error Condition="'%(DistFile.Identity)'==''" Text="No distfiles for $(TargetPlatform) found in $(DistDir)" />
 
     <PropertyGroup>
       <DistZipFile>%(DistFile.Identity)</DistZipFile>
       <DisplayVersion Condition="'$(DisplayVersion)'==''">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-).*(?=.win.*)'))</DisplayVersion>
       <InternalVersion Condition="'$(InternalVersion)'==''">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-\d\d)[0-9.]*(?=-.*)')).$(BUILD_NUMBER)</InternalVersion>
-      <DefineConstants>$(DefineConstants);buildenv=$(BuildEnv);dist=$(ExtractDir);TargetPlatform=$(TargetPlatform);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
+      <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
       <TargetName>Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup</TargetName>
     </PropertyGroup>
-
-    <Message Importance="High" Text="Building Salt Minion $(DisplayVersion) for $(TargetPlatform) ($(TargetName))" />
   </Target>
 
-  <Target Name="StageDistZip" DependsOnTargets="setProperties" Inputs="$(DistZipFile)" Outputs="$(ExtractDir)">
+  <!--
+    ================================================================================
+       StageDistZip
+
+         Extract the frozen distribution zip file to $(ExtractDir).
+
+         [IN]
+         $(DistZipFile) - the distribution zip file.
+    ================================================================================
+  -->
+  <Target Name="StageDistZip" DependsOnTargets="setVersionProperties" Inputs="$(DistZipFile)" Outputs="$(ExtractDir)">
     <Error Condition="!Exists('$(DistZipFile)')" Text="No distfile found, nothing to do" />
     <Unzip ZipFileName="$(DistZipFile)" TargetDirectory="$(ExtractDir)" Quiet="true" />
   </Target>
 
+  <!--
+    ================================================================================
+       DistContent
+
+         Build the list of files in $(ExtractDir). This runs every time as the output
+         is necessary for other targets.
+
+         [OUT]
+         @(DistContent) - an ITaskItem[] containing all the extracted dist files.
+    ================================================================================
+  -->
   <Target Name="DistContent" DependsOnTargets="StageDistZip" Outputs="@(DistContent)">
     <ItemGroup>
       <DistContent Include="$(ExtractDir)\**\*.*" />
     </ItemGroup>
   </Target>
 
+  <!--
+    ================================================================================
+       CleanDistContent
+
+         Deletes the extracted zip files (for rebuild).
+    ================================================================================
+  -->
+  <Target Name="CleanDistContent" BeforeTargets="Clean" Condition="Exists('$(ExtractDir)')">
+    <RemoveDir ContinueOnError="WarnAndContinue" Directories="$(ExtractDir)" />
+  </Target>
 </Project>

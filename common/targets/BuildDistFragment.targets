@@ -6,7 +6,17 @@
 
   <Import Project="Minion.Common.targets" />
 
-  <Target Name="BuildDistFragments" Inputs="@(DistContent)" Outputs="$(MSBuildProjectDirectory)\..\..\wix\MinionMSI\dist-$(TargetPlatform).wxs" DependsOnTargets="DistContent" BeforeTargets="Compile">
+  <!--
+  ==================================================================================
+       BuildDistFragments
+
+         Generates dist-$(TargetPlatform).wxs using the WiX <HeatDirectory /> task.
+
+         [IN]
+         @(DistContent) - the extracted dist zipfile content
+  ==================================================================================
+  -->
+  <Target Name="BuildDistFragments" Inputs="@(DistContent)" Outputs="dist-$(TargetPlatform).wxs" DependsOnTargets="DistContent" BeforeTargets="Compile">
     <HeatDirectory
       NoLogo="true"
       GenerateGuidsNow="true"
@@ -19,6 +29,31 @@
       ToolPath="$(WixToolPath)"
       SuppressRootDirectory="true"
       SuppressSpecificWarnings="5150"/>
+  </Target>
+
+  <!--
+  ==================================================================================
+       AddDistFragmentToBuild
+
+         Adds the generated dist-$(TargetPlatform).wxs to the build.
+         Called prior to the WiX target which builds the list of items to compile.
+  ==================================================================================
+  -->
+  <Target Name="AddDistFragmentToBuild" BeforeTargets="GenerateCompileWithObjectPath">
+    <ItemGroup>
+      <Compile Include="dist-$(TargetPlatform).wxs" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+  ==================================================================================
+       CleanDistFragment
+
+         Deletes the generated dist fragment (for rebuild)
+  ==================================================================================
+  -->
+  <Target Name="CleanDistFragment" BeforeTargets="Clean">
+    <Delete Files="dist-$(TargetPlatform).wxs" />
   </Target>
 
 </Project>

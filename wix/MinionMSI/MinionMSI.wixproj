@@ -36,7 +36,6 @@
   <ItemGroup>
     <Compile Include="buildenv.wxs" />
     <Compile Include="service.wxs" />
-    <Compile Include="dist-$(TargetPlatform).wxs" />
     <Compile Include="HostnameCustomizationDlg.wxs" />
     <Compile Include="MinionConfigurationExtensionCA.wxs" />
     <Compile Include="Product.wxs" />
@@ -65,8 +64,9 @@
       <RefTargetDir>INSTALLFOLDER</RefTargetDir>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(WixTargetsPath)" />
+  <!-- Import our targets BEFORE the WiX ones so the dist fragment is picked up -->
   <Import Project="..\..\common\targets\BuildDistFragment.targets" />
+  <Import Project="$(WixTargetsPath)" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.

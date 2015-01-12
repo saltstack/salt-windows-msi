@@ -20,10 +20,19 @@
     <NSI Include="$(MSBuildProjectDirectory)\nsis\Salt-Minion-Setup.nsi" />
   </ItemGroup>
 
-  <Target Name="help">
+  <!--
+    ================================================================================
+       help
+
+         This is also useful to see what the some of the discovered/generated
+         properties (e.g. DisplayVersion) will be.
+    ================================================================================
+  -->
+  <Target Name="help" DependsOnTargets="setVersionProperties">
 
     <Message Text="
-Usage: msbuild.exe $(MSBuildProjectDirectory)\msbuild.proj [/t:target] [/p:Property1=Value1 .. /p:PropertyN=ValueN]
+Usage: msbuild.exe $(MSBuildProjectDirectory)\msbuild.proj
+      [/t:target[,target]] [/p:Property1=Value1 .. /p:PropertyN=ValueN]
 
 Available Targets:
 
@@ -44,6 +53,7 @@ Available Properties:
   - DistFile:         Path to the distribution zip file to consume.
   - DisplayVersion:   The user-facing version being built.
   - ExtractDir:       Where to extract the distribution zip file.
+  - ForceVCRedistDL:  Whether to force re-download of the vcredist file.
   - InternalVersion:  The WiX/MSI ProductVersion.
   - MakeNSIS:         Where the makensis.exe binary is location.
   - NuGet:            Where to find NuGet.exe, required for this build.
@@ -54,34 +64,66 @@ Available Properties:
 
 Current Defaults:
 
-  - BuildEnv:         $(BuildEnv)
-  - BUILD_NUMBER:     0
-  - Configuration:    $(Configuration)
-  - DistDir:          $(DistDir)
-  - DistFile:         $(DistDir)\salt-*.*$(TargetPlatform).zip
-  - DisplayVersion:   Determined from discovered zip file name.
-  - ExtractDir:       $(ExtractDir)
-  - InternalVersion:  Determined from DisplayVersion.
-  - MakeNSIS:         $(MakeNSIS)
-  - NuGet:            $(NuGet)
-  - StagingDir:       $(StagingDir)
-  - TargetPlatform:   $(TargetPlatform)
-  - Thumbprint:       Not set.
-  - TimestampUrl:     $(TimestampUrl)
+  - BuildEnv:         '$(BuildEnv)'
+  - BUILD_NUMBER:     '$(BUILD_NUMBER)'
+  - Configuration:    '$(Configuration)'
+  - DistDir:          '$(DistDir)'
+  - DistFile:         '@(DistFile)'
+  - DisplayVersion:   '$(DisplayVersion)'
+  - ExtractDir:       '$(ExtractDir)'
+  - ForceVCRedistDL:  '$(ForceVCRedistDL)'
+  - InternalVersion:  '$(InternalVersion)'
+  - MakeNSIS:         '$(MakeNSIS)'
+  - NuGet:            '$(NuGet)'
+  - StagingDir:       '$(StagingDir)'
+  - TargetPlatform:   '$(TargetPlatform)'
+  - Thumbprint:       '$(Thumbprint)'
+  - TimestampUrl:     '$(TimestampUrl)'
   " />
   </Target>
 
+  <!--
+    ================================================================================
+       restore
+
+         Run NuGet against the WiX solution to restore dependencies. Requires NuGet.
+    ================================================================================
+  -->
   <Target Name="restore">
     <Error Condition="!Exists('$(NuGet)')" Text="Cannot find nuget.exe at $(NuGet). Please download from http://nuget.org or pass /p:NuGet=&lt;path to nuget.exe&gt; to msbuild." />
     <Exec Command="&quot;$(NuGet)&quot; restore" />
   </Target>
 
+  <!--
+    ================================================================================
+       build
+    ================================================================================
+  -->
   <Target Name="build" DependsOnTargets="wix;nsis" />
 
+  <!--
+    ================================================================================
+       wix
+
+         Runs MSBuild against the WiX solution.
+    ================================================================================
+  -->
   <Target Name="wix" DependsOnTargets="restore">
     <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />
   </Target>
 
+  <!--
+    ================================================================================
+       nsis
+
+         Runs makensis.exe against the .nsi in the nsis/ directory.
+
+         [IN]
+         @(DistContent)     - the extracted distribution files. This is set in
+                              Minion.Common.Targets in the common/targets/ dir.
+         @(BuildEnvContent) - the contents of the static buildenv/ dir.
+    ================================================================================
+  -->
   <Target Name="nsis" DependsOnTargets="restore;DistContent" Inputs="@(DistContent);@(BuildEnvContent)"
     Outputs="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
     <PropertyGroup>
@@ -95,6 +137,14 @@ Current Defaults:
     <Exec Condition="'$(MakeNSIS)'!=''" Command="&quot;$(MakeNSIS)&quot; $(DefinedPlatform) $(BuildEnv) $(DistFiles) $(ProductVersion) &quot;%(NSI.Identity)&quot;" />
   </Target>
 
+  <!--
+    ================================================================================
+       stage
+
+         Copy the built setup packages to a common staging location. Preserves the
+         output between runs of msbuild /t:rebuild for different TargetPlatforms.
+    ================================================================================
+  -->
   <Target Name="stage" AfterTargets="build">
     <ItemGroup>
       <Artifacts Include="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
@@ -111,15 +161,18 @@ Current Defaults:
     <Copy Condition="'$(StagingDir)'!=''" SourceFiles="@(Artifacts)" DestinationFolder="$(StagingDir)\%(Artifacts.OutputType)" />
   </Target>
 
-  <Target Name="sign" AfterTargets="stage">
-    <!--
-         Requires a Code Signing certificate.
-         Install into the Personal certificate store for the user running the build.
-         Get the thumbprint from the certificate properties and either pass as
-         /p:Thumbprint="thumbprint" or set the Thumbprint environment variable prior
-         to building.
-    -->
+  <!--
+    ================================================================================
+       sign
 
+         This will attempt to digitally sign setup packages in the output staging
+         location. Signing requires a valid Code Signing certificate and private
+         key; both must be available in the Personal certificate store for the user
+         running the build. The certificate thumbprint must be either set as an
+         environment variable 'Thumbprint' or passed to msbuild as a Property.
+    ================================================================================
+  -->
+  <Target Name="sign" AfterTargets="stage">
     <ItemGroup>
       <SignTarget Include="@(Artifacts->'$(StagingDir)\%(OutputType)\%(Filename)%(Extension)')" />
     </ItemGroup>
@@ -134,11 +187,39 @@ Current Defaults:
       CertificateThumbprint="$(Thumbprint)" SigningTarget="@(SignTarget)" />
   </Target>
 
-  <Target Name="clean">
+  <!--
+    ================================================================================
+       clean
+    ================================================================================
+  -->
+  <Target Name="clean" DependsOnTargets="cleanwix;cleannsis" />
+
+  <!--
+    ================================================================================
+       cleanwix
+
+         Runs the WiX solution's clean target.
+    ================================================================================
+  -->
+  <Target Name="cleanwix">
     <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" Targets="clean" />
-    <RemoveDir Directories="$(ExtractDir)" />
+  </Target>
+
+  <!--
+    ================================================================================
+       cleannsis
+
+         Delete the NSIS build package.
+    ================================================================================
+  -->
+  <Target Name="cleannsis" DependsOnTargets="setVersionProperties">
     <Delete Files="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe" />
   </Target>
 
+  <!--
+    ================================================================================
+       rebuild
+    ================================================================================
+  -->
   <Target Name="rebuild" DependsOnTargets="clean;build" />
 </Project>
