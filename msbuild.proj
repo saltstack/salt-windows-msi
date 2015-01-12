@@ -87,10 +87,14 @@ Current Defaults:
        restore
 
          Run NuGet against the WiX solution to restore dependencies. Requires NuGet.
+
+         If using a NuGet from a non-default location, copy to the default location
+         so the Visual Studio solution doesn't fail.
     ================================================================================
   -->
   <Target Name="restore">
     <Error Condition="!Exists('$(NuGet)')" Text="Cannot find nuget.exe at $(NuGet). Please download from http://nuget.org or pass /p:NuGet=&lt;path to nuget.exe&gt; to msbuild." />
+    <Copy Condition="'$(NuGet)'!='$(MSBuildProjectDirectory)\.nuget\NuGet.exe'" SourceFiles="$(NuGet)" DestinationFolder=".nuget" />
     <Exec Command="&quot;$(NuGet)&quot; restore" />
   </Target>
 
@@ -182,7 +186,7 @@ Current Defaults:
 
     <SignFile Condition="'$(Thumbprint)'!='' AND '$(TimestampUrl)'!=''"
       CertificateThumbprint="$(Thumbprint)" SigningTarget="@(SignTarget)" TimestampUrl="$(TimestampUrl)" />
-    
+
     <SignFile Condition="'$(Thumbprint)'!='' AND '$(TimestampUrl)'==''"
       CertificateThumbprint="$(Thumbprint)" SigningTarget="@(SignTarget)" />
   </Target>
