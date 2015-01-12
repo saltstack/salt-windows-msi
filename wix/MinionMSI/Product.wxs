@@ -24,18 +24,21 @@
     <Property Id="MASTER_HOSTNAME"                      Value="salt"                 />
     <Property Id="MINION_HOSTNAME"                      Value="$(env.COMPUTERNAME)"  />
     <Property Id="WIXUI_INSTALLDIR"                     Value="INSTALLFOLDER"        />
-    <Property Id="MINION_ROOT"                          Value="INSTALLFOLDER"        />
     <Property Id="MSIRESTARTMANAGERCONTROL"             Value="Disable"              />
-    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Start salt-minion service now" />
-
-    <Property Id="QtExecCmdLine" Value="&quot;net.exe&quot; start salt-minion" />
-    <CustomAction Id="StartMinion" BinaryKey="WixCA" DllEntry="CAQuietExec" Execute="immediate" Return="check" />
 
     <InstallExecuteSequence>
-      <Custom Action='SetMaster'   After='InstallFinalize'>NOT Installed</Custom>
-      <Custom Action='SetMinionId' After='SetMaster'>NOT Installed</Custom>
-      <Custom Action='SetRootDir'  After='SetMinionId'>NOT Installed</Custom>
-      <Custom Action='StartMinion' After='SetMinionId'>START_MINION_SERVICE = 1 AND NOT Installed</Custom>
+      <Custom Action='SetMasterPropertiesCA' Before='SetMaster'>NOT Installed</Custom>
+      <Custom Action='SetMaster' Before='SetMinionIdPropertiesCA'>NOT Installed</Custom>
+
+      <Custom Action='SetMinionIdPropertiesCA' Before='SetMinionId'>NOT Installed</Custom>
+      <Custom Action='SetMinionId' Before='SetRootDirPropertiesCA'>NOT Installed</Custom>
+
+      <Custom Action='SetRootDirPropertiesCA' Before='SetRootDir'>NOT Installed</Custom>
+      <Custom Action='SetRootDir' Before='StartServices'>NOT Installed</Custom>
+
+      <StartServices Sequence="5900">
+        <![CDATA[START_MINION_SERVICE = "1"]]>
+      </StartServices>
     </InstallExecuteSequence>
 
     <UIRef Id="WixUI_Minion" />

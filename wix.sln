@@ -11,10 +11,10 @@ Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MinionEXE", "wix\MinionEXE\
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|win32 = Debug|win32
 		Debug|amd64 = Debug|amd64
-		Release|win32 = Release|win32
+		Debug|win32 = Debug|win32
 		Release|amd64 = Release|amd64
+		Release|win32 = Release|win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{BA2A4D99-7701-4AC5-A43C-4DD456D158B9}.Debug|amd64.ActiveCfg = Debug|x86
@@ -25,16 +25,16 @@ Global
 		{BA2A4D99-7701-4AC5-A43C-4DD456D158B9}.Release|amd64.Build.0 = Release|x86
 		{BA2A4D99-7701-4AC5-A43C-4DD456D158B9}.Release|win32.ActiveCfg = Release|x86
 		{BA2A4D99-7701-4AC5-A43C-4DD456D158B9}.Release|win32.Build.0 = Release|x86
-		{A48B4B19-4787-4C37-984B-64E5F557F687}.Debug|amd64.ActiveCfg = Debug|x86
-		{A48B4B19-4787-4C37-984B-64E5F557F687}.Debug|amd64.Build.0 = Debug|x86
+		{A48B4B19-4787-4C37-984B-64E5F557F687}.Debug|amd64.ActiveCfg = Debug|x64
+		{A48B4B19-4787-4C37-984B-64E5F557F687}.Debug|amd64.Build.0 = Debug|x64
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Debug|win32.ActiveCfg = Debug|x86
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Debug|win32.Build.0 = Debug|x86
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Release|amd64.ActiveCfg = Release|x64
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Release|amd64.Build.0 = Release|x64
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Release|win32.ActiveCfg = Release|x86
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Release|win32.Build.0 = Release|x86
-		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|amd64.ActiveCfg = Debug|x86
-		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|amd64.Build.0 = Debug|x86
+		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|amd64.ActiveCfg = Debug|x64
+		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|amd64.Build.0 = Debug|x64
 		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|win32.ActiveCfg = Debug|x86
 		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|win32.Build.0 = Debug|x86
 		{5257C9D8-3610-4568-A145-D8F461283636}.Release|amd64.ActiveCfg = Release|x64

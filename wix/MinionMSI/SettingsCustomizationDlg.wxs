@@ -1,20 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-     This file adapted from "InstallDirDlg.wxs" included with the
-     WiX distribution. The copyright notice for "InstallDirDlg.wxs"
-     is below. LICENSE.TXT is in licenses/MS-RL.txt.
-
-  <copyright file="InstallDirDlg.wxs" company="Outercurve Foundation">
-    Copyright (c) 2004, Outercurve Foundation.
-    This software is released under Microsoft Reciprocal License (MS-RL).
-    The license and further copyright text can be found in the file
-    LICENSE.TXT at the root directory of the distribution.
-  </copyright>
--->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <UI>
-      <Dialog Id="HostnameCustomizationDlg" Width="370" Height="270" Title="[ProductName] Setup">
+      <Dialog Id="SettingsCustomizationDlg" Width="370" Height="270" Title="[ProductName] Setup">
         <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
         <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
@@ -29,9 +17,13 @@
 
         <Control Id="MasterLabel" Type="Text" X="20" Y="75" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Master IP or Hostname:" />
         <Control Id="MasterId" Type="Edit" X="20" Y="90" Width="280" Height="15" Property="MASTER_HOSTNAME" />
-        
+
         <Control Id="MinionLabel" Type="Text" X="20" Y="120" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion Name:" />
         <Control Id="MinionId" Type="Edit" X="20" Y="135" Width="280" Height="15" Property="MINION_HOSTNAME" />
+
+        <Control Id="StartMinionServiceCheckBox" Type="CheckBox" X="20" Y="210" 
+          Width="280" Height="15" Property="START_MINION_SERVICE" CheckBoxValue="1"
+          Text="Start salt-minion service immediately?" />
       </Dialog>
     </UI>
   </Fragment>

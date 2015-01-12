@@ -184,7 +184,10 @@ UpgradeLog*.htm
 FakesAssemblies/
 
 # Binary packages
-installer/*.exe
+nsis/*.exe
 wix/**/*.dll
 wix/**/*.exe
 wix/**/*.msi
+wix/MinionMSI/dist-*
+.nuget/nuget.exe
+dist*

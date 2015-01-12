@@ -1,5 +1,13 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!--
+    ================================================================================
+      Note: $(Platform) is the PROJECT platform, not the SOLUTION platform. If
+            building in Visual Studio, this won't detect amd64 unless your build
+            configuration sets the x64 platform for MinionMSI and MinionEXE, or
+            you set TargetPlatform as a project variable in Visual Studio somewhere.
+    ================================================================================
+  -->
   <PropertyGroup>
     <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
     <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>

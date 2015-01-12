@@ -16,10 +16,10 @@ namespace MinionConfigurationExtension
 
             session.Log("Begin SetRootDir");
             string rootDir;
-
+            
             try
             {
-                rootDir = session[session["MINION_ROOT"]];
+                rootDir = session.CustomActionData["MinionRoot"];
             }
             catch (Exception ex)
             {
@@ -51,7 +51,7 @@ namespace MinionConfigurationExtension
 
             try
             {
-                hostname = session["MASTER_HOSTNAME"];
+                hostname = session.CustomActionData["MasterHostname"];
             }
             catch (Exception ex)
             {
@@ -63,7 +63,7 @@ namespace MinionConfigurationExtension
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
 
-            bool result = processConfigChange(session,session[session["MINION_ROOT"]],"^#*master:",String.Format("master: {0}\n",hostname));
+            bool result = processConfigChange(session,session.CustomActionData["MinionRoot"],"^#*master:",String.Format("master: {0}\n",hostname));
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
 
@@ -83,7 +83,7 @@ namespace MinionConfigurationExtension
 
             try
             {
-                hostname = session["MINION_HOSTNAME"];
+                hostname = session.CustomActionData["MinionHostname"];
             }
             catch (Exception ex)
             {
@@ -95,7 +95,7 @@ namespace MinionConfigurationExtension
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
 
-            bool result = processConfigChange(session,session[session["MINION_ROOT"]],"^#*id:",String.Format("id: {0}\n",hostname));
+            bool result = processConfigChange(session, session.CustomActionData["MinionRoot"], "^#*id:", String.Format("id: {0}\n", hostname));
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
 

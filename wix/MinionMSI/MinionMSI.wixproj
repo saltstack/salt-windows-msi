@@ -36,7 +36,7 @@
   <ItemGroup>
     <Compile Include="buildenv.wxs" />
     <Compile Include="service.wxs" />
-    <Compile Include="HostnameCustomizationDlg.wxs" />
+    <Compile Include="SettingsCustomizationDlg.wxs" />
     <Compile Include="MinionConfigurationExtensionCA.wxs" />
     <Compile Include="Product.wxs" />
     <Compile Include="WixUI_Minion.wxs" />
