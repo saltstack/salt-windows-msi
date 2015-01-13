@@ -19,6 +19,10 @@
     <Icon Id="icon" SourceFile="$(var.buildenv)\salt.ico" />
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
 
+    <!-- override the banners -->
+    <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
+    <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
+
     <Property Id="ARPPRODUCTICON"                       Value="icon"                 />
     <Property Id="ARPURLINFOABOUT"                      Value="http://saltstack.org" />
     <Property Id="MASTER_HOSTNAME"                      Value="salt"                 />
