@@ -1,0 +1,59 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- Called from both MinionMSI.wixproj and msbuild.proj to stage the
+       correct distribution for the compile. Called from both places to
+       support WiX and NSIS compiles -->
+
+  <Import Project="Minion.Common.targets" />
+
+  <!--
+  ==================================================================================
+       BuildDistFragments
+
+         Generates dist-$(TargetPlatform).wxs using the WiX <HeatDirectory /> task.
+
+         [IN]
+         @(DistContent) - the extracted dist zipfile content
+  ==================================================================================
+  -->
+  <Target Name="BuildDistFragments" Inputs="@(DistContent)" Outputs="dist-$(TargetPlatform).wxs" DependsOnTargets="DistContent" BeforeTargets="Compile">
+    <HeatDirectory
+      NoLogo="true"
+      GenerateGuidsNow="true"
+      OutputFile="dist-$(TargetPlatform).wxs"
+      ComponentGroupName="dist"
+      DirectoryRefId="INSTALLFOLDER"
+      Directory="$(ExtractDir)"
+      KeepEmptyDirectories="true"
+      PreProcessorVariable="var.dist"
+      ToolPath="$(WixToolPath)"
+      SuppressRootDirectory="true"
+      SuppressSpecificWarnings="5150"/>
+  </Target>
+
+  <!--
+  ==================================================================================
+       AddDistFragmentToBuild
+
+         Adds the generated dist-$(TargetPlatform).wxs to the build.
+         Called prior to the WiX target which builds the list of items to compile.
+  ==================================================================================
+  -->
+  <Target Name="AddDistFragmentToBuild" BeforeTargets="GenerateCompileWithObjectPath">
+    <ItemGroup>
+      <Compile Include="dist-$(TargetPlatform).wxs" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+  ==================================================================================
+       CleanDistFragment
+
+         Deletes the generated dist fragment (for rebuild)
+  ==================================================================================
+  -->
+  <Target Name="CleanDistFragment" BeforeTargets="Clean">
+    <Delete Files="dist-$(TargetPlatform).wxs" />
+  </Target>
+
+</Project>

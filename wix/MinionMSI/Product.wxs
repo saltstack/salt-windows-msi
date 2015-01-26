@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" >
+  <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033"
+    Manufacturer="SaltStack, Inc"
+    Name="Salt Minion $(var.DisplayVersion)"
+    Version="$(var.InternalVersion)">
+
+    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+      AllowSameVersionUpgrades="yes" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
+
+    <Feature Id="ProductFeature" Title="Minion" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+    </Feature>
+
+    <Icon Id="icon" SourceFile="$(var.buildenv)\salt.ico" />
+    <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
+
+    <!-- override the banners -->
+    <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
+    <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
+
+    <Property Id="ARPPRODUCTICON"                       Value="icon"                 />
+    <Property Id="ARPURLINFOABOUT"                      Value="http://saltstack.org" />
+    <Property Id="MASTER_HOSTNAME"                      Value="salt"                 />
+    <Property Id="MINION_HOSTNAME"                      Value="$(env.COMPUTERNAME)"  />
+    <Property Id="WIXUI_INSTALLDIR"                     Value="INSTALLFOLDER"        />
+    <Property Id="MSIRESTARTMANAGERCONTROL"             Value="Disable"              />
+
+    <InstallExecuteSequence>
+      <Custom Action='SetMasterPropertiesCA' Before='SetMaster'>NOT Installed</Custom>
+      <Custom Action='SetMaster' Before='SetMinionIdPropertiesCA'>NOT Installed</Custom>
+
+      <Custom Action='SetMinionIdPropertiesCA' Before='SetMinionId'>NOT Installed</Custom>
+      <Custom Action='SetMinionId' Before='SetRootDirPropertiesCA'>NOT Installed</Custom>
+
+      <Custom Action='SetRootDirPropertiesCA' Before='SetRootDir'>NOT Installed</Custom>
+      <Custom Action='SetRootDir' Before='StartServices'>NOT Installed</Custom>
+
+      <StartServices Sequence="5900">
+        <![CDATA[START_MINION_SERVICE = "1"]]>
+      </StartServices>
+    </InstallExecuteSequence>
+
+    <UIRef Id="WixUI_Minion" />
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+        <Directory Id="INSTALLFOLDER" Name="salt" />
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <ComponentGroupRef Id="buildenv" />
+      <ComponentGroupRef Id="dist" />
+      <ComponentGroupRef Id="service" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>

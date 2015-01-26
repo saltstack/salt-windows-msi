@@ -1,0 +1,229 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="build">
+  <PropertyGroup>
+    <Configuration  Condition="'$(Configuration)'==''">Release</Configuration>
+    <TargetPlatform Condition="'$(TargetPlatform)'==''">win32</TargetPlatform>
+    <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\packages</PackagesDir>
+    <DistDir Condition="'$(DistDir)'==''">$(MSBuildProjectDirectory)\..\salt\dist</DistDir>
+    <BuildEnv Condition="'$(BuildEnv)'==''">$(MSBuildProjectDirectory)\common\buildenv</BuildEnv>
+    <ExtractDir Condition="'$(ExtractDir)'==''">$(MSBuildProjectDirectory)\dist.$(TargetPlatform)</ExtractDir>
+    <MakeNSIS Condition="'$(MakeNSIS)'==''">$(registry:HKEY_LOCAL_MACHINE\Software\NSIS)\makensis.exe</MakeNSIS>
+    <NuGet Condition="'$(NuGet)'==''">$(MSBuildProjectDirectory)\.nuget\NuGet.exe</NuGet>
+    <SolutionProperties>Configuration=$(Configuration);TargetPlatform=$(TargetPlatform);PackagesDir=$(PackagesDir);DistDir=$(DistDir);BuildEnv=$(BuildEnv);ExtractDir=$(ExtractDir)</SolutionProperties>
+    <StagingDir>$(MSBuildProjectDirectory)\output</StagingDir>
+    <TimestampUrl>http://timestamp.verisign.com/scripts/timstamp.dll</TimestampUrl>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
+
+  <ItemGroup>
+    <Wix Include="$(MSBuildProjectDirectory)\wix.sln" />
+    <NSI Include="$(MSBuildProjectDirectory)\nsis\Salt-Minion-Setup.nsi" />
+  </ItemGroup>
+
+  <!--
+    ================================================================================
+       help
+
+         This is also useful to see what the some of the discovered/generated
+         properties (e.g. DisplayVersion) will be.
+    ================================================================================
+  -->
+  <Target Name="help" DependsOnTargets="setVersionProperties">
+
+    <Message Text="
+Usage: msbuild.exe $(MSBuildProjectDirectory)\msbuild.proj
+      [/t:target[,target]] [/p:Property1=Value1 .. /p:PropertyN=ValueN]
+
+Available Targets:
+
+  - wix:              Build just the WiX install packages.
+  - nsis:             Build just the NSIS install packages.
+  - build:            Identical to /t:wix,nsis. The default.
+  - rebuild:          Identical to /t:clean,build.
+  - sign:             Digitally sign install packages.
+  - stage:            Copy build artifacts to a defined location.
+  - clean:            Removes all build artifacts.
+
+Available Properties:
+
+  - BuildEnv:         Where to find the static/common installer content.
+  - BUILD_NUMBER:     The build number for this build (e.g. set by Jenkins).
+  - Configuration:    Debug or Release.
+  - DistDir:          Where to find the main salt distribution zip files.
+  - DistFile:         Path to the distribution zip file to consume.
+  - DisplayVersion:   The user-facing version being built.
+  - ExtractDir:       Where to extract the distribution zip file.
+  - ForceVCRedistDL:  Whether to force re-download of the vcredist file.
+  - InternalVersion:  The WiX/MSI ProductVersion.
+  - MakeNSIS:         Where the makensis.exe binary is location.
+  - NuGet:            Where to find NuGet.exe, required for this build.
+  - StagingDir:       Where to stage built binaries.
+  - TargetPlatform:   Which platform to build. Expected values are win32 or amd64.
+  - Thumbprint:       Certificate thumbprint from Certificate Store to use for digital signing.
+  - TimestampUrl:     URL of a time stamp server.
+
+Current Defaults:
+
+  - BuildEnv:         '$(BuildEnv)'
+  - BUILD_NUMBER:     '$(BUILD_NUMBER)'
+  - Configuration:    '$(Configuration)'
+  - DistDir:          '$(DistDir)'
+  - DistFile:         '@(DistFile)'
+  - DisplayVersion:   '$(DisplayVersion)'
+  - ExtractDir:       '$(ExtractDir)'
+  - ForceVCRedistDL:  '$(ForceVCRedistDL)'
+  - InternalVersion:  '$(InternalVersion)'
+  - MakeNSIS:         '$(MakeNSIS)'
+  - NuGet:            '$(NuGet)'
+  - StagingDir:       '$(StagingDir)'
+  - TargetPlatform:   '$(TargetPlatform)'
+  - Thumbprint:       '$(Thumbprint)'
+  - TimestampUrl:     '$(TimestampUrl)'
+  " />
+  </Target>
+
+  <!--
+    ================================================================================
+       restore
+
+         Run NuGet against the WiX solution to restore dependencies. Requires NuGet.
+
+         If using a NuGet from a non-default location, copy to the default location
+         so the Visual Studio solution doesn't fail.
+    ================================================================================
+  -->
+  <Target Name="restore">
+    <Error Condition="!Exists('$(NuGet)')" Text="Cannot find nuget.exe at $(NuGet). Please download from http://nuget.org or pass /p:NuGet=&lt;path to nuget.exe&gt; to msbuild." />
+    <Copy Condition="'$(NuGet)'!='$(MSBuildProjectDirectory)\.nuget\NuGet.exe'" SourceFiles="$(NuGet)" DestinationFolder=".nuget" />
+    <Exec Command="&quot;$(NuGet)&quot; restore" />
+  </Target>
+
+  <!--
+    ================================================================================
+       build
+    ================================================================================
+  -->
+  <Target Name="build" DependsOnTargets="wix;nsis" />
+
+  <!--
+    ================================================================================
+       wix
+
+         Runs MSBuild against the WiX solution.
+    ================================================================================
+  -->
+  <Target Name="wix" DependsOnTargets="restore">
+    <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />
+  </Target>
+
+  <!--
+    ================================================================================
+       nsis
+
+         Runs makensis.exe against the .nsi in the nsis/ directory.
+
+         [IN]
+         @(DistContent)     - the extracted distribution files. This is set in
+                              Minion.Common.Targets in the common/targets/ dir.
+         @(BuildEnvContent) - the contents of the static buildenv/ dir.
+    ================================================================================
+  -->
+  <Target Name="nsis" DependsOnTargets="restore;DistContent" Inputs="@(DistContent);@(BuildEnvContent)"
+    Outputs="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
+    <PropertyGroup>
+      <BuildEnv>/DBUILDENV="$(MSBuildProjectDirectory)\common\buildenv"</BuildEnv>
+      <DistFiles>/DDISTFILES="$(ExtractDir)"</DistFiles>
+      <ProductVersion>/DPRODUCT_VERSION=$(DisplayVersion)</ProductVersion>
+      <DefinedPlatform>/DTARGET_PLATFORM=$(TargetPlatform)</DefinedPlatform>
+    </PropertyGroup>
+    <Warning Condition="'$(MakeNSIS)'==''" Text="Warning: NSIS not found. Not building NSIS setup.exe" />
+    <Error Condition="'$(MakeNSIS)'!='' AND !Exists('%(NSI.Identity)')" Text="Cannot find NSIS setup file." />
+    <Exec Condition="'$(MakeNSIS)'!=''" Command="&quot;$(MakeNSIS)&quot; $(DefinedPlatform) $(BuildEnv) $(DistFiles) $(ProductVersion) &quot;%(NSI.Identity)&quot;" />
+  </Target>
+
+  <!--
+    ================================================================================
+       stage
+
+         Copy the built setup packages to a common staging location. Preserves the
+         output between runs of msbuild /t:rebuild for different TargetPlatforms.
+    ================================================================================
+  -->
+  <Target Name="stage" AfterTargets="build">
+    <ItemGroup>
+      <Artifacts Include="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
+        <OutputType>nsis</OutputType>
+      </Artifacts>
+      <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionMSI\bin\$(Configuration)\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.msi">
+        <OutputType>wix</OutputType>
+      </Artifacts>
+      <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionEXE\bin\$(Configuration)\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe">
+        <OutputType>wix</OutputType>
+      </Artifacts>
+    </ItemGroup>
+    <Message Text="Copying %(Artifacts.Identity) to $(StagingDir)\%(OutputType)" />
+    <Copy Condition="'$(StagingDir)'!=''" SourceFiles="@(Artifacts)" DestinationFolder="$(StagingDir)\%(Artifacts.OutputType)" />
+  </Target>
+
+  <!--
+    ================================================================================
+       sign
+
+         This will attempt to digitally sign setup packages in the output staging
+         location. Signing requires a valid Code Signing certificate and private
+         key; both must be available in the Personal certificate store for the user
+         running the build. The certificate thumbprint must be either set as an
+         environment variable 'Thumbprint' or passed to msbuild as a Property.
+    ================================================================================
+  -->
+  <Target Name="sign" AfterTargets="stage">
+    <ItemGroup>
+      <SignTarget Include="@(Artifacts->'$(StagingDir)\%(OutputType)\%(Filename)%(Extension)')" />
+    </ItemGroup>
+
+    <Message Condition="'$(Thumbprint)'==''" Text="No certificate thumbprint provided. Not digitally signing output." />
+    <Message Importance="High" Condition="'$(Thumbprint)'!=''" Text="Digitally signing %(SignTarget.Identity) with certificate $(Thumbprint)" />
+
+    <SignFile Condition="'$(Thumbprint)'!='' AND '$(TimestampUrl)'!=''"
+      CertificateThumbprint="$(Thumbprint)" SigningTarget="@(SignTarget)" TimestampUrl="$(TimestampUrl)" />
+
+    <SignFile Condition="'$(Thumbprint)'!='' AND '$(TimestampUrl)'==''"
+      CertificateThumbprint="$(Thumbprint)" SigningTarget="@(SignTarget)" />
+  </Target>
+
+  <!--
+    ================================================================================
+       clean
+    ================================================================================
+  -->
+  <Target Name="clean" DependsOnTargets="cleanwix;cleannsis" />
+
+  <!--
+    ================================================================================
+       cleanwix
+
+         Runs the WiX solution's clean target.
+    ================================================================================
+  -->
+  <Target Name="cleanwix">
+    <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" Targets="clean" />
+  </Target>
+
+  <!--
+    ================================================================================
+       cleannsis
+
+         Delete the NSIS build package.
+    ================================================================================
+  -->
+  <Target Name="cleannsis" DependsOnTargets="setVersionProperties">
+    <Delete Files="$(MSBuildProjectDirectory)\nsis\Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe" />
+  </Target>
+
+  <!--
+    ================================================================================
+       rebuild
+    ================================================================================
+  -->
+  <Target Name="rebuild" DependsOnTargets="clean;build" />
+</Project>
