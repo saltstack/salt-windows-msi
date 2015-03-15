@@ -11,10 +11,10 @@
   <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.WebDownload" />
 
   <ItemGroup>
-    <VCRedistURI Condition="$(TargetPlatform.Contains('win32'))" Include="http://download.microsoft.com/download/d/d/9/dd9a82d0-52ef-40db-8dab-795376989c03/vcredist_x86.exe">
+    <VCRedistURI Condition="$(TargetPlatform.Contains('win32'))" Include="http://download.microsoft.com/download/5/D/8/5D8C65CB-C849-4025-8E95-C3966CAFD8AE/vcredist_x86.exe">
       <DestinationFileName>vcredist_x86.exe</DestinationFileName>
     </VCRedistURI>
-    <VCRedistURI Condition="$(TargetPlatform.Contains('amd64'))" Include="http://download.microsoft.com/download/2/d/6/2d61c766-107b-409d-8fba-c39e61ca08e8/vcredist_x64.exe">
+    <VCRedistURI Condition="$(TargetPlatform.Contains('amd64'))" Include="http://download.microsoft.com/download/5/D/8/5D8C65CB-C849-4025-8E95-C3966CAFD8AE/vcredist_x64.exe">
       <DestinationFileName>vcredist_x64.exe</DestinationFileName>
     </VCRedistURI>
   </ItemGroup>
