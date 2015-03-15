@@ -46,13 +46,34 @@
     <Warning Condition="'@(DistFile->Count())' > 1" Text="We may pick the wrong one!" />
     <Error Condition="'%(DistFile.Identity)'==''" Text="No distfiles for $(TargetPlatform) found in $(DistDir)" />
 
+    <!--
+         some observed distfile name patterns:
+
+         salt-0.17.5-63-g6c102d7.win-amd64
+         salt-2014.1.13-414-g987a577.win-amd64
+         salt-2015.2.0-737-gd8f1cff.win-amd64
+         salt-2015.2.0rc1-165-g72d4ab0.win-amd64
+    -->
     <PropertyGroup>
       <DistZipFile>%(DistFile.Identity)</DistZipFile>
       <DisplayVersion Condition="'$(DisplayVersion)'==''">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-).*(?=.win.*)'))</DisplayVersion>
+
+      <!-- capture origin/develop-generated distfile and append build number -->
       <InternalVersion Condition="'$(InternalVersion)'==''">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-\d\d)[0-9.]*(?=-.*)')).$(BUILD_NUMBER)</InternalVersion>
+
+      <!-- capture origin/YYYY.M-generated distfile and append build number -->
+      <InternalVersion Condition="'$(InternalVersion)'=='.$(BUILD_NUMBER)'">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-\d\d)[0-9.]*(?=rc\d\d*-.*)')).$(BUILD_NUMBER)</InternalVersion>
+
+      <!-- capture origin/Major.minor-generated distfile and append build number -->
+      <InternalVersion Condition="'$(InternalVersion)'=='.$(BUILD_NUMBER)'">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-)[0-9.]*(?=-.*)')).$(BUILD_NUMBER)</InternalVersion>
+
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
       <TargetName>Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup</TargetName>
     </PropertyGroup>
+
+    <Message Text="Using Display Version $(DisplayVersion)"/>
+    <Message Text="Using Internal Version $(InternalVersion)"/>
+    <Error Condition="'$(DisplayVersion)'=='' or '$(InternalVersion)'=='.$(BUILD_NUMBER)'" Text="Could not calculate usable versions from discovered distfile %(DistFile.Filename)." />
   </Target>
 
   <!--
