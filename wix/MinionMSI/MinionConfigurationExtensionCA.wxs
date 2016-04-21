@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
-    <CustomAction Id="SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check'/>
-    <CustomAction Id="SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check'/>
-    <CustomAction Id="SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check'/>
+    <CustomAction Id="SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
 
     <!--
          Executing the above as deferred is necessary to implement the configuration
@@ -21,15 +21,15 @@
          InstallExecuteSequence in Product.wxs.
     -->
 
-    <CustomAction Id="SetMasterPropertiesCA" 
+    <CustomAction Id="SetMasterPropertiesCA"
       Property="SetMaster"
       Value="MasterHostname=[MASTER_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
-    
-    <CustomAction Id="SetMinionIdPropertiesCA" 
+
+    <CustomAction Id="SetMinionIdPropertiesCA"
       Property="SetMinionId"
       Value="MinionHostname=[MINION_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
-    
-    <CustomAction Id="SetRootDirPropertiesCA" 
+
+    <CustomAction Id="SetRootDirPropertiesCA"
       Property="SetRootDir"
       Value="MinionRoot=[INSTALLFOLDER]" />
 
