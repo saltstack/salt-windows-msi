@@ -23,12 +23,13 @@
       OutputFile="dist-$(TargetPlatform).wxs"
       ComponentGroupName="dist"
       DirectoryRefId="INSTALLFOLDER"
-      Directory="$(ExtractDir)"
+      Directory="$(BuildEnv)"
       KeepEmptyDirectories="true"
       PreProcessorVariable="var.dist"
       ToolPath="$(WixToolPath)"
       SuppressRootDirectory="true"
-      SuppressSpecificWarnings="5150"/>
+      SuppressSpecificWarnings="5150"
+      Transforms="$(MSBuildThisFileDirectory)nssm.xsl"/>
   </Target>
 
   <!--
