@@ -105,7 +105,7 @@ See the [msbuild](#msbuild) section for details on available
 targets and properties.
 
 The solution can also be built in Visual Studio, but the embedded defaults for
-version, paths, etc. may be incorrect on your machie.
+version, paths, etc. may be incorrect on your machine.
 
 The build will produce:
  - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.msi
