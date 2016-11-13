@@ -1,0 +1,1 @@
+msiexec /x wix\MinionMSI\bin\Release\Salt-Minion-2016.3.11-amd64-Setup.msi /l*v yuinstall.log
