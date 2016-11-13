@@ -8,6 +8,24 @@ namespace MinionConfigurationExtension
 {
     public class MinionConfiguration : WixExtension
     {
+
+        [CustomAction]
+        public static ActionResult PrepareEvironmentBeforeInstallation(Session session)
+		// Read the comment in Product.wxs
+		// 2016-11-13  mkr initiated, just logs the content of c:\
+        {
+            session.Log("File MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
+			bool result = true;
+			string[] array1 = Directory.GetDirectories(@"C:\");
+			foreach (string name in array1) {
+				session.Log("File MinionConfiguration.cs:: directory " + name); }
+            session.Log("File MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
+            return result ? ActionResult.Success : ActionResult.Failure;
+        }
+
+
+
+
         [CustomAction]
         public static ActionResult SetRootDir(Session session)
         {
