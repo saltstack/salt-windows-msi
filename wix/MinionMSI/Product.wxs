@@ -31,7 +31,7 @@
     <Property Id="MSIRESTARTMANAGERCONTROL"             Value="Disable"              />
 
     <InstallExecuteSequence>
-      <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute -->
+      <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
       <Custom Action='SetMasterPropertiesCA' Before='SetMaster'>NOT Installed</Custom>
       <Custom Action='SetMaster' Before='SetMinionIdPropertiesCA'>NOT Installed</Custom>
 
