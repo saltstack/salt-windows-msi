@@ -9,11 +9,16 @@ namespace MinionConfigurationExtension
     public class MinionConfiguration : WixExtension
     {
 
+		/* 
+		Wix description: read the comments for PrepareEvironmentBeforeInstallation in wix/MinionMSI/Product.wxs
+		2016-11-13  mkr initiated, just logs the content of c:\
+		use d:\data\Magni\work-packages\apps-dhlcopy-tools\show-software\show-software\
+		C# description:
+		If NSIS is installed:
+		  remove service, registry and files (except /salt/conf and /salt/var)
+		*/
         [CustomAction]
-        public static ActionResult PrepareEvironmentBeforeInstallation(Session session)
-		// Read the comment in Product.wxs
-		// 2016-11-13  mkr initiated, just logs the content of c:\
-        {
+        public static ActionResult PrepareEvironmentBeforeInstallation(Session session) {
             session.Log("File MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
 			bool result = true;
 			string[] array1 = Directory.GetDirectories(@"C:\");

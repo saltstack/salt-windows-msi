@@ -55,9 +55,9 @@
 
 		Attempt 3: FAIL
 		Are these alternatives?
-		  wixtoolset.org/documentation/manual/v3/xsd/wix/findrelatedproducts.html    -- no because it only modifies the UpgradeTable.
-		  wixtoolset.org/documentation/manual/v3/xsd/wix/migratefeaturestates.html   -- no because NSIS has no feature states
-		  wixtoolset.org/documentation/manual/v3/xsd/wix/removeexistingproducts.html -- no because we must not uninstall NSIS, just peel it.
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/findrelatedproducts.html    | no because it only modifies the UpgradeTable.
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/migratefeaturestates.html   | no because NSIS has no feature states
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/removeexistingproducts.html | no because we must not uninstall NSIS, just peel it.
 
 		Note 1:
 		LaunchConditions seems only to terminate the installer.
