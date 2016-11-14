@@ -31,38 +31,36 @@
     <Property Id="MSIRESTARTMANAGERCONTROL"             Value="Disable"              />
 
 	  <!-- 2016-11-13  mkr
-		I need to specify a custom action before any file operation because I need to manipulate the NSIS installation.
-		I need a custom action that deals with NSIS.
+		We need a custom action to manipulate a previous NSIS installation.
+		This custom action must start before any file operation.
 
-	     An action in InstallExecuteSequence with attribute Before='SetMasterPropertiesCA' is already after the MSI created directories in TARGETDIR.
-		 This is even the case for attribute Before='InstallFiles', but curiously, I dont see the salt/bin directory
+		Attempt 1: FAIL
+		  Before='InstallFiles' in InstallExecuteSequence is already too late.
 
-		 The custom action shall be named PrepareEvironmentBeforeInstallation
-		 More generally, I need to check the enviromnent, more specifically another application.
-		 This custom action must be executed 'very early'.
-		 The best bet for 'very early' seems to be before "LaunchConditions".
-		 It is odd that LaunchConditions seems to only serve to terminate the installer.
+		Attempt 2:
+		 Before='LaunchConditions' in 4 sequences.
+		 The custom action is named PrepareEvironmentBeforeInstallation
 		 From     http://stackoverflow.com/questions/11668875/execute-a-custom-action-before-product-condition
 		   The LaunchConditions action is scheduled to run in both InstallUISequence and InstallExecuteSequence.
-		   You must hook a 'very early' custom action before 'LaunchConditions' in both sequences.
-		   You should define it with Execute='firstSequence' attribute - this way it will run (only?) the first sequence it is met in.
-		 The Wix-definition of the custom action is in wix/MinionMSI/MinionConfigurationExtensionCA.wxs
-		 The C# code        of the custom action is in wix/MinionConfigurationExtension/MinionConfiguration.cs
+		   You must specify such a custom action in both sequences.
+		   You should define it with Execute='firstSequence' attribute - this way it will run only the first sequence it is met in.
+		 It is defined in wix/MinionMSI/MinionConfigurationExtensionCA.wxs
+		 It is coded   in wix/MinionConfigurationExtension/MinionConfiguration.cs
 
 		 From  http://wixtoolset.org/documentation/manual/v3/xsd/wix/launchconditions.html
-		   There are two more parents, maybe grown in the meantime. I add all of them.
+		   Found two more parent sequences. I add all of them.
 
-		The result of the effort of 'very early' is this line
-		Calling custom action MinionConfigurationExtension!MinionConfigurationExtension.MinionConfiguration.PrepareEvironmentBeforeInstallation
-		in line 142 in logfile markus.log
-		created with
-		msiexec /i wix\MinionMSI\bin\Release\Salt-Minion-2016.3.11-amd64-Setup.msi /l*v markus.log
-		I think line 142 is OK.
+		In a /l*v log file, PrepareEvironmentBeforeInstallation is around line 132, only after actions INSTALL and FindRelatedProducts.
+		I have the impression, this is early enough.
 
-	    -- 2016-11-14  mkr
-		I noticed there are dedicated elements exists. What are the pros and cons?
-		  http://wixtoolset.org/documentation/manual/v3/xsd/wix/findrelatedproducts.html
-		  http://wixtoolset.org/documentation/manual/v3/xsd/wix/migratefeaturestates.html
+		Attempt 3: FAIL
+		Are these alternatives?
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/findrelatedproducts.html    -- no because it only modifies the UpgradeTable.
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/migratefeaturestates.html   -- no because NSIS has no feature states
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/removeexistingproducts.html -- no because we must not uninstall NSIS, just peel it.
+
+		Note 1:
+		LaunchConditions seems only to terminate the installer.
 	-->
 
 	<AdminUISequence>
