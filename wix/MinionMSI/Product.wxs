@@ -31,13 +31,12 @@
     <Property Id="MSIRESTARTMANAGERCONTROL"             Value="Disable"              />
 
 	  <!-- 2016-11-13  mkr
+		I need to specify a custom action before any file operation because I need to manipulate the NSIS installation.
+		I need a custom action that deals with NSIS.
+
 	     An action in InstallExecuteSequence with attribute Before='SetMasterPropertiesCA' is already after the MSI created directories in TARGETDIR.
 		 This is even the case for attribute Before='InstallFiles', but curiously, I dont see the salt/bin directory
 
-		 I need to specify a custom action before any file operation because I need to manipulate the NSIS installation.
-		 http://stackoverflow.com/questions/11668875/execute-a-custom-action-before-product-condition
-
-		 I need a custom action that deals with NSIS.
 		 The custom action shall be named PrepareEvironmentBeforeInstallation
 		 More generally, I need to check the enviromnent, more specifically another application.
 		 This custom action must be executed 'very early'.
@@ -59,6 +58,11 @@
 		created with
 		msiexec /i wix\MinionMSI\bin\Release\Salt-Minion-2016.3.11-amd64-Setup.msi /l*v markus.log
 		I think line 142 is OK.
+
+	    -- 2016-11-14  mkr
+		I noticed there are dedicated elements exists. What are the pros and cons?
+		  http://wixtoolset.org/documentation/manual/v3/xsd/wix/findrelatedproducts.html
+		  http://wixtoolset.org/documentation/manual/v3/xsd/wix/migratefeaturestates.html
 	-->
 
 	<AdminUISequence>
