@@ -33,6 +33,8 @@
 	  <!-- 2016-11-13  mkr
 		We need a custom action to manipulate a previous NSIS installation.
 		This custom action must start before any file operation.
+		Catch: the manipulation will essentially uninstall NSIS, but leave the configuration.
+		If the installer than fails, this is a catch.
 
 		Attempt 1: FAIL
 		  Before='InstallFiles' in InstallExecuteSequence is already too late.
@@ -60,7 +62,7 @@
 		  wixtoolset.org/documentation/manual/v3/xsd/wix/removeexistingproducts.html | no because we must not uninstall NSIS, just peel it.
 
 		Note 1:
-		LaunchConditions seems only to terminate the installer.
+		 LaunchConditions seems only to terminate the installer.
 	-->
 
 	<AdminUISequence>
