@@ -6,7 +6,7 @@
     Manufacturer="SaltStack, Inc"
     UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD642}"
     AboutUrl="http://saltstack.org"
-    IconSourceFile="$(var.buildenv)\salt.ico"
+    IconSourceFile="$(var.dist)\salt.ico"
     DisableModify="yes">
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication

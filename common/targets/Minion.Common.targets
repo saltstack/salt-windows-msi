@@ -11,19 +11,10 @@
   <PropertyGroup>
     <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
     <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>
-    <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\..\..\packages</PackagesDir>
-    <DistDir Condition="'$(DistDir)'==''">$(MSBuildProjectDirectory)\..\..\..\salt\dist</DistDir>
-    <BuildEnv Condition="'$(BuildEnv)'==''">$(MSBuildProjectDirectory)\..\..\common\buildenv</BuildEnv>
-    <ExtractDir Condition="'$(ExtractDir)'==''">$(MSBuildProjectDirectory)\..\..\dist.$(TargetPlatform)</ExtractDir>
-    <DefineConstants>$(DefineConstants);buildenv=$(BuildEnv);dist=$(ExtractDir);TargetPlatform=$(TargetPlatform)</DefineConstants>
+    <BuildEnv Condition="'$(BuildEnv)'==''">$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..\salt\pkg\windows\buildenv'))</BuildEnv>
+    <DefineConstants>$(DefineConstants);dist=$(BuildEnv);TargetPlatform=$(TargetPlatform)</DefineConstants>
     <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
   </PropertyGroup>
-
-  <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.Unzip" />
-
-  <ItemGroup>
-    <BuildEnvContent Include="$(BuildEnv)\**\*.*" />
-  </ItemGroup>
 
   <!--
     ================================================================================
@@ -37,85 +28,46 @@
     ================================================================================
   -->
   <Target Name="setVersionProperties">
-    <ItemGroup>
-      <DistFile Condition="'$(DistFile)'==''" Include="$(DistDir)\salt-*.*$(TargetPlatform).zip" />
-      <DistFile Condition="'$(DistFile)'!=''" Include="$(DistFile)" />
-    </ItemGroup>
 
-    <Warning Condition="'@(DistFile->Count())' > 1" Text="Multiple distfiles found: %(DistFile.Identity)." />
-    <Warning Condition="'@(DistFile->Count())' > 1" Text="We may pick the wrong one!" />
-    <Error Condition="'%(DistFile.Identity)'==''" Text="No distfiles for $(TargetPlatform) found in $(DistDir)" />
+    <Error Condition="'$(DisplayVersion)'=='' And '$(InternalVersion)'=='' And '$(Version)'==''" Text="Must set one of: Version, DisplayVersion" />
 
-    <!--
-         some observed distfile name patterns:
-
-         salt-0.17.5-63-g6c102d7.win-amd64
-         salt-2014.1.13-414-g987a577.win-amd64
-         salt-2015.2.0-737-gd8f1cff.win-amd64
-         salt-2015.2.0rc1-165-g72d4ab0.win-amd64
-    -->
     <PropertyGroup>
-      <DistZipFile>%(DistFile.Identity)</DistZipFile>
-      <DisplayVersion Condition="'$(DisplayVersion)'==''">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-).*(?=.win.*)'))</DisplayVersion>
-
-      <!-- capture origin/develop-generated distfile and append build number -->
-      <InternalVersion Condition="'$(InternalVersion)'==''">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-\d\d)[0-9.]*(?=-.*)')).$(BUILD_NUMBER)</InternalVersion>
-
-      <!-- capture origin/YYYY.M-generated distfile and append build number -->
-      <InternalVersion Condition="'$(InternalVersion)'=='.$(BUILD_NUMBER)'">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-\d\d)[0-9.]*(?=rc\d\d*-.*)')).$(BUILD_NUMBER)</InternalVersion>
-
-      <!-- capture origin/Major.minor-generated distfile and append build number -->
-      <InternalVersion Condition="'$(InternalVersion)'=='.$(BUILD_NUMBER)'">$([System.Text.RegularExpressions.Regex]::Match(%(DistFile.Filename), '(?&lt;=salt-)[0-9.]*(?=-.*)')).$(BUILD_NUMBER)</InternalVersion>
-
-      <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
-      <TargetName>Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup</TargetName>
+      <DisplayVersion Condition="'$(DisplayVersion)'=='' And '$(Version)'!=''">$(Version)</DisplayVersion>
+      <YearPosition>$(DisplayVersion.IndexOf('2'))</YearPosition> <!-- We are not afraid of Y3K! -->
+      <DashPosition>$(DisplayVersion.IndexOf('-'))</DashPosition>
+      <InternalVersionStartIndex>$([MSBuild]::Add($(YearPosition),2))</InternalVersionStartIndex>
+      <InternalVersionCalculatedLength Condition="$(DashPosition)&gt;0">$([MSBuild]::Subtract($(DashPosition),$(InternalVersionStartIndex)))</InternalVersionCalculatedLength>
+      <CalculatedInternalVersion Condition="$(DashPosition)&gt;0">$(DisplayVersion.SubString($(InternalVersionStartIndex),$(InternalVersionCalculatedLength)))</CalculatedInternalVersion>
+      <CalculatedInternalVersion Condition="$(DashPosition)&lt;=0">$(DisplayVersion.SubString($(InternalVersionStartIndex)))</CalculatedInternalVersion>
+      <InternalVersion Condition="'$(InternalVersion)'==''">$(CalculatedInternalVersion)</InternalVersion>
+      <InternalVersion Condition="'$(BUILD_NUMBER)'!=''">$(InternalVersion).$(BUILD_NUMBER)</InternalVersion>
     </PropertyGroup>
 
     <Message Text="Using Display Version $(DisplayVersion)"/>
     <Message Text="Using Internal Version $(InternalVersion)"/>
-    <Error Condition="'$(DisplayVersion)'=='' or '$(InternalVersion)'=='.$(BUILD_NUMBER)'" Text="Could not calculate usable versions from discovered distfile %(DistFile.Filename)." />
-  </Target>
 
-  <!--
-    ================================================================================
-       StageDistZip
-
-         Extract the frozen distribution zip file to $(ExtractDir).
-
-         [IN]
-         $(DistZipFile) - the distribution zip file.
-    ================================================================================
-  -->
-  <Target Name="StageDistZip" DependsOnTargets="setVersionProperties" Inputs="$(DistZipFile)" Outputs="$(ExtractDir)">
-    <Error Condition="!Exists('$(DistZipFile)')" Text="No distfile found, nothing to do" />
-    <Unzip ZipFileName="$(DistZipFile)" TargetDirectory="$(ExtractDir)" Quiet="true" />
+    <PropertyGroup>
+      <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
+      <TargetName>Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup</TargetName>
+    </PropertyGroup>
   </Target>
 
   <!--
     ================================================================================
        DistContent
 
-         Build the list of files in $(ExtractDir). This runs every time as the output
+         Build the list of files in $(BuildEnv). This runs every time as the output
          is necessary for other targets.
 
          [OUT]
          @(DistContent) - an ITaskItem[] containing all the extracted dist files.
     ================================================================================
   -->
-  <Target Name="DistContent" DependsOnTargets="StageDistZip" Outputs="@(DistContent)">
+  <Target Name="DistContent" DependsOnTargets="setVersionProperties" Outputs="@(DistContent)">
+    <Message Text="Looking for distribution content in $([System.IO.Path]::GetFullPath('$(BuildEnv)'))"/>
     <ItemGroup>
-      <DistContent Include="$(ExtractDir)\**\*.*" />
+      <DistContent Include="$(BuildEnv)\**\*.*" />
     </ItemGroup>
   </Target>
 
-  <!--
-    ================================================================================
-       CleanDistContent
-
-         Deletes the extracted zip files (for rebuild).
-    ================================================================================
-  -->
-  <Target Name="CleanDistContent" BeforeTargets="Clean" Condition="Exists('$(ExtractDir)')">
-    <RemoveDir ContinueOnError="WarnAndContinue" Directories="$(ExtractDir)" />
-  </Target>
 </Project>

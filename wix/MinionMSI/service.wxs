@@ -3,9 +3,9 @@
   <Fragment>
     <ComponentGroup Id="service">
       <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLFOLDER" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
-        <File Id="fil055DB09E328331BF0202C29D7483905C" KeyPath="yes" Source="$(var.buildenv)\nssm.exe" />
+        <File Id="fil055DB09E328331BF0202C29D7483905C" KeyPath="yes" Source="$(var.dist)\nssm.exe" />
         <ServiceInstall Account="LocalSystem" ErrorControl="normal" Name="salt-minion" Start="auto" Type="ownProcess" Vital="yes"
-          Description="Salt Minion Service" DisplayName="Salt Minion" Id="SaltMinionServiceInstall">
+          Description="Salt Minion from saltstack.com" DisplayName="Salt Minion" Id="SaltMinionServiceInstall">
           <ServiceConfig OnInstall="yes" OnReinstall="yes" DelayedAutoStart="no" />
           <ServiceDependency Id="nsi" />
         </ServiceInstall>
@@ -13,9 +13,10 @@
           <ServiceArgument />
         </ServiceControl>
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion\Parameters">
-          <RegistryValue Type="expandable" Name="AppDirectory" Value="[INSTALLFOLDER]" />
-          <RegistryValue Type="expandable" Name="Application" Value="[INSTALLFOLDER]salt-minion.exe" />
-          <RegistryValue Type="expandable" Name="AppParameters" Value="-c [INSTALLFOLDER]conf" />
+          <RegistryValue Type="expandable" Name="AppDirectory" Value="[INSTALLFOLDER]bin" />
+          <RegistryValue Type="expandable" Name="Application" Value="[INSTALLFOLDER]bin\python.exe" />
+          <RegistryValue Type="expandable" Name="AppParameters" Value="[INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
+          <RegistryValue Type="expandable" Name="AppEnvironmentExtra" Value="PYTHONHOME=" />
         </RegistryKey>
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion\Parameters\AppExit">
           <RegistryValue Type="string" Value="Restart" />

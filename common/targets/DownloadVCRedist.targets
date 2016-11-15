@@ -4,11 +4,22 @@
 
   <Import Project="Minion.Common.targets" />
 
-  <PropertyGroup>
-    <PackagesDir Condition="'$(PackagesDir)'==''">$(MSBuildProjectDirectory)\..\..\packages</PackagesDir>
-  </PropertyGroup>
-
-  <UsingTask AssemblyFile="$(PackagesDir)\MSBuildTasks.1.4.0.88\tools\MSBuild.Community.Tasks.dll" TaskName="MSBuild.Community.Tasks.WebDownload" />
+  <!-- To download the vcredist, instead of requiring nuget + community tasks for WebDownload task -->
+  <!-- http://stackoverflow.com/a/12739168 -->
+  <UsingTask TaskName="DownloadFile" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+    <ParameterGroup>
+      <Address ParameterType="System.String" Required="true"/>
+      <FileName ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Reference Include="System" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+        new System.Net.WebClient().DownloadFile(Address, FileName);
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
 
   <ItemGroup>
     <VCRedistURI Condition="$(TargetPlatform.Contains('win32'))" Include="http://download.microsoft.com/download/5/D/8/5D8C65CB-C849-4025-8E95-C3966CAFD8AE/vcredist_x86.exe">
@@ -54,8 +65,8 @@
   <Target Name="DownloadVCRedist" DependsOnTargets="VCRedistProperties" BeforeTargets="Compile">
     <Warning Condition="Exists($(VCRedistName)) AND $(ForceVCRedistDL) != 'true'"
       Text="Using existing $(VCRedistName)" />
-    <WebDownload Condition="!Exists($(VCRedistName)) OR $(ForceVCRedistDL) == 'true'"
-      FileUri="$(VCRedistURL)" FileName="$(VCRedistName)" />
+    <DownloadFile Condition="!Exists($(VCRedistName)) OR $(ForceVCRedistDL) == 'true'"
+      Address="$(VCRedistURL)" FileName="$(VCRedistName)" />
   </Target>
 
   <!--
