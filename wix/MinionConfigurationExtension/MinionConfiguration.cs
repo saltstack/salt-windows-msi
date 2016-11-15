@@ -48,7 +48,7 @@ namespace MinionConfigurationExtension
             session.Log("MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
 			RegistryKey reg = Registry.LocalMachine;
 			string NSIS_uninstall_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
-			bool NSIS_is_installed = reg.OpenSubKey(str_NSIS_uninstall_key) != null;
+			bool NSIS_is_installed = reg.OpenSubKey(NSIS_uninstall_key) != null;
 			session.Log("PrepareEvironmentBeforeInstallation:: NSIS_is_installed = " + NSIS_is_installed);
 			if (NSIS_is_installed) {
 				Directory.Delete(@"c:\salt\bin", true);
