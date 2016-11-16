@@ -21,9 +21,10 @@ xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl">
 <xsl:template match="wix:ComponentRef[key('nssm', @Id)]"/>
 
 <!--key to detect conf/minion file -->
+<!--                                                          ends-with  ~  substring (A, string-length(A) - string-length(B) + 1)    -->
 <xsl:key name="conf_minion_key" match="wix:Component['conf\minion' = substring(wix:File/@Source, string-length(wix:File/@Source) - 10)]" use="@Id"/>
 
-<!--void Guid component, so conf/minion is not removed on UNINSTALL -->
+<!--void Component Guid, so conf/minion is not removed on UNINSTALL -->
 <xsl:template match="wix:Component[key('conf_minion_key', @Id)]">
   <xsl:copy>
     <xsl:attribute name="Guid">
