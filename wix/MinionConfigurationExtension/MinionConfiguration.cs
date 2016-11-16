@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Tools.WindowsInstallerXml;
 using Microsoft.Win32;
 
+
 namespace MinionConfigurationExtension
 {
     public class MinionConfiguration : WixExtension
@@ -41,21 +42,44 @@ namespace MinionConfigurationExtension
 					remove service, registry and files (except /salt/conf and /salt/var)
 
 			HISTORY
+				2016-11-15  mkr peelNSIS
 				2016-11-15  mkr read the registry for NSIS
 				2016-11-13  mkr initiated, just logs the content of c:\
 
 			*/
             session.Log("MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
-			RegistryKey reg = Registry.LocalMachine;
-			string NSIS_uninstall_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
-			bool NSIS_is_installed = reg.OpenSubKey(NSIS_uninstall_key) != null;
-			session.Log("PrepareEvironmentBeforeInstallation:: NSIS_is_installed = " + NSIS_is_installed);
-			if (NSIS_is_installed) {
-				Directory.Delete(@"c:\salt\bin", true);
-				File.Delete(@"c:\temp\recursiv_delete_me.txt");
-			}
+            RegistryKey reg = Registry.LocalMachine;
+            string NSIS_uninstall_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
+            bool NSIS_is_installed = reg.OpenSubKey(NSIS_uninstall_key) != null;
+            session.Log("PrepareEvironmentBeforeInstallation:: NSIS_is_installed = " + NSIS_is_installed);
+            if (NSIS_is_installed) {
+                session.Log("PrepareEvironmentBeforeInstallation:: Going to stop service salt-minion ...");
+                shellout("sc stop salt-minion");
+                session.Log("PrepareEvironmentBeforeInstallation:: Going to delete service salt-minion ...");
+                shellout("sc delete salt-minion");
+
+                session.Log("PrepareEvironmentBeforeInstallation:: Going to delete ARM registry entry for salt-minion ...");
+                reg.DeleteSubKeyTree(NSIS_uninstall_key, false);
+
+                session.Log("PrepareEvironmentBeforeInstallation:: Going to delete files ...");
+                try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception) { ;}
+                try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception) { ;}
+                try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception) { ;}
+                try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) { ;}
+            }
             session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
             return ActionResult.Success;
+        }
+        static void shellout(string s) {
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = "/C " + s;
+            process.StartInfo = startInfo;
+            process.Start();
+            process.WaitForExit();
+            //  Console.WriteLine(process.StandardOutput.ReadToEnd());
         }
 
 
