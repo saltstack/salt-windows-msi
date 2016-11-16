@@ -22,13 +22,15 @@
     <!-- override the banners -->
     <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
-
-    <Property Id="ARPPRODUCTICON"                       Value="icon"                 />
-    <Property Id="ARPURLINFOABOUT"                      Value="http://saltstack.org" />
-    <Property Id="MASTER_HOSTNAME"                      Value="salt"                 />
-    <Property Id="MINION_HOSTNAME"                      Value="$(env.COMPUTERNAME)"  />
-    <Property Id="WIXUI_INSTALLDIR"                     Value="INSTALLFOLDER"        />
-    <Property Id="MSIRESTARTMANAGERCONTROL"             Value="Disable"              />
+	
+	<!-- set default values -->
+	<Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   /> <!-- see Product.wxs.comments.txt -->
+    <Property Id="ARPPRODUCTICON"           Value="icon"                 />
+    <Property Id="ARPURLINFOABOUT"          Value="http://saltstack.org" />
+    <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
+    <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
+    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
 
 	  <!-- 2016-11-13  mkr
 		We need a custom action to manipulate a previous NSIS installation.
@@ -100,7 +102,7 @@
 
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
-        <Directory Id="INSTALLFOLDER" Name="salt" />
+        <Directory Id="INSTALLFOLDER" Name="salt" />  
     </Directory>
   </Fragment>
 
