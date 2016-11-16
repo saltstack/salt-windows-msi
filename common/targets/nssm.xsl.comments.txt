@@ -1,0 +1,28 @@
+2016-11-16  mkr
+This regards ISSUE 1     https://github.com/markuskramerIgitt/salt-windows-msi/issues/1
+
+
+Heat collects files into XML file salt-windows-msi\wix\MinionMSI\dist-amd64.wxs
+Some file are excluded
+
+This line is especially sad:
+
+            <Component Id="cmpF3CE08C037F32A1C76DF93B02A6ACB79" Directory="dirA7CC33A34163812EEAF3B20CD074A564" Guid="{357ECA3A-24C0-49C5-9964-6CF9504168C4}">
+                <File Id="filF7B75C18646D054B4C42FBFF0826EBA7" KeyPath="yes" Source="$(var.dist)\conf\minion" />
+            </Component>
+			
+It means that Wix treats conf/minion as part of the installation.
+On uninstall, WiX removed all parts of the installation.
+
+Approach 1:
+  Remove the GUID of the component.
+  No idea how to do that.
+  
+  
+Approach 2:
+  exclude the components.
+  nssm.xsl should be doing exactly that.
+  It filters out nssm.exe
+  in fact nssm.exe is not in salt-windows-msi\wix\MinionMSI\dist-amd64.wxs
+  
+http://stackoverflow.com/questions/11848780/use-ends-with-in-xslt-v1-0
