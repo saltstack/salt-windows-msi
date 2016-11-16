@@ -16,8 +16,18 @@ xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl">
 <!--Set up key for ignoring nssm-->
 <xsl:key name="nssm" match="wix:Component[contains(wix:File/@Source, 'nssm.exe')]" use="@Id"/>
 
-<!--Match and ignore .config files-->
+<!--Set up key for ignoring xyz -->
+<xsl:key name="xyz" match="wix:Component['conf\minion' = substring(wix:File/@Source, string-length(wix:File/@Source) - 10)]" use="@Id"/>
+
+
+
+<!--Match and ignore nssm -->
 <xsl:template match="wix:Component[key('nssm', @Id)]"/>
 <xsl:template match="wix:ComponentRef[key('nssm', @Id)]"/>
+
+<!--Match and ignore xyz -->
+<xsl:template match="wix:Component[key('xyz', @Id)]"/>
+<xsl:template match="wix:ComponentRef[key('xyz', @Id)]"/>
+
 
 </xsl:stylesheet>

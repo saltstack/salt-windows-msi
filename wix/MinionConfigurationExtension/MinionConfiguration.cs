@@ -59,7 +59,7 @@ namespace MinionConfigurationExtension
                 shellout("sc delete salt-minion");
 
                 session.Log("PrepareEvironmentBeforeInstallation:: Going to delete ARM registry entry for salt-minion ...");
-                reg.DeleteSubKeyTree(NSIS_uninstall_key, false);
+                try { reg.DeleteSubKeyTree(NSIS_uninstall_key);} catch (Exception) { ;}
 
                 session.Log("PrepareEvironmentBeforeInstallation:: Going to delete files ...");
                 try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception) { ;}
