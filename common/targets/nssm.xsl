@@ -6,28 +6,32 @@ xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl">
 
 <xsl:output method="xml" indent="yes"/>
 
-<!--Identity Transform-->
+<!--Identity Transform -->
 <xsl:template match="@*|node()">
 <xsl:copy>
 <xsl:apply-templates select="@*|node()"/>
 </xsl:copy>
 </xsl:template>
 
-<!--Set up key for ignoring nssm-->
+<!--key to detect nssm-->
 <xsl:key name="nssm" match="wix:Component[contains(wix:File/@Source, 'nssm.exe')]" use="@Id"/>
 
-<!--Set up key for ignoring xyz -->
-<xsl:key name="xyz" match="wix:Component['conf\minion' = substring(wix:File/@Source, string-length(wix:File/@Source) - 10)]" use="@Id"/>
-
-
-
-<!--Match and ignore nssm -->
+<!--Match and ignore nssm  (MAYBE DOING NOTHING) -->
 <xsl:template match="wix:Component[key('nssm', @Id)]"/>
 <xsl:template match="wix:ComponentRef[key('nssm', @Id)]"/>
 
-<!--Match and ignore xyz -->
-<xsl:template match="wix:Component[key('xyz', @Id)]"/>
-<xsl:template match="wix:ComponentRef[key('xyz', @Id)]"/>
+<!--key to detect conf/minion file -->
+<xsl:key name="conf_minion_key" match="wix:Component['conf\minion' = substring(wix:File/@Source, string-length(wix:File/@Source) - 10)]" use="@Id"/>
+
+<!--void Guid component, so conf/minion is not removed on UNINSTALL -->
+<xsl:template match="wix:Component[key('conf_minion_key', @Id)]">
+  <xsl:copy>
+    <xsl:attribute name="Guid">
+      <xsl:value-of select="''"/>
+    </xsl:attribute>
+    <xsl:apply-templates select="@*[local-name()!='Guid']|node()"/>
+  </xsl:copy>
+</xsl:template>
 
 
 </xsl:stylesheet>

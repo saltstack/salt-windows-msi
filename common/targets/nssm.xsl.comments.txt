@@ -24,5 +24,11 @@ Approach 2:
   nssm.xsl should be doing exactly that.
   It filters out nssm.exe
   in fact nssm.exe is not in salt-windows-msi\wix\MinionMSI\dist-amd64.wxs
+  This is an error.
+  There is no nssm.exe, also if I remove the filter.
+  
   
 http://stackoverflow.com/questions/11848780/use-ends-with-in-xslt-v1-0
+
+set attribute to a value while copying:
+   http://stackoverflow.com/questions/1137078/xslt-do-not-match-certain-attributes/12919373#12919373
