@@ -1,1 +1,1 @@
-msiexec /i wix\MinionMSI\bin\Release\Salt-Minion-2016.3.11-amd64-Setup.msi /qn INSTALLFOLDER=c:\salt  /l*v yinstall.log
+msiexec /i wix\MinionMSI\bin\Release\Salt-Minion-2016.3.11-amd64-Setup.msi /qn /l*v yinstall.log
