@@ -14,12 +14,7 @@ This line is especially sad:
 It means that Wix treats conf/minion as part of the installation.
 On uninstall, WiX removed all parts of the installation.
 
-Approach 1:
-  Remove the GUID of the component.
-  No idea how to do that.
-  
-  
-Approach 2:
+Approach 1: FAIL
   exclude the components.
   nssm.xsl should be doing exactly that.
   It filters out nssm.exe
@@ -28,6 +23,10 @@ Approach 2:
   There is no nssm.exe, also if I remove the filter.
   
   
+
+Approach 2:
+  Remove the GUID of the component.
+      
 http://stackoverflow.com/questions/11848780/use-ends-with-in-xslt-v1-0
 
 set attribute to a value while copying:
