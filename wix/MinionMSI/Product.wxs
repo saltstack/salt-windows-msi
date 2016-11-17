@@ -30,8 +30,8 @@
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
-    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
-
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />	
+	
 	  <!-- 2016-11-13  mkr
 		We need a custom action to manipulate a previous NSIS installation.
 		This custom action must start before any file operation.
@@ -79,23 +79,24 @@
 		<Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
     </AdminExecuteSequence>
 
-    <InstallExecuteSequence>
-      <Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
+	<InstallExecuteSequence>
+		<Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
 
-      <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
-      <Custom Action='SetMasterPropertiesCA' Before='SetMaster'>NOT Installed</Custom>
-      <Custom Action='SetMaster' Before='SetMinionIdPropertiesCA'>NOT Installed</Custom>
+		<!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
+		<!-- 2016-11-17  mkr  The 6 custom actions only write to conf/minion, not read -->
+		<Custom Action='SetRootDirPropertiesCA' Before='SetRootDir'>NOT Installed</Custom>
+		<Custom Action='SetRootDir' Before='SetMasterPropertiesCA'>NOT Installed</Custom>
 
-      <Custom Action='SetMinionIdPropertiesCA' Before='SetMinionId'>NOT Installed</Custom>
-      <Custom Action='SetMinionId' Before='SetRootDirPropertiesCA'>NOT Installed</Custom>
+		<Custom Action='SetMasterPropertiesCA' Before='SetMaster'>NOT Installed</Custom>
+		<Custom Action='SetMaster' Before='SetMinionIdPropertiesCA'>NOT Installed</Custom>
 
-      <Custom Action='SetRootDirPropertiesCA' Before='SetRootDir'>NOT Installed</Custom>
-      <Custom Action='SetRootDir' After='PrepareEvironmentBeforeInstallation'>NOT Installed</Custom>
+		<Custom Action='SetMinionIdPropertiesCA' Before='SetMinionId'>NOT Installed</Custom>
+		<Custom Action='SetMinionId' Before='StartServices'>NOT Installed</Custom>
 
-      <StartServices Sequence="5900">
-        <![CDATA[START_MINION_SERVICE = "1"]]>
-      </StartServices>
-    </InstallExecuteSequence>
+		<StartServices Sequence="5900">
+			<![CDATA[START_MINION_SERVICE = "1"]]>
+		</StartServices>
+	</InstallExecuteSequence>
 
     <UIRef Id="WixUI_Minion" />
   </Product>

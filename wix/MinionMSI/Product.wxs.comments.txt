@@ -79,8 +79,70 @@ tallInitialize action and the InstallFinalize action in the InstallExecuteSequen
 
 	
 ATTEMPT 4 After='PrepareEvironmentBeforeInstallation'	
-	
+ERROR
+Calling custom action MinionConfigurationExtension!MinionConfigurationExtension.MinionConfiguration.SetMaster
+Begin SetMaster
+Exception: The given key was not present in the dictionary.
+   at System.Collections.Generic.Dictionary`2.get_Item(TKey key)
+   at MinionConfigurationExtension.MinionConfiguration.SetMaster(Session session)
+CustomAction SetMaster returned actual error code 1603 (note this may not be 100% accurate if translation happened inside sandbox)
+Action ended 21:08:30: SetMaster. Return value 3.
+Action ended 21:08:30: INSTALL. Return value 3.
+Property(S): UpgradeCode = {FC6FB3A2-65DE-41A9-AD91-D10A402BD641}
+Property(S): SetMaster = MasterHostname=salt;MinionRoot=
 
+ATTEMPT 5 Custom Action='SetRootDir'  FIRST
+ERROR
+Calling custom action MinionConfigurationExtension!MinionConfigurationExtension.MinionConfiguration.SetRootDir
+Begin SetRootDir
+Exception: The given key was not present in the dictionary.
+   at System.Collections.Generic.Dictionary`2.get_Item(TKey key)
+   at MinionConfigurationExtension.MinionConfiguration.SetRootDir(Session session)
+CustomAction SetRootDir returned actual error code 1603 (note this may not be 100% accurate if translation happened inside sandbox)
+Action ended 21:27:26: SetRootDir. Return value 3.
+Action ended 21:27:26: INSTALL. Return value 3.
+Property(S): UpgradeCode = {FC6FB3A2-65DE-41A9-AD91-D10A402BD641}
+Property(S): SetRootDir = MinionRoot=
+
+
+ANALYSIS  This is too early
+
+
+
+ATTEMPT 6 Custom Action='SetMinionId' Before='AppSearch'
+ERROR
+Calling custom action MinionConfigurationExtension!MinionConfigurationExtension.MinionConfiguration.SetRootDir
+Begin SetRootDir
+Exception: The given key was not present in the dictionary.
+   at System.Collections.Generic.Dictionary`2.get_Item(TKey key)
+   at MinionConfigurationExtension.MinionConfiguration.SetRootDir(Session session)
+CustomAction SetRootDir returned actual error code 1603 (note this may not be 100% accurate if translation happened inside sandbox)
+Action ended 21:32:37: SetRootDir. Return value 3.
+Action ended 21:32:37: INSTALL. Return value 3.
+Property(S): UpgradeCode = {FC6FB3A2-65DE-41A9-AD91-D10A402BD641}
+Property(S): SetRootDir = MinionRoot=
+
+LEARN Custom actions must be deferred to read properties
+http://stackoverflow.com/questions/14471826/wix-custom-action-properties-why-doesnt-this-work
+You have the custom action "caUnregisterDriver" scheduled for immediate execution rather then deferred execution. 
+It won't have a CustomActionData property to deserialize into the collection.
+READ-ON http://www.installsite.org/pages/en/isnews/200108/index.htm
+
+
+CONCLUSION only write into conf/minion
+
+
+ * * * * * * * * * * 
+ * * * * * * * * * * 
+notepad c:\windows\saltstacksalt.ini
+[section1]
+MASTER_HOSTNAME=Golum
+
+Must be ANSI
+
+<Property Id="MASTER_HOSTNAME"><IniFileSearch Id="i1" Name="saltstacksalt.ini" Section="section1" Key="MASTER_HOSTNAME" Type="raw" /></Property>
+
+Works, but do I want this?
 
 
 
