@@ -2,9 +2,10 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <!-- 2016-11-13  mkr  This is glue between C# custom action and  Product.wxs, where these are called. -->
-    <CustomAction Id="SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
+	<!-- 2016-11-17  mkr  BECAUSE After='PrepareEvironmentBeforeInstallation'  REMOVED Execute='deferred' Return='check' Impersonate='no' -->
+    <CustomAction Id="SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   />
+    <CustomAction Id="SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' />
+    <CustomAction Id="SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  />
 
 	<!-- 2016-11-13  mkr
          For PrepareEvironmentBeforeInstallation, read the comment in Product.wxs

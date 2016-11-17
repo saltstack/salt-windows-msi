@@ -90,7 +90,7 @@
       <Custom Action='SetMinionId' Before='SetRootDirPropertiesCA'>NOT Installed</Custom>
 
       <Custom Action='SetRootDirPropertiesCA' Before='SetRootDir'>NOT Installed</Custom>
-      <Custom Action='SetRootDir' Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='SetRootDir' After='PrepareEvironmentBeforeInstallation'>NOT Installed</Custom>
 
       <StartServices Sequence="5900">
         <![CDATA[START_MINION_SERVICE = "1"]]>

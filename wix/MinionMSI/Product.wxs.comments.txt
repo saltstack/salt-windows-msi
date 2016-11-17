@@ -30,3 +30,57 @@
 (Compile target) ->
   C:\git\salt-windows-msi\wix\MinionMSI\Product.wxs(39): error CNDL0104: Not a valid source file; detail: Invalid character in the given en
 coding. Line 39, position 15. [C:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj]
+
+
+
+ * * * * * * * * * * 
+ * * * * * * * * * * 
+ISSUE 16 Existing config file is not read
+https://github.com/markuskramerIgitt/salt-windows-msi/issues/16
+
+COPY OF product.wxs
+    <InstallExecuteSequence>
+      <Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
+
+      <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
+      <Custom Action='SetMasterPropertiesCA' Before='SetMaster'>NOT Installed</Custom>
+      <Custom Action='SetMaster' Before='SetMinionIdPropertiesCA'>NOT Installed</Custom>
+
+      <Custom Action='SetMinionIdPropertiesCA' Before='SetMinionId'>NOT Installed</Custom>
+      <Custom Action='SetMinionId' Before='SetRootDirPropertiesCA'>NOT Installed</Custom>
+
+      <Custom Action='SetRootDirPropertiesCA' Before='SetRootDir'>NOT Installed</Custom>
+      <Custom Action='SetRootDir' Before='StartServices'>NOT Installed</Custom>
+
+      <StartServices Sequence="5900">
+        <![CDATA[START_MINION_SERVICE = "1"]]>
+      </StartServices>
+    </InstallExecuteSequence>
+
+HYPOTHESIS 1  Custom Action='SetRootDir' Before='StartServices' too late.
+	
+ATTEMPT 1 Before='FindRelatedProducts'    STOP becuase may only be triggered when there is a upgrade code 
+https://msdn.microsoft.com/en-us/library/windows/desktop/aa368600(v=vs.85).aspx
+
+
+ATTEMPT 2 Before='AppSearch' STOP because it requires the Signature table.
+https://msdn.microsoft.com/en-us/library/windows/desktop/aa367578(v=vs.85).aspx
+
+
+ATTEMPT 3 Before='LaunchConditions'
+There is already the cusom action PrepareEvironmentBeforeInstallation
+ERRORS
+  c:\git\salt-windows-msi\wix\MinionMSI\Product.wxs(93): error LGHT0204: ICE77: SetRootDir is a in-script custom action.  It must be sequenced in between the Inst
+allInitialize action and the InstallFinalize action in the InstallExecuteSequence table [c:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj]
+  c:\git\salt-windows-msi\wix\MinionMSI\Product.wxs(87): error LGHT0204: ICE77: SetMaster is a in-script custom action.  It must be sequenced in between the Insta
+llInitialize action and the InstallFinalize action in the InstallExecuteSequence table [c:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj]
+  c:\git\salt-windows-msi\wix\MinionMSI\Product.wxs(90): error LGHT0204: ICE77: SetMinionId is a in-script custom action.  It must be sequenced in between the Ins
+tallInitialize action and the InstallFinalize action in the InstallExecuteSequence table [c:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj]
+
+	
+ATTEMPT 4 After='PrepareEvironmentBeforeInstallation'	
+	
+
+
+
+
