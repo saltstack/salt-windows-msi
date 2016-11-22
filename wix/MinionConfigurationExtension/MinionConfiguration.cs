@@ -30,26 +30,25 @@ namespace MinionConfigurationExtension
 
 		I postpone to understand this and do not change TargetFrameworkVersion (leaving it at v2.0).
 	*/
-
         [CustomAction]
         public static ActionResult PrepareEvironmentBeforeInstallation(Session session) {
-			/*
-			Wix description: 
-				Read the comments for PrepareEvironmentBeforeInstallation in wix/MinionMSI/Product.wxs
+            /*
+            Wix description: 
+                Read the comments for PrepareEvironmentBeforeInstallation in wix/MinionMSI/Product.wxs
 
-			C# description:
-				This program shall perform:
-					If NSIS is installed:
-						remove salt-minion service, 
-						remove registry
-						remove files, except /salt/conf and /salt/var
+            C# description:
+                This program shall perform:
+                    If NSIS is installed:
+                        remove salt-minion service, 
+                        remove registry
+                        remove files, except /salt/conf and /salt/var
 
-			HISTORY
-				2016-11-15  mkr service starting and stopping requires a missing C# library/reference. Instead, shellout("sc ...")
-				2016-11-15  mkr read the registry for NSIS
-				2016-11-13  mkr initiated, just logs the content of c:\
+            HISTORY
+                2016-11-15  mkr service starting and stopping requires a missing C# library/reference. Instead, shellout("sc ...")
+                2016-11-15  mkr read the registry for NSIS
+                2016-11-13  mkr initiated, just logs the content of c:\
 
-			*/
+            */
             session.Log("MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
             RegistryKey reg = Registry.LocalMachine;
             string NSIS_uninstall_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
@@ -62,7 +61,7 @@ namespace MinionConfigurationExtension
                 shellout("sc delete salt-minion");
 
                 session.Log("PrepareEvironmentBeforeInstallation:: Going to delete ARM registry entry for salt-minion ...");
-                try { reg.DeleteSubKeyTree(NSIS_uninstall_key);} catch (Exception) { ;}
+                try { reg.DeleteSubKeyTree(NSIS_uninstall_key); } catch (Exception) { ;}
 
                 session.Log("PrepareEvironmentBeforeInstallation:: Going to delete files ...");
                 try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception) { ;}
@@ -72,19 +71,6 @@ namespace MinionConfigurationExtension
             }
             session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
             return ActionResult.Success;
-        }
-
-        static void shellout(string s) {
-					// This is a handmade shellout routine
-            System.Diagnostics.Process process = new System.Diagnostics.Process();
-            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = "/C " + s;
-            process.StartInfo = startInfo;
-            process.Start();
-            process.WaitForExit();
-            //  Console.WriteLine(process.StandardOutput.ReadToEnd());
         }
 
         [CustomAction]
@@ -165,6 +151,21 @@ namespace MinionConfigurationExtension
             session.Log(ex.StackTrace.ToString());
             return ActionResult.Failure;
         }
+
+        private static void shellout(string s) {
+            // This is a handmade shellout routine
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = "/C " + s;
+            process.StartInfo = startInfo;
+            process.Start();
+            process.WaitForExit();
+            //  Console.WriteLine(process.StandardOutput.ReadToEnd());
+        }
+
+
 }
 
 }
