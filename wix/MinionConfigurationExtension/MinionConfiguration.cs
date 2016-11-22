@@ -38,11 +38,14 @@ namespace MinionConfigurationExtension
 				Read the comments for PrepareEvironmentBeforeInstallation in wix/MinionMSI/Product.wxs
 
 			C# description:
-				If NSIS is installed:
-					remove service, registry and files (except /salt/conf and /salt/var)
+				This program shall perform:
+					If NSIS is installed:
+						remove salt-minion service, 
+						remove registry
+						remove files, except /salt/conf and /salt/var
 
 			HISTORY
-				2016-11-15  mkr peelNSIS
+				2016-11-15  mkr service starting and stopping requires a missing C# library/reference. Instead, shellout("sc ...")
 				2016-11-15  mkr read the registry for NSIS
 				2016-11-13  mkr initiated, just logs the content of c:\
 
@@ -70,7 +73,9 @@ namespace MinionConfigurationExtension
             session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
             return ActionResult.Success;
         }
+
         static void shellout(string s) {
+					// This is a handmade shellout routine
             System.Diagnostics.Process process = new System.Diagnostics.Process();
             System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
             startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
