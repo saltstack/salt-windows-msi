@@ -87,124 +87,57 @@ namespace MinionConfigurationExtension
             //  Console.WriteLine(process.StandardOutput.ReadToEnd());
         }
 
-
-
-
         [CustomAction]
-        public static ActionResult SetRootDir(Session session)
-        {
-            session.Message(InstallMessage.ActionStart, new Record("SetRootDir", "Configuring minion root_dir setting", "[1]"));
-            session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
-
-            session.Log("Begin SetRootDir");
-            string rootDir;
-            
-            try
-            {
-                rootDir = session.CustomActionData["MinionRoot"];
-            }
-            catch (Exception ex)
-            {
-                // missing MINION_ROOT
-                session.Log("Exception: {0}", ex.Message.ToString());
-                session.Log(ex.StackTrace.ToString());
-                return ActionResult.Failure;
-            }
-
-            session.Message(InstallMessage.Progress, new Record(2, 1));
-
-            bool result = processConfigChange(session,rootDir,"^root_dir:",String.Format("root_dir: {0}\n",rootDir));
-
-            session.Message(InstallMessage.Progress, new Record(2, 1));
-
-            session.Log("End SetRootDir");
-            return result ? ActionResult.Success : ActionResult.Failure;
+        public static ActionResult SetRootDir(Session session) {
+            return SaveConfigKeyToFile("MinionRoot", "root_dir", session);
         }
 
         [CustomAction]
-        public static ActionResult SetMaster(Session session)
-        {
-            session.Message(InstallMessage.ActionStart, new Record("SetMaster", "Configuring minion master setting", "[1]"));
-            session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
-            
-            session.Log("Begin SetMaster");
-
-            string hostname;
-
-            try
-            {
-                hostname = session.CustomActionData["MasterHostname"];
-            }
-            catch (Exception ex)
-            {
-                // missing MASTER_HOSTNAME
-                session.Log("Exception: {0}", ex.Message.ToString());
-                session.Log(ex.StackTrace.ToString());
-                return ActionResult.Failure;
-            }
-
-            session.Message(InstallMessage.Progress, new Record(2, 1));
-
-            bool result = processConfigChange(session,session.CustomActionData["MinionRoot"],"^#*master:",String.Format("master: {0}\n",hostname));
-
-            session.Message(InstallMessage.Progress, new Record(2, 1));
-
-            session.Log("End SetMaster");
-            return result ? ActionResult.Success : ActionResult.Failure;
+        public static ActionResult SetMaster(Session session) {
+            return SaveConfigKeyToFile("MasterHostname", "master", session);
         }
 
         [CustomAction]
-        public static ActionResult SetMinionId(Session session)
-        {
-            session.Message(InstallMessage.ActionStart, new Record("SetMinionId", "Configuring minion id setting", "[1]"));
+        public static ActionResult SetMinionId(Session session) {
+            return SaveConfigKeyToFile("MinionHostname", "id", session);
+        }
+
+        [CustomAction]
+        private static ActionResult SaveConfigKeyToFile(string CustomActionDataKey, string SaltKey, Session session) {
+            session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
             session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
-
-            session.Log("Begin SetMinionId");
-
-            string hostname;
-
-            try
-            {
-                hostname = session.CustomActionData["MinionHostname"];
-            }
-            catch (Exception ex)
-            {
-                // missing MINION_HOSTNAME
-                session.Log("Exception: {0}", ex.Message.ToString());
-                session.Log(ex.StackTrace.ToString());
-                return ActionResult.Failure;
-            }
-
+            session.Log("Begin SaveConfigKeyToFile " + SaltKey);
+            string value22;
+            try {
+                value22 = session.CustomActionData[CustomActionDataKey];
+            } catch (Exception ex) { return False_after_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex); }
             session.Message(InstallMessage.Progress, new Record(2, 1));
-
-            bool result = processConfigChange(session, session.CustomActionData["MinionRoot"], "^#*id:", String.Format("id: {0}\n", hostname));
-
+            ActionResult result = processConfigChange(session, "^" + SaltKey + ":", String.Format(SaltKey + ": {0}\n", value22));
             session.Message(InstallMessage.Progress, new Record(2, 1));
-
-            session.Log("End SetMinionId");
-            return result ? ActionResult.Success : ActionResult.Failure;
+            session.Log("End SaveConfigKeyToFile " + SaltKey);
+            return result;
         }
 
-		private static bool False_after_ExceptionLog(Session session, Exception ex) {
-            session.Log("Exception: {0}", ex.Message.ToString());
-            session.Log(ex.StackTrace.ToString());
-            return false;
-        }
-		
-        private static bool processConfigChange(Session session, string root, string pattern, string replacement) {
+
+
+        private static ActionResult processConfigChange(Session session, string pattern, string replacement) {
             string config;
             string[] configText;
+            string rootDir;
+            try {
+                rootDir = session.CustomActionData["MinionRoot"];
+            } catch (Exception ex) { return False_after_ExceptionLog("Getting CustomActionData MinionRoot", session, ex); }
 
             try {
-                config = root + "conf\\minion";
-            } catch (Exception ex) { return False_after_ExceptionLog(session, ex); }
+                config = rootDir + "conf\\minion";
+            } catch (Exception ex) { return False_after_ExceptionLog("Concatening config file name", session, ex); }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
             session.Log("Config file: {0}", config);
 
             try {
                 configText = File.ReadAllLines(config);
-            } catch (Exception ex) { return False_after_ExceptionLog(session, ex); }
+            } catch (Exception ex) { return False_after_ExceptionLog("Reading from file", session, ex); }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
 
@@ -215,15 +148,23 @@ namespace MinionConfigurationExtension
                         session.Log("Set line: {0}", configText[i]);
                     }
                 }
-            } catch (Exception ex) { return False_after_ExceptionLog(session, ex); }
+            } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
 
             try {
                 File.WriteAllLines(config, configText);
-            } catch (Exception ex) { return False_after_ExceptionLog(session, ex); }
+            } catch (Exception ex) { return False_after_ExceptionLog("Writing to file", session, ex); }
 
-            return true;
-        }		
-    }
+            return ActionResult.Success;
+        }
+
+        private static ActionResult False_after_ExceptionLog(string description, Session session, Exception ex) {
+            session.Log(description);
+            session.Log("Exception: {0}", ex.Message.ToString());
+            session.Log(ex.StackTrace.ToString());
+            return ActionResult.Failure;
+        }
+}
+
 }
