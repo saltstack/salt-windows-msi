@@ -185,70 +185,45 @@ namespace MinionConfigurationExtension
             return result ? ActionResult.Success : ActionResult.Failure;
         }
 
-        private static bool processConfigChange(Session session, string root, string pattern, string replacement)
-        {
+		private static bool False_after_ExceptionLog(Session session, Exception ex) {
+            session.Log("Exception: {0}", ex.Message.ToString());
+            session.Log(ex.StackTrace.ToString());
+            return false;
+        }
+		
+        private static bool processConfigChange(Session session, string root, string pattern, string replacement) {
             string config;
             string[] configText;
 
-            try
-            {
+            try {
                 config = root + "conf\\minion";
-            }
-            catch (Exception ex)
-            {
-                session.Log("Exception: {0}", ex.Message.ToString());
-                session.Log(ex.StackTrace.ToString());
-                return false;
-            }
+            } catch (Exception ex) { return False_after_ExceptionLog(session, ex); }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
             session.Log("Config file: {0}", config);
 
-            try
-            {
+            try {
                 configText = File.ReadAllLines(config);
-            }
-            catch (Exception ex)
-            {
-                session.Log("Exception: {0}", ex.Message.ToString());
-                session.Log(ex.StackTrace.ToString());
-                return false;
-            }
+            } catch (Exception ex) { return False_after_ExceptionLog(session, ex); }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
 
-            try
-            {
-                for (int i=0; i < configText.Length; i++)
-                {
-                    if (Regex.IsMatch(configText[i], pattern))
-                    {
+            try {
+                for (int i = 0; i < configText.Length; i++) {
+                    if (Regex.IsMatch(configText[i], pattern)) {
                         configText[i] = replacement;
                         session.Log("Set line: {0}", configText[i]);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                session.Log("Exception: {0}", ex.Message.ToString());
-                session.Log(ex.StackTrace.ToString());
-                return false;
-            }
+            } catch (Exception ex) { return False_after_ExceptionLog(session, ex); }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
 
-            try
-            {
+            try {
                 File.WriteAllLines(config, configText);
-            }
-            catch (Exception ex)
-            {
-                session.Log("Exception: {0}", ex.Message.ToString());
-                session.Log(ex.StackTrace.ToString());
-                return false;
-            }
+            } catch (Exception ex) { return False_after_ExceptionLog(session, ex); }
 
             return true;
-        }
+        }		
     }
 }
