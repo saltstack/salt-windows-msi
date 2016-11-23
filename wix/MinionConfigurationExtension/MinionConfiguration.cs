@@ -1,9 +1,12 @@
-﻿using System;
-using Microsoft.Deployment.WindowsInstaller;
+﻿using Microsoft.Deployment.WindowsInstaller;
+using Microsoft.Win32;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Microsoft.Tools.WindowsInstallerXml;
-using Microsoft.Win32;
+
+using Microsoft.Tools.WindowsInstallerXml; //has be be in YBUILD. MUST NOT BE IN VISUAL STUDIO
+
 
 
 namespace MinionConfigurationExtension
@@ -30,7 +33,10 @@ namespace MinionConfigurationExtension
 
 		I postpone to understand this and do not change TargetFrameworkVersion (leaving it at v2.0).
 	*/
-        [CustomAction]
+
+	
+
+	        [CustomAction]
         public static ActionResult PrepareEvironmentBeforeInstallation(Session session) {
             /*
             Wix description: 
@@ -50,28 +56,37 @@ namespace MinionConfigurationExtension
 
             */
             session.Log("MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
+            peel_NSIS(session);
+            readSimpleKeys_into_ini_file(session);
+            return ActionResult.Success; //HACK
+            session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
+        }
+
+        private static ActionResult peel_NSIS(Session session) {
+            session.Log("MinionConfiguration.cs:: Begin peel_NSIS");
             RegistryKey reg = Registry.LocalMachine;
             string NSIS_uninstall_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
             bool NSIS_is_installed = reg.OpenSubKey(NSIS_uninstall_key) != null;
-            session.Log("PrepareEvironmentBeforeInstallation:: NSIS_is_installed = " + NSIS_is_installed);
+            session.Log("peel_NSIS:: NSIS_is_installed = " + NSIS_is_installed);
             if (NSIS_is_installed) {
-                session.Log("PrepareEvironmentBeforeInstallation:: Going to stop service salt-minion ...");
+                session.Log("peel_NSIS:: Going to stop service salt-minion ...");
                 shellout("sc stop salt-minion");
-                session.Log("PrepareEvironmentBeforeInstallation:: Going to delete service salt-minion ...");
+                session.Log("peel_NSIS:: Going to delete service salt-minion ...");
                 shellout("sc delete salt-minion");
 
-                session.Log("PrepareEvironmentBeforeInstallation:: Going to delete ARM registry entry for salt-minion ...");
+                session.Log("peel_NSIS:: Going to delete ARM registry entry for salt-minion ...");
                 try { reg.DeleteSubKeyTree(NSIS_uninstall_key); } catch (Exception) { ;}
 
-                session.Log("PrepareEvironmentBeforeInstallation:: Going to delete files ...");
+                session.Log("peel_NSIS:: Going to delete files ...");
                 try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception) { ;}
                 try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception) { ;}
                 try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception) { ;}
                 try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) { ;}
             }
-            session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
+            session.Log("MinionConfiguration.cs:: End peel_NSIS");
             return ActionResult.Success;
         }
+
 
         [CustomAction]
         public static ActionResult SetRootDir(Session session) {
@@ -88,7 +103,58 @@ namespace MinionConfigurationExtension
             return SaveConfigKeyToFile("MinionHostname", "id", session);
         }
 
-        [CustomAction]
+        private static ActionResult readSimpleKeys_into_ini_file(Session session) {
+            /*
+             * read simple keys from the config file into a ini file at a well known location:
+             *   master
+             *   id
+             * 
+             * These keys are later read by WiX components.
+             * 
+             * This is an immediate action?
+             * Why not read into CustamAction Variables?
+             * Is this installer running as 32 or 64 bit application?
+             */
+            session.Log("readSimpleKeys_into_ini_file Start");
+            string[] configText = ConfigFileContent(session);
+            List<string> iniContent = new List<string>();
+            iniContent.Add("[Backup]");
+            session.Message(InstallMessage.Progress, new Record(2, 1));
+            try {
+                Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
+                foreach (string line in configText) {
+                    //session.Log("readSimpleKeys_into_ini_file line " + line);
+                    if (r.IsMatch(line)) {
+                        Match m = r.Match(line);
+                        string key = m.Groups[1].ToString();
+                        string value = m.Groups[2].ToString();
+                        session.Log("readSimpleKeys_into_ini_file key " + key);
+                        session.Log("readSimpleKeys_into_ini_file val " + value);
+                        if (key == "master") { iniContent.Add("master=" + value); }
+                        if (key == "id") { iniContent.Add("id=" + value); }
+                    }
+                }
+            } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
+            session.Message(InstallMessage.Progress, new Record(2, 1));
+            string iniFilePath = @"C:\windows\system32\config\systemprofile\local\SaltStack\Salt";
+            // result in           c:\Windows\SysWOW64\config\systemprofile\local\SaltStack\Salt\minionConfigBackup.ini
+            // because this (the WiX installer) is 32bit application
+            string iniFile = iniFilePath + @"\minionConfigBackup.ini";
+            try {
+                shellout("mkdir " + iniFilePath);
+                session.Log("readSimpleKeys_into_ini_file shellout mkdir " + iniFilePath);
+                shellout(@"mkdir c:\asa123");
+                session.Log(@"readSimpleKeys_into_ini_file shellout mkdir c:\asa123");
+                File.WriteAllLines(iniFile, iniContent.ToArray());
+                session.Log("readSimpleKeys_into_ini_file write " + iniFile);
+            } catch (Exception ex) { return False_after_ExceptionLog("Writing to file", session, ex); }
+            session.Log("readSimpleKeys_into_ini_file Stop");
+            return ActionResult.Success;
+        }
+
+
+
+
         private static ActionResult SaveConfigKeyToFile(string CustomActionDataKey, string SaltKey, Session session) {
             session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
             session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
@@ -104,29 +170,12 @@ namespace MinionConfigurationExtension
             return result;
         }
 
-
-
         private static ActionResult processConfigChange(Session session, string pattern, string replacement) {
-            string config;
-            string[] configText;
-            string rootDir;
-            try {
-                rootDir = session.CustomActionData["MinionRoot"];
-            } catch (Exception ex) { return False_after_ExceptionLog("Getting CustomActionData MinionRoot", session, ex); }
-
-            try {
-                config = rootDir + "conf\\minion";
-            } catch (Exception ex) { return False_after_ExceptionLog("Concatening config file name", session, ex); }
-
+            string config = getConfigFileLocation(session);
+            string[] configText = ConfigFileContent(session);
             session.Message(InstallMessage.Progress, new Record(2, 1));
             session.Log("Config file: {0}", config);
-
-            try {
-                configText = File.ReadAllLines(config);
-            } catch (Exception ex) { return False_after_ExceptionLog("Reading from file", session, ex); }
-
             session.Message(InstallMessage.Progress, new Record(2, 1));
-
             try {
                 for (int i = 0; i < configText.Length; i++) {
                     if (Regex.IsMatch(configText[i], pattern)) {
@@ -135,22 +184,13 @@ namespace MinionConfigurationExtension
                     }
                 }
             } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
-
             session.Message(InstallMessage.Progress, new Record(2, 1));
-
             try {
                 File.WriteAllLines(config, configText);
             } catch (Exception ex) { return False_after_ExceptionLog("Writing to file", session, ex); }
-
             return ActionResult.Success;
         }
 
-        private static ActionResult False_after_ExceptionLog(string description, Session session, Exception ex) {
-            session.Log(description);
-            session.Log("Exception: {0}", ex.Message.ToString());
-            session.Log(ex.StackTrace.ToString());
-            return ActionResult.Failure;
-        }
 
         private static void shellout(string s) {
             // This is a handmade shellout routine
@@ -162,9 +202,54 @@ namespace MinionConfigurationExtension
             process.StartInfo = startInfo;
             process.Start();
             process.WaitForExit();
-            //  Console.WriteLine(process.StandardOutput.ReadToEnd());
         }
 
+
+        private static string[] ConfigFileContent(Session session) {
+            string config_file_path = getConfigFileLocation(session);
+            string[] configText;
+            session.Log("readConfigKeys Start");
+            session.Message(InstallMessage.Progress, new Record(2, 1));
+            session.Log("Config file: {0}", config_file_path);
+            try {
+                configText = File.ReadAllLines(config_file_path);
+            } catch (Exception ex) { just_ExceptionLog("Reading from file", session, ex); throw ex; }
+            return configText;
+        }
+
+        private static string getConfigFileLocation(Session session) {
+            string config = "c:\\salt\\conf\\minion";
+            return config; //HACK because immediate canot read CustomActionData
+            string rootDir;
+            session.Log("getConfigFileLocation Start");
+            try {
+                rootDir = session.CustomActionData["MinionRoot"];
+            } catch (Exception ex) { just_ExceptionLog("Getting CustomActionData MinionRoot", session, ex); throw ex; }
+
+            try {
+                config = rootDir + "conf\\minion";
+            } catch (Exception ex) { just_ExceptionLog("Concatening config file name", session, ex); throw ex; }
+            session.Log("getConfigFileLocation Stop");
+            return config;
+        }
+        private static void just_ExceptionLog(string description, Session session, Exception ex) {
+            session.Log(description);
+            session.Log("Exception: {0}", ex.Message.ToString());
+            session.Log(ex.StackTrace.ToString());
+        }
+        private static ActionResult False_after_ExceptionLog(string description, Session session, Exception ex) {
+            just_ExceptionLog(description, session, ex);
+            return ActionResult.Failure;
+        }
+
+
+
+	
+
+	
+	
+	
+	
 
 }
 
