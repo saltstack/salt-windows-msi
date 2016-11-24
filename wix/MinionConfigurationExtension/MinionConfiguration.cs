@@ -9,34 +9,32 @@ using Microsoft.Tools.WindowsInstallerXml; //has be be in YBUILD. MUST NOT BE IN
 
 
 
-namespace MinionConfigurationExtension
-{
-    public class MinionConfiguration : WixExtension
-    {
-	/* 2016-11.15  mkr
-		If I set TargetFrameworkVersion to v4.0, in order to access the 32bit registry from 64bit Windows
-		0) The code
-	        static RegistryKey wrGetKey(string k, bool sw32) {
-				return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, sw32 ? RegistryView.Registry32 : RegistryView.Registry64).OpenSubKey(k);
-			}
-		1) I get a warning that make no sense
-		C:\windows\Microsoft.NET\Framework\v4.0.30319\Microsoft.Common.targets(983,5): warning MSB3644: The reference assemblies for framework ".
-		NETFramework,Version=v4.0" were not found. To resolve this, install the SDK or Targeting Pack for this framework version or retarget your a
-		pplication to a version of the framework for which you have the SDK or Targeting Pack installed. Note that assemblies will be resolved from
-		the Global Assembly Cache (GAC) and will be used in place of reference assemblies. Therefore your assembly may not be correctly targeted f
-		or the framework you intend. [C:\git\salt-windows-msi\wix\MinionConfigurationExtension\MinionConfigurationExtension.csproj]
-		  whereas the log contains
-		SFXCA: Binding to CLR version v4.0.30319
+namespace MinionConfigurationExtension {
+    public class MinionConfiguration : WixExtension {
+        /* 2016-11.15  mkr
+            If I set TargetFrameworkVersion to v4.0, in order to access the 32bit registry from 64bit Windows
+            0) The code
+                static RegistryKey wrGetKey(string k, bool sw32) {
+                    return RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, sw32 ? RegistryView.Registry32 : RegistryView.Registry64).OpenSubKey(k);
+                }
+            1) I get a warning that make no sense
+            C:\windows\Microsoft.NET\Framework\v4.0.30319\Microsoft.Common.targets(983,5): warning MSB3644: The reference assemblies for framework ".
+            NETFramework,Version=v4.0" were not found. To resolve this, install the SDK or Targeting Pack for this framework version or retarget your a
+            pplication to a version of the framework for which you have the SDK or Targeting Pack installed. Note that assemblies will be resolved from
+            the Global Assembly Cache (GAC) and will be used in place of reference assemblies. Therefore your assembly may not be correctly targeted f
+            or the framework you intend. [C:\git\salt-windows-msi\wix\MinionConfigurationExtension\MinionConfigurationExtension.csproj]
+              whereas the log contains
+            SFXCA: Binding to CLR version v4.0.30319
 
-		2) This program finds the 32 bit NSIS in the 64 bit registry.
-		  This is no good.
+            2) This program finds the 32 bit NSIS in the 64 bit registry.
+              This is no good.
 
-		I postpone to understand this and do not change TargetFrameworkVersion (leaving it at v2.0).
-	*/
+            I postpone to understand this and do not change TargetFrameworkVersion (leaving it at v2.0).
+        */
 
-	
 
-	        [CustomAction]
+
+        [CustomAction]
         public static ActionResult PrepareEvironmentBeforeInstallation(Session session) {
             /*
             Wix description: 
@@ -56,13 +54,14 @@ namespace MinionConfigurationExtension
 
             */
             session.Log("MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
-            peel_NSIS(session);
-            readSimpleKeys_into_ini_file(session);
+            if (!peel_NSIS(session)) return ActionResult.Failure;
+            if (!readSimpleKeys_into_ini_file(session)) return ActionResult.Failure;
             session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
-            return ActionResult.Success; //HACK
+            return ActionResult.Success;
         }
 
-        private static ActionResult peel_NSIS(Session session) {
+        private static bool peel_NSIS(Session session) {
+            // todo return false
             session.Log("MinionConfiguration.cs:: Begin peel_NSIS");
             RegistryKey reg = Registry.LocalMachine;
             string NSIS_uninstall_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
@@ -84,26 +83,15 @@ namespace MinionConfigurationExtension
                 try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) { ;}
             }
             session.Log("MinionConfiguration.cs:: End peel_NSIS");
-            return ActionResult.Success;
+            return true;
         }
 
+        // Save user input to conf/minion settings
+        [CustomAction] public static ActionResult SetRootDir(Session session) { return SaveConfigKeyToFile("MinionRoot", "root_dir", session); }
+        [CustomAction] public static ActionResult SetMaster(Session session) { return SaveConfigKeyToFile("MasterHostname", "master", session); }
+        [CustomAction] public static ActionResult SetMinionId(Session session) { return SaveConfigKeyToFile("MinionHostname", "id", session); }
 
-        [CustomAction]
-        public static ActionResult SetRootDir(Session session) {
-            return SaveConfigKeyToFile("MinionRoot", "root_dir", session);
-        }
-
-        [CustomAction]
-        public static ActionResult SetMaster(Session session) {
-            return SaveConfigKeyToFile("MasterHostname", "master", session);
-        }
-
-        [CustomAction]
-        public static ActionResult SetMinionId(Session session) {
-            return SaveConfigKeyToFile("MinionHostname", "id", session);
-        }
-
-        private static ActionResult readSimpleKeys_into_ini_file(Session session) {
+        private static bool readSimpleKeys_into_ini_file(Session session) {
             /*
              * read simple keys from the config file into a ini file at a well known location:
              *   master
@@ -150,14 +138,13 @@ namespace MinionConfigurationExtension
             string iniFile = iniFilePath32 + @"\minionConfigBackup.ini";
             try {
                 System.IO.Directory.CreateDirectory(iniFilePath32);
-                //shellout("mkdir " + iniFilePath);
                 session.Log("readSimpleKeys_into_ini_file CreateDirectory32 " + iniFilePath32);
                 session.Log("readSimpleKeys_into_ini_file CreateDirectory64 " + iniFilePath64);
                 File.WriteAllLines(iniFile, iniContent.ToArray());
                 session.Log("readSimpleKeys_into_ini_file write " + iniFile);
             } catch (Exception ex) { return False_after_ExceptionLog("Writing to file", session, ex); }
             session.Log("readSimpleKeys_into_ini_file Stop");
-            return ActionResult.Success;
+            return true;
         }
 
 
@@ -170,7 +157,7 @@ namespace MinionConfigurationExtension
             string value22;
             try {
                 value22 = session.CustomActionData[CustomActionDataKey];
-            } catch (Exception ex) { return False_after_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex); }
+            } catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex); return ActionResult.Failure; }
             session.Message(InstallMessage.Progress, new Record(2, 1));
             ActionResult result = saveKeyValueToFile(session, "^" + SaltKey + ":", String.Format(SaltKey + ": {0}\n", value22));
             session.Message(InstallMessage.Progress, new Record(2, 1));
@@ -191,11 +178,11 @@ namespace MinionConfigurationExtension
                         session.Log("Set line: {0}", configText[i]);
                     }
                 }
-            } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
+            } catch (Exception ex) { just_ExceptionLog("Looping Regexp", session, ex); return ActionResult.Failure; }
             session.Message(InstallMessage.Progress, new Record(2, 1));
             try {
                 File.WriteAllLines(configFileFullPath, configText);
-            } catch (Exception ex) { return False_after_ExceptionLog("Writing to file", session, ex); }
+            } catch (Exception ex) { just_ExceptionLog("Writing to file", session, ex); return ActionResult.Failure; }
             return ActionResult.Success;
         }
 
@@ -245,20 +232,20 @@ namespace MinionConfigurationExtension
             session.Log("Exception: {0}", ex.Message.ToString());
             session.Log(ex.StackTrace.ToString());
         }
-        private static ActionResult False_after_ExceptionLog(string description, Session session, Exception ex) {
+        private static bool False_after_ExceptionLog(string description, Session session, Exception ex) {
             just_ExceptionLog(description, session, ex);
-            return ActionResult.Failure;
+            return false;
         }
 
 
 
-	
 
-	
-	
-	
-	
 
-}
+
+
+
+
+
+    }
 
 }
