@@ -6,13 +6,11 @@ Windows MSI installer build toolkit
 - The 'wix/' directory (and wix.sln) produce .msi and .exe setup projects
   implemented using [WiX][WiXId].
 
-Builds for both projects are semi-automated using an
-[MSBuild][MSBuildId] project in this directory.
+Builds for both projects are semi-automated using an [MSBuild][MSBuildId] project in this directory.
 
 ##General Requirements##
 
-- A recent version of MSBuild. The one included with the .NET Framework
-  v4 works fine.
+- A recent version of MSBuild. The one included with the .NET Framework v4 works fine.
 - [WiX][WiXId] v3.9.
 
 ##WiX/MSI Installer##
