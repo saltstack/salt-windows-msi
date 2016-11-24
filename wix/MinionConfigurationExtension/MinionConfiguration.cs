@@ -58,8 +58,8 @@ namespace MinionConfigurationExtension
             session.Log("MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
             peel_NSIS(session);
             readSimpleKeys_into_ini_file(session);
-            return ActionResult.Success; //HACK
             session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
+            return ActionResult.Success; //HACK
         }
 
         private static ActionResult peel_NSIS(Session session) {
@@ -108,15 +108,23 @@ namespace MinionConfigurationExtension
              * read simple keys from the config file into a ini file at a well known location:
              *   master
              *   id
+             *   root_dir ??? THINK
              * 
-             * These keys are later read by WiX components.
+             * The ini file is later read by WiX components.
              * 
-             * This is an immediate action?
-             * Why not read into CustamAction Variables?
-             * Is this installer running as 32 or 64 bit application?
+             * This is an immediate action.
+             * Therefore, I cannot read CustamAction Variables.
+             * Therefore, I need root_dir from the backup ini file.
+             * This installer is running as 32 bit application.
+             * 
+             * THINK
+             * When root_dir is no longer fixed at "c:/salt", 
+             *   read root_dir from c:\Windows\SysWOW64\config\systemprofile\local\SaltStack\Salt\minionConfigBackup.ini
+             *   read simple keys to root_dir/conf/minion to ini
+             * 
              */
             session.Log("readSimpleKeys_into_ini_file Start");
-            string[] configText = ConfigFileContent(session);
+            string[] configText = ReadFileContent(session, "c:\\salt\\conf\\minion"); // hack
             List<string> iniContent = new List<string>();
             iniContent.Add("[Backup]");
             session.Message(InstallMessage.Progress, new Record(2, 1));
@@ -136,15 +144,15 @@ namespace MinionConfigurationExtension
                 }
             } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
             session.Message(InstallMessage.Progress, new Record(2, 1));
-            string iniFilePath = @"C:\windows\system32\config\systemprofile\local\SaltStack\Salt";
-            // result in           c:\Windows\SysWOW64\config\systemprofile\local\SaltStack\Salt\minionConfigBackup.ini
-            // because this (the WiX installer) is 32bit application
-            string iniFile = iniFilePath + @"\minionConfigBackup.ini";
+            string iniFilePath32 = @"C:\windows\system32\config\systemprofile\Local\SaltStack\Salt";
+            string iniFilePath64 = @"C:\windows\SysWOW64\config\systemprofile\Local\SaltStack\Salt";
+            // result in 64 on 64bit Windows because this (the WiX installer) is a 32bit application
+            string iniFile = iniFilePath32 + @"\minionConfigBackup.ini";
             try {
-                shellout("mkdir " + iniFilePath);
-                session.Log("readSimpleKeys_into_ini_file shellout mkdir " + iniFilePath);
-                shellout(@"mkdir c:\asa123");
-                session.Log(@"readSimpleKeys_into_ini_file shellout mkdir c:\asa123");
+                System.IO.Directory.CreateDirectory(iniFilePath32);
+                //shellout("mkdir " + iniFilePath);
+                session.Log("readSimpleKeys_into_ini_file CreateDirectory32 " + iniFilePath32);
+                session.Log("readSimpleKeys_into_ini_file CreateDirectory64 " + iniFilePath64);
                 File.WriteAllLines(iniFile, iniContent.ToArray());
                 session.Log("readSimpleKeys_into_ini_file write " + iniFile);
             } catch (Exception ex) { return False_after_ExceptionLog("Writing to file", session, ex); }
@@ -164,17 +172,17 @@ namespace MinionConfigurationExtension
                 value22 = session.CustomActionData[CustomActionDataKey];
             } catch (Exception ex) { return False_after_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex); }
             session.Message(InstallMessage.Progress, new Record(2, 1));
-            ActionResult result = processConfigChange(session, "^" + SaltKey + ":", String.Format(SaltKey + ": {0}\n", value22));
+            ActionResult result = saveKeyValueToFile(session, "^" + SaltKey + ":", String.Format(SaltKey + ": {0}\n", value22));
             session.Message(InstallMessage.Progress, new Record(2, 1));
             session.Log("End SaveConfigKeyToFile " + SaltKey);
             return result;
         }
 
-        private static ActionResult processConfigChange(Session session, string pattern, string replacement) {
-            string config = getConfigFileLocation(session);
-            string[] configText = ConfigFileContent(session);
+        private static ActionResult saveKeyValueToFile(Session session, string pattern, string replacement) {
+            string configFileFullPath = getConfigFileLocation(session);
+            string[] configText = ReadFileContent(session, configFileFullPath);
             session.Message(InstallMessage.Progress, new Record(2, 1));
-            session.Log("Config file: {0}", config);
+            session.Log("Config file: {0}", configFileFullPath);
             session.Message(InstallMessage.Progress, new Record(2, 1));
             try {
                 for (int i = 0; i < configText.Length; i++) {
@@ -186,7 +194,7 @@ namespace MinionConfigurationExtension
             } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
             session.Message(InstallMessage.Progress, new Record(2, 1));
             try {
-                File.WriteAllLines(config, configText);
+                File.WriteAllLines(configFileFullPath, configText);
             } catch (Exception ex) { return False_after_ExceptionLog("Writing to file", session, ex); }
             return ActionResult.Success;
         }
@@ -205,21 +213,21 @@ namespace MinionConfigurationExtension
         }
 
 
-        private static string[] ConfigFileContent(Session session) {
-            string config_file_path = getConfigFileLocation(session);
+        private static string[] ReadFileContent(Session session, string config_file_path) {
+            session.Log("ReadFileContent Begin");
+            session.Log("ReadFileContent " + config_file_path);
             string[] configText;
-            session.Log("readConfigKeys Start");
             session.Message(InstallMessage.Progress, new Record(2, 1));
             session.Log("Config file: {0}", config_file_path);
             try {
                 configText = File.ReadAllLines(config_file_path);
             } catch (Exception ex) { just_ExceptionLog("Reading from file", session, ex); throw ex; }
+            session.Log("ReadFileContent End");
             return configText;
         }
 
         private static string getConfigFileLocation(Session session) {
-            string config = "c:\\salt\\conf\\minion";
-            return config; //HACK because immediate canot read CustomActionData
+            string config;
             string rootDir;
             session.Log("getConfigFileLocation Start");
             try {
