@@ -23,6 +23,7 @@ Builds for both projects are semi-automated using an [MSBuild][MSBuildId] projec
   Later this repository should join the rest of saltstack and find the tag there (or the --version information) .
 
 ## Capabilites ##	
+
  Tested on 2016.11.0
  Testcycle: install NSIS, test, install msi, test, install NSIS, test.
  
