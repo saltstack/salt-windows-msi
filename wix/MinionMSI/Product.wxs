@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" >
   <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033"
     Manufacturer="SaltStack, Inc"
@@ -24,14 +25,21 @@
     <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
 
     <!-- set default values -->
-    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   /><!-- see Product.wxs.comments.txt -->
+    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   /> 
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="ARPURLINFOABOUT"          Value="http://saltstack.org" />
-    <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
-    <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
+    <Property Id="MASTER_HOSTNAME999"          Value="salt"                 />
+    <Property Id="MINION_HOSTNAME999"          Value="$(env.COMPUTERNAME)"  />
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
 
+    <Property Id="MASTER_HOSTNAME" Value="salt">
+      <IniFileSearch Id="IniFileSearchID1" Name="SaltstackMinionConfigBackup.ini" Section="Backup" Key="master" Type="raw" />
+    </Property>
+
+    <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)">
+      <IniFileSearch Id="IniFileSearchID2" Name="SaltstackMinionConfigBackup.ini" Section="Backup" Key="id" Type="raw" />
+    </Property>
     <!-- 2016-11-13  mkr
 		We need a custom action to manipulate a previous NSIS installation.
 		This custom action must start before any file operation.
@@ -65,22 +73,31 @@
 
 		Note 1:
 		 LaunchConditions seems only to terminate the installer.
+     
+     2016-11-29  mkr problem: 
+        Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions' 
+     log file sequence:
+        Doing action: AppSearch
+        AppSearch: Property: MASTER_HOSTNAME, Signature: IniFileSearchID1
+        Doing action: PrepareEvironmentBeforeInstallation
+     so it is too late to write NSIS variables into an ini file, because the ini file is already read.
+     Same with before AppSearch.
+     Out of options.
+     hard to understand:      http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/
+     read  http://stackoverflow.com/questions/3449770/how-do-i-read-app-config-values-and-set-properties-in-wix
+     read  http://stackoverflow.com/questions/23805767/wix-custom-actions-reading-parameters-from-an-xml-file
+     
+     using session["MASTER_HOSTNAME"] = value; 
+     I (wrongly?) remmembered that I cannot access CA Parameter in immediate actions.
+     So I can delete the attempt to write to the ini file.
 	-->
 
-    <AdminUISequence>
-      <Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
-    </AdminUISequence>
-
     <InstallUISequence>
-      <Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
+      <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
     </InstallUISequence>
 
-    <AdminExecuteSequence>
-      <Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
-    </AdminExecuteSequence>
-
     <InstallExecuteSequence>
-      <Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
+      <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
 
       <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
       <!-- 2016-11-17  mkr  The 6 custom actions only write to conf/minion, not read -->

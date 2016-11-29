@@ -1,1 +1,11 @@
-msiexec /x wix\MinionMSI\bin\Release\Salt-Minion-2016.3.11-amd64-Setup.msi /l*v yuninstall.log
+@echo off
+:: Get the version from git if not passed
+if [%1]==[] (
+    for /f "delims=" %%a in ('git describe') do @set "Version=%%a"
+) else (
+    set "Version=%~1"
+)
+@echo %0 :: Version %Version%
+@echo.
+
+msiexec /x wix\MinionMSI\bin\Release\Salt-Minion-%version%-amd64-Setup.msi /qn /l*v yinstall.log

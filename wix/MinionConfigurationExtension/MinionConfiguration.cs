@@ -87,9 +87,12 @@ namespace MinionConfigurationExtension {
         }
 
         // Save user input to conf/minion settings
-        [CustomAction] public static ActionResult SetRootDir(Session session) { return SaveConfigKeyToFile("MinionRoot", "root_dir", session); }
-        [CustomAction] public static ActionResult SetMaster(Session session) { return SaveConfigKeyToFile("MasterHostname", "master", session); }
-        [CustomAction] public static ActionResult SetMinionId(Session session) { return SaveConfigKeyToFile("MinionHostname", "id", session); }
+        [CustomAction]
+        public static ActionResult SetRootDir(Session session) { return SaveConfigKeyToFile("MinionRoot", "root_dir", session); }
+        [CustomAction]
+        public static ActionResult SetMaster(Session session) { return SaveConfigKeyToFile("MasterHostname", "master", session); }
+        [CustomAction]
+        public static ActionResult SetMinionId(Session session) { return SaveConfigKeyToFile("MinionHostname", "id", session); }
 
         private static bool readSimpleKeys_into_ini_file(Session session) {
             /*
@@ -98,7 +101,10 @@ namespace MinionConfigurationExtension {
              *   id
              *   root_dir ??? THINK
              * 
-             * The ini file is later read by WiX components.
+             * The ini file is later read by WiX IniFileSearch in product.wxs
+             * Search path is c:\windows 
+             * <Property Id="MASTER_HOSTNAME"><IniFileSearch Id="i1" Name="SaltstackMinionConfigBackup.ini" Section="section1" Key="MASTER_HOSTNAME" Type="raw" /></Property>
+             *
              * 
              * This is an immediate action.
              * Therefore, I cannot read CustamAction Variables.
@@ -126,28 +132,46 @@ namespace MinionConfigurationExtension {
                         string value = m.Groups[2].ToString();
                         session.Log("readSimpleKeys_into_ini_file key " + key);
                         session.Log("readSimpleKeys_into_ini_file val " + value);
-                        if (key == "master") { iniContent.Add("master=" + value); }
-                        if (key == "id") { iniContent.Add("id=" + value); }
+                        if (key == "master") { iniContent.Add("master=" + value); session["MASTER_HOSTNAME"] = value;  }
+                        if (key == "id") { iniContent.Add("id=" + value); session["MINION_HOSTNAME"] = value; }
                     }
                 }
             } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
             session.Message(InstallMessage.Progress, new Record(2, 1));
             string iniFilePath32 = @"C:\windows\system32\config\systemprofile\Local\SaltStack\Salt";
             string iniFilePath64 = @"C:\windows\SysWOW64\config\systemprofile\Local\SaltStack\Salt";
+            // 2016-11-29  mkr  
+            //   I postpone the idea to save settings after an uninstall. The ini file for now is just a temporary file.
+            //   The ini file is read again for each parameter...
+            iniFilePath32 = @"C:\windows\";
             // result in 64 on 64bit Windows because this (the WiX installer) is a 32bit application
-            string iniFile = iniFilePath32 + @"\minionConfigBackup.ini";
+            string iniFile = iniFilePath32 + @"SaltstackMinionConfigBackup.ini";
             try {
-                System.IO.Directory.CreateDirectory(iniFilePath32);
-                session.Log("readSimpleKeys_into_ini_file CreateDirectory32 " + iniFilePath32);
-                session.Log("readSimpleKeys_into_ini_file CreateDirectory64 " + iniFilePath64);
-                File.WriteAllLines(iniFile, iniContent.ToArray());
-                session.Log("readSimpleKeys_into_ini_file write " + iniFile);
+                bool DONT = false;
+                if (DONT) {
+                    System.IO.Directory.CreateDirectory(iniFilePath32);
+                    session.Log("readSimpleKeys_into_ini_file CreateDirectory32 " + iniFilePath32);
+                    //session.Log("readSimpleKeys_into_ini_file CreateDirectory64 " + iniFilePath64);
+                    write_this(iniFile, iniContent.ToArray());
+                    session.Log("readSimpleKeys_into_ini_file write " + iniFile);
+                }
             } catch (Exception ex) { return False_after_ExceptionLog("Writing to file", session, ex); }
             session.Log("readSimpleKeys_into_ini_file Stop");
             return true;
         }
 
-
+        private static void write_this(string thefile, string[] thecontent) {
+            using (var fs = new FileStream(thefile, FileMode.OpenOrCreate, FileAccess.ReadWrite)) {
+                using (var fw = new StreamWriter(fs)) {
+                    foreach (string line in thecontent) { 
+                        fw.Write(line);
+                        fw.Write(System.Environment.NewLine); 
+                    };
+                    fw.Flush(); // Added
+                }
+                fs.Flush();
+            }
+        }
 
 
         private static ActionResult SaveConfigKeyToFile(string CustomActionDataKey, string SaltKey, Session session) {
