@@ -132,8 +132,13 @@ READ-ON http://www.installsite.org/pages/en/isnews/200108/index.htm
 CONCLUSION only write into conf/minion
 
 
+
  * * * * * * * * * * 
  * * * * * * * * * * 
+   Read ini file test
+ * * * * * * * * * * 
+ * * * * * * * * * * 
+
 notepad c:\windows\saltstacksalt.ini
 [section1]
 MASTER_HOSTNAME=Golum
@@ -148,3 +153,84 @@ Works, but do I want this?
 
 
 
+
+ * * * * * * * * * * 
+ * * * * * * * * * * 
+   Failed Idea to read config into ini file
+ * * * * * * * * * * 
+ * * * * * * * * * * 
+ Nice: The property has a default value, if there is no ini file.
+ Ugly: reading the file for each property.	
+ 
+    <Property Id="MASTER_HOSTNAME" Value="salt">
+      <IniFileSearch Id="IniFileSearchID1" Name="SaltstackMinionConfigBackup.ini" Section="Backup" Key="master" Type="raw" />
+    </Property>
+
+    <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)">
+      <IniFileSearch Id="IniFileSearchID2" Name="SaltstackMinionConfigBackup.ini" Section="Backup" Key="id" Type="raw" />
+    </Property>
+
+		
+		
+ * * * * * * * * * * 
+ * * * * * * * * * * 
+  Documentation on "prepare and read NSIS"
+ * * * * * * * * * * 
+ * * * * * * * * * *  
+
+
+		We need a custom action to manipulate a previous NSIS installation.
+		This custom action must start before any file operation.
+		Catch: the manipulation will essentially uninstall NSIS, but leave the configuration.
+		If the installer than fails, this is a catch.
+
+		Attempt 1: FAIL
+		  Before='InstallFiles' in InstallExecuteSequence is already too late.
+
+		Attempt 2:
+		 Before='LaunchConditions' in 4 sequences.
+		 The custom action is named PrepareEvironmentBeforeInstallation
+		 From     http://stackoverflow.com/questions/11668875/execute-a-custom-action-before-product-condition
+		   The LaunchConditions action is scheduled to run in both InstallUISequence and InstallExecuteSequence.
+		   You must specify such a custom action in both sequences.
+		   You should define it with Execute='firstSequence' attribute - this way it will run only the first sequence it is met in.
+		 It is defined in wix/MinionMSI/MinionConfigurationExtensionCA.wxs
+		 It is coded   in wix/MinionConfigurationExtension/MinionConfiguration.cs
+
+		 From  http://wixtoolset.org/documentation/manual/v3/xsd/wix/launchconditions.html
+		   Found two more parent sequences. I add all of them.
+
+		In a /l*v log file, PrepareEvironmentBeforeInstallation is around line 132, only after actions INSTALL and FindRelatedProducts.
+		I have the impression, this is early enough.
+
+		Attempt 3: FAIL
+		Are these alternatives?
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/findrelatedproducts.html    | no because it only modifies the UpgradeTable.
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/migratefeaturestates.html   | no because NSIS has no feature states
+		  wixtoolset.org/documentation/manual/v3/xsd/wix/removeexistingproducts.html | no because we must not uninstall NSIS, just peel it.
+
+		Note 1:
+		 LaunchConditions seems only to terminate the installer.
+     
+     2016-11-29  mkr problem: 
+        Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions' 
+     log file sequence:
+        Doing action: AppSearch
+        AppSearch: Property: MASTER_HOSTNAME, Signature: IniFileSearchID1
+        Doing action: PrepareEvironmentBeforeInstallation
+     so it is too late to write NSIS variables into an ini file, because the ini file is already read.
+     Same with before AppSearch.
+     Out of options.
+     hard to understand:      http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/
+     read  http://stackoverflow.com/questions/3449770/how-do-i-read-app-config-values-and-set-properties-in-wix
+     read  http://stackoverflow.com/questions/23805767/wix-custom-actions-reading-parameters-from-an-xml-file
+     
+     using session["MASTER_HOSTNAME"] = value; 
+     I (wrongly?) remmembered that I cannot access CA Parameter in immediate actions.
+     So I can delete the attempt to write to the ini file.		
+		
+
+
+		
+		
+		
