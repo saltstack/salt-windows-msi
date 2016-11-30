@@ -1,0 +1,150 @@
+  <!-- 2016-11-16 mkr
+       I am looking for error e: https://github.com/markuskramerIgitt/salt-windows-msi/issues/8
+	   Is TARGETDIR maybe e: ?
+	   Yes!
+	   Line 172 of the install log:
+	       PROPERTY CHANGE: Adding TARGETDIR property. Its value is E
+	   Why is TARGETDIR set to e: ?
+	   Looking further up.
+	   Line 147 of the install log:
+	       PROPERTY CHANGE: Adding ROOTDRIVE property. Its value is E
+	   I dont want that!
+	   I have configured a drive e: for testing recovery. Maybe this confuses WiX
+	   From     http://badecho.com/2008/12/the-root-of-the-problem/
+		  If you don’t define and set ROOTDRIVE in the property table of your installer database,
+		  then the tool installing the product has to set the property.
+		  How does it determine which drive to assign to ROOTDRIVE?
+		  It simply looks at all available hard drives, and chooses the one with the most free space.
+		This says MSDN     https://msdn.microsoft.com/en-us/library/windows/desktop/aa371372(v=vs.85).aspx
+
+	   Solution: (from badecho)
+	     Setting ROOTDRIVE to SystemDrive
+  -->
+
+  
+  When In put the above comment in to Product.wxs, it produces this below error which I dont understand
+  
+"C:\git\salt-windows-msi\msbuild.proj" (wix target) (1) ->
+"C:\git\salt-windows-msi\wix.sln" (default target) (2) ->
+"C:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj" (default target) (4) ->
+(Compile target) ->
+  C:\git\salt-windows-msi\wix\MinionMSI\Product.wxs(39): error CNDL0104: Not a valid source file; detail: Invalid character in the given en
+coding. Line 39, position 15. [C:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj]
+
+
+
+ * * * * * * * * * * 
+ * * * * * * * * * * 
+ISSUE 16 Existing config file is not read
+https://github.com/markuskramerIgitt/salt-windows-msi/issues/16
+
+COPY OF product.wxs
+    <InstallExecuteSequence>
+      <Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions'>NOT Installed</Custom>
+
+      <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
+      <Custom Action='SetMasterPropertiesCA' Before='SetMaster'>NOT Installed</Custom>
+      <Custom Action='SetMaster' Before='SetMinionIdPropertiesCA'>NOT Installed</Custom>
+
+      <Custom Action='SetMinionIdPropertiesCA' Before='SetMinionId'>NOT Installed</Custom>
+      <Custom Action='SetMinionId' Before='SetRootDirPropertiesCA'>NOT Installed</Custom>
+
+      <Custom Action='SetRootDirPropertiesCA' Before='SetRootDir'>NOT Installed</Custom>
+      <Custom Action='SetRootDir' Before='StartServices'>NOT Installed</Custom>
+
+      <StartServices Sequence="5900">
+        <![CDATA[START_MINION_SERVICE = "1"]]>
+      </StartServices>
+    </InstallExecuteSequence>
+
+HYPOTHESIS 1  Custom Action='SetRootDir' Before='StartServices' too late.
+	
+ATTEMPT 1 Before='FindRelatedProducts'    STOP becuase may only be triggered when there is a upgrade code 
+https://msdn.microsoft.com/en-us/library/windows/desktop/aa368600(v=vs.85).aspx
+
+
+ATTEMPT 2 Before='AppSearch' STOP because it requires the Signature table.
+https://msdn.microsoft.com/en-us/library/windows/desktop/aa367578(v=vs.85).aspx
+
+
+ATTEMPT 3 Before='LaunchConditions'
+There is already the cusom action PrepareEvironmentBeforeInstallation
+ERRORS
+  c:\git\salt-windows-msi\wix\MinionMSI\Product.wxs(93): error LGHT0204: ICE77: SetRootDir is a in-script custom action.  It must be sequenced in between the Inst
+allInitialize action and the InstallFinalize action in the InstallExecuteSequence table [c:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj]
+  c:\git\salt-windows-msi\wix\MinionMSI\Product.wxs(87): error LGHT0204: ICE77: SetMaster is a in-script custom action.  It must be sequenced in between the Insta
+llInitialize action and the InstallFinalize action in the InstallExecuteSequence table [c:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj]
+  c:\git\salt-windows-msi\wix\MinionMSI\Product.wxs(90): error LGHT0204: ICE77: SetMinionId is a in-script custom action.  It must be sequenced in between the Ins
+tallInitialize action and the InstallFinalize action in the InstallExecuteSequence table [c:\git\salt-windows-msi\wix\MinionMSI\MinionMSI.wixproj]
+
+	
+ATTEMPT 4 After='PrepareEvironmentBeforeInstallation'	
+ERROR
+Calling custom action MinionConfigurationExtension!MinionConfigurationExtension.MinionConfiguration.SetMaster
+Begin SetMaster
+Exception: The given key was not present in the dictionary.
+   at System.Collections.Generic.Dictionary`2.get_Item(TKey key)
+   at MinionConfigurationExtension.MinionConfiguration.SetMaster(Session session)
+CustomAction SetMaster returned actual error code 1603 (note this may not be 100% accurate if translation happened inside sandbox)
+Action ended 21:08:30: SetMaster. Return value 3.
+Action ended 21:08:30: INSTALL. Return value 3.
+Property(S): UpgradeCode = {FC6FB3A2-65DE-41A9-AD91-D10A402BD641}
+Property(S): SetMaster = MasterHostname=salt;MinionRoot=
+
+ATTEMPT 5 Custom Action='SetRootDir'  FIRST
+ERROR
+Calling custom action MinionConfigurationExtension!MinionConfigurationExtension.MinionConfiguration.SetRootDir
+Begin SetRootDir
+Exception: The given key was not present in the dictionary.
+   at System.Collections.Generic.Dictionary`2.get_Item(TKey key)
+   at MinionConfigurationExtension.MinionConfiguration.SetRootDir(Session session)
+CustomAction SetRootDir returned actual error code 1603 (note this may not be 100% accurate if translation happened inside sandbox)
+Action ended 21:27:26: SetRootDir. Return value 3.
+Action ended 21:27:26: INSTALL. Return value 3.
+Property(S): UpgradeCode = {FC6FB3A2-65DE-41A9-AD91-D10A402BD641}
+Property(S): SetRootDir = MinionRoot=
+
+
+ANALYSIS  This is too early
+
+
+
+ATTEMPT 6 Custom Action='SetMinionId' Before='AppSearch'
+ERROR
+Calling custom action MinionConfigurationExtension!MinionConfigurationExtension.MinionConfiguration.SetRootDir
+Begin SetRootDir
+Exception: The given key was not present in the dictionary.
+   at System.Collections.Generic.Dictionary`2.get_Item(TKey key)
+   at MinionConfigurationExtension.MinionConfiguration.SetRootDir(Session session)
+CustomAction SetRootDir returned actual error code 1603 (note this may not be 100% accurate if translation happened inside sandbox)
+Action ended 21:32:37: SetRootDir. Return value 3.
+Action ended 21:32:37: INSTALL. Return value 3.
+Property(S): UpgradeCode = {FC6FB3A2-65DE-41A9-AD91-D10A402BD641}
+Property(S): SetRootDir = MinionRoot=
+
+LEARN Custom actions must be deferred to read properties
+http://stackoverflow.com/questions/14471826/wix-custom-action-properties-why-doesnt-this-work
+You have the custom action "caUnregisterDriver" scheduled for immediate execution rather then deferred execution. 
+It won't have a CustomActionData property to deserialize into the collection.
+READ-ON http://www.installsite.org/pages/en/isnews/200108/index.htm
+
+
+CONCLUSION only write into conf/minion
+
+
+ * * * * * * * * * * 
+ * * * * * * * * * * 
+notepad c:\windows\saltstacksalt.ini
+[section1]
+MASTER_HOSTNAME=Golum
+
+Must be ANSI
+
+<Property Id="MASTER_HOSTNAME"><IniFileSearch Id="i1" Name="saltstacksalt.ini" Section="section1" Key="MASTER_HOSTNAME" Type="raw" /></Property>
+
+Works, but do I want this?
+
+
+
+
+
