@@ -12,7 +12,10 @@ Builds for both projects are semi-automated using an [MSBuild][MSBuildId] projec
 
 - A recent version of MSBuild. The one included with the .NET Framework v4 works fine.
 - [WiX][WiXId] v3.9.
-- A Tag in Git set like ```git tag -a v2000.13.13-0000-00000000 -m "tag mimicing git describe of saltstack"```
+- A Git tag
+
+```
+A Tag in Git set like ```git tag -a v2000.13.13-0000-00000000 -m "tag mimicing git describe of saltstack"```
   Probably the safest is to use the output of git describe.
 	Go to the latest release
 	cd salt
@@ -22,6 +25,7 @@ Builds for both projects are semi-automated using an [MSBuild][MSBuildId] projec
 	The "salt --version" report is independend. Where does it get its information?
   Later this repository should join the rest of saltstack and find the tag there (or the --version information) .
 
+```
 ## Capabilites ##
 
  Tested on 2016.11.0
