@@ -4,7 +4,7 @@
   <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033" Version="$(var.InternalVersion)"
     Name="Salt Minion $(var.DisplayVersion)" Manufacturer="SaltStack, Inc">
 
-    <!-- must be the first element-->
+    <!-- must be the first element -->
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
     <!-- set default values -->
@@ -19,7 +19,7 @@
     <InstallUISequence>
       <!-- 2016-11-13  mkr
 		      To remove a previous NSIS installation but utilise its configuration (peelNSIS), this custom action must start 'early'.
-		      Catch: If the installation than fails and rolls back, peeling cannot be undone.
+		      Catch: If the installation then fails and rolls back, peeling cannot be undone.
 	    -->
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
     </InstallUISequence>
