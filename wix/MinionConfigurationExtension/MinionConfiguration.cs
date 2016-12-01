@@ -65,7 +65,7 @@ namespace MinionConfigurationExtension {
 
 		private static bool read_SimpleSetting_into_Property(Session session) {
 			/*
-			 * Read simple keys from c:/salt/conf/config file into memory.
+			 * Read simple keys from c:/salt/conf/config into WiX properties.
 			 * Is there anybody getting  session.Message(InstallMessage.Progress, new Record(2, 1)) ?
 			 */
 			session.Log("read_SimpleSetting_into_Parameters Begin");
@@ -96,13 +96,13 @@ namespace MinionConfigurationExtension {
 
 		// Save user input to conf/minion settings
 		[CustomAction]
-		public static ActionResult SetRootDir(Session session) /***/ { return save_CustomActionDataKeyValue_to_config_file("MinionRoot", "root_dir", session); }
+		public static ActionResult SetRootDir(Session session) /***/ { return save_CustomActionDataKeyValue_to_config_file(session, "MinionRoot", "root_dir"); }
 		[CustomAction]
-		public static ActionResult SetMaster(Session session) /****/ { return save_CustomActionDataKeyValue_to_config_file("MasterHostname", "master", session); }
+		public static ActionResult SetMaster(Session session) /****/ { return save_CustomActionDataKeyValue_to_config_file(session, "MasterHostname", "master"); }
 		[CustomAction]
-		public static ActionResult SetMinionId(Session session) /**/ { return save_CustomActionDataKeyValue_to_config_file("MinionHostname", "id", session); }
+		public static ActionResult SetMinionId(Session session) /**/ { return save_CustomActionDataKeyValue_to_config_file(session, "MinionHostname", "id"); }
 
-		private static ActionResult save_CustomActionDataKeyValue_to_config_file(string CustomActionDataKey, string SaltKey, Session session) {
+		private static ActionResult save_CustomActionDataKeyValue_to_config_file(Session session, string CustomActionDataKey, string SaltKey) {
 			session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
 			session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
 			session.Log("save_CustomActionDataKeyValue_to_config_file " + SaltKey);
