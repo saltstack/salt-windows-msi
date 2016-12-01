@@ -124,18 +124,30 @@ namespace MinionConfigurationExtension {
 		}
 
 		private static ActionResult replace_pattern_in_config_file(Session session, string pattern, string replacement) {
+			/*
+			 * the pattern finds assigment and assigment commented out:
+			 *    #a:b
+			 *    a:b  
+			 * If the new template contains both, only use one
+			 */
 			string configFileFullPath = getConfigFileLocation(session);
 			string[] configText = File.ReadAllLines(configFileFullPath);
 			session.Message(InstallMessage.Progress, new Record(2, 1));
 			session.Log("replace_pattern_in_config_file..config file    {0}", configFileFullPath);
 			session.Message(InstallMessage.Progress, new Record(2, 1));
 			try {
+				bool never_found_the_pattern = true;
 				for (int i = 0; i < configText.Length; i++) {
 					if (Regex.IsMatch(configText[i], pattern)) {
-						session.Log("replace_pattern_in_config_file..pattern        {0}", pattern);
-						session.Log("replace_pattern_in_config_file..matched  line  {0}", configText[i]);
-						session.Log("replace_pattern_in_config_file..replaced line  {0}", replacement);
-						configText[i] = replacement + "\n";
+						if (never_found_the_pattern) {
+							never_found_the_pattern = false;
+							session.Log("replace_pattern_in_config_file..pattern        {0}", pattern);
+							session.Log("replace_pattern_in_config_file..matched  line  {0}", configText[i]);
+							session.Log("replace_pattern_in_config_file..replaced line  {0}", replacement);
+							configText[i] = replacement + "\n";
+						} else {
+							configText[i] = "\n";  // only assign the the config variable once
+						}
 					}
 				}
 			} catch (Exception ex) { just_ExceptionLog("Looping Regexp", session, ex); return ActionResult.Failure; }
