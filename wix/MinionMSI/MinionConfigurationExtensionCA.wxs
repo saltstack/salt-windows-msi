@@ -2,14 +2,15 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <!-- 2016-11-13  mkr  This is glue between C# custom action and  Product.wxs, where these are called. -->
+
+    <!-- 2016-11-13  mkr
+         For PrepareEvironmentBeforeInstallation, read the comment in Product.wxs
+	  -->
+    <CustomAction Id="PrepareEvironmentBeforeInstallation"  BinaryKey='MinionConfigExt' DllEntry='PrepareEvironmentBeforeInstallation'   Execute='firstSequence'/>
+
     <CustomAction Id="SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
-
-	<!-- 2016-11-13  mkr
-         For PrepareEvironmentBeforeInstallation, read the comment in Product.wxs
-	-->
-	<CustomAction Id="PrepareEvironmentBeforeInstallation"  BinaryKey='MinionConfigExt' DllEntry='PrepareEvironmentBeforeInstallation'   Execute='firstSequence'/>
     <!--
          Executing the above as deferred is necessary to implement the configuration
          changes prior to starting the service, which is done during the install
@@ -25,18 +26,9 @@
          Adding more actions here means you will need to add them in the
          InstallExecuteSequence in Product.wxs.
     -->
-
-    <CustomAction Id="SetMasterPropertiesCA"
-      Property="SetMaster"
-      Value="MasterHostname=[MASTER_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
-
-    <CustomAction Id="SetMinionIdPropertiesCA"
-      Property="SetMinionId"
-      Value="MinionHostname=[MINION_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
-
-    <CustomAction Id="SetRootDirPropertiesCA"
-      Property="SetRootDir"
-      Value="MinionRoot=[INSTALLFOLDER]" />
+    <CustomAction Id="SetMasterPropertiesCA"       Property="SetMaster"       Value="MasterHostname=[MASTER_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
+    <CustomAction Id="SetMinionIdPropertiesCA"     Property="SetMinionId"     Value="MinionHostname=[MINION_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
+    <CustomAction Id="SetRootDirPropertiesCA"      Property="SetRootDir"      Value="MinionRoot=[INSTALLFOLDER]" />
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>

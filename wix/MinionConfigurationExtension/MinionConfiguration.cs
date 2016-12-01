@@ -70,8 +70,11 @@ namespace MinionConfigurationExtension {
 			 * Is there anybody getting  session.Message(InstallMessage.Progress, new Record(2, 1)) ?
 			 */
 			session.Log("read_SimpleSetting_into_Parameters Begin");
-			string[] configText = ReadFileContent(session, "c:\\salt\\conf\\minion"); // hack
+			string configFileFullpath = "c:\\salt\\conf\\minion";
+			bool configExists = File.Exists(configFileFullpath);
+			if (!configExists) { return true; }
 			session.Message(InstallMessage.Progress, new Record(2, 1));
+			string[] configText = File.ReadAllLines(configFileFullpath);
 			try {
 				Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
 				foreach (string line in configText) {
@@ -94,38 +97,46 @@ namespace MinionConfigurationExtension {
 
 		// Save user input to conf/minion settings
 		[CustomAction]
-		public static ActionResult SetRootDir(Session session) /***/ { return SaveConfigKeyToFile("MinionRoot", "root_dir", session); }
+		public static ActionResult SetRootDir(Session session) /***/ { return save_CustomActionDataKeyValue_to_config_file("MinionRoot", "root_dir", session); }
 		[CustomAction]
-		public static ActionResult SetMaster(Session session) /****/ { return SaveConfigKeyToFile("MasterHostname", "master", session); }
+		public static ActionResult SetMaster(Session session) /****/ { return save_CustomActionDataKeyValue_to_config_file("MasterHostname", "master", session); }
 		[CustomAction]
-		public static ActionResult SetMinionId(Session session) /**/ { return SaveConfigKeyToFile("MinionHostname", "id", session); }
+		public static ActionResult SetMinionId(Session session) /**/ { return save_CustomActionDataKeyValue_to_config_file("MinionHostname", "id", session); }
 
-		private static ActionResult SaveConfigKeyToFile(string CustomActionDataKey, string SaltKey, Session session) {
+		private static ActionResult save_CustomActionDataKeyValue_to_config_file(string CustomActionDataKey, string SaltKey, Session session) {
 			session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
 			session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
-			session.Log("Begin SaveConfigKeyToFile " + SaltKey);
-			string value22;
+			session.Log("save_CustomActionDataKeyValue_to_config_file " + SaltKey);
+			string CustomActionData_value;
 			try {
-				value22 = session.CustomActionData[CustomActionDataKey];
+				CustomActionData_value = session.CustomActionData[CustomActionDataKey];
 			} catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex); return ActionResult.Failure; }
 			session.Message(InstallMessage.Progress, new Record(2, 1));
-			ActionResult result = saveKeyValueToFile(session, "^" + SaltKey + ":", String.Format(SaltKey + ": {0}\n", value22));
+			// pattern description
+			// ^        start of line
+			// #*       a comment hashmark would be removed, if present
+			//          anything after the colon is ignored and would be removed 
+			string pattern = "^#*" + SaltKey + ":";
+			string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
+			ActionResult result = replace_pattern_in_config_file(session, pattern, replacement);
 			session.Message(InstallMessage.Progress, new Record(2, 1));
-			session.Log("End SaveConfigKeyToFile " + SaltKey);
+			session.Log("save_CustomActionDataKeyValue_to_config_file End");
 			return result;
 		}
 
-		private static ActionResult saveKeyValueToFile(Session session, string pattern, string replacement) {
+		private static ActionResult replace_pattern_in_config_file(Session session, string pattern, string replacement) {
 			string configFileFullPath = getConfigFileLocation(session);
-			string[] configText = ReadFileContent(session, configFileFullPath);
+			string[] configText = File.ReadAllLines(configFileFullPath);
 			session.Message(InstallMessage.Progress, new Record(2, 1));
-			session.Log("Config file: {0}", configFileFullPath);
+			session.Log("replace_pattern_in_config_file..config file    {0}", configFileFullPath);
 			session.Message(InstallMessage.Progress, new Record(2, 1));
 			try {
 				for (int i = 0; i < configText.Length; i++) {
 					if (Regex.IsMatch(configText[i], pattern)) {
-						configText[i] = replacement;
-						session.Log("Set line: {0}", configText[i]);
+						session.Log("replace_pattern_in_config_file..pattern        {0}", pattern);
+						session.Log("replace_pattern_in_config_file..matched  line  {0}", configText[i]);
+						session.Log("replace_pattern_in_config_file..replaced line  {0}", replacement);
+						configText[i] = replacement + "\n";
 					}
 				}
 			} catch (Exception ex) { just_ExceptionLog("Looping Regexp", session, ex); return ActionResult.Failure; }
@@ -150,19 +161,6 @@ namespace MinionConfigurationExtension {
 		}
 
 
-		private static string[] ReadFileContent(Session session, string config_file_path) {
-			session.Log("ReadFileContent Begin");
-			session.Log("ReadFileContent " + config_file_path);
-			string[] configText;
-			session.Message(InstallMessage.Progress, new Record(2, 1));
-			session.Log("Config file: {0}", config_file_path);
-			try {
-				configText = File.ReadAllLines(config_file_path);
-			} catch (Exception ex) { just_ExceptionLog("Reading from file", session, ex); throw ex; }
-			session.Log("ReadFileContent End");
-			return configText;
-		}
-
 		private static string getConfigFileLocation(Session session) {
 			string config;
 			string rootDir;
@@ -186,16 +184,5 @@ namespace MinionConfigurationExtension {
 			just_ExceptionLog(description, session, ex);
 			return false;
 		}
-
-
-
-
-
-
-
-
-
-
 	}
-
 }

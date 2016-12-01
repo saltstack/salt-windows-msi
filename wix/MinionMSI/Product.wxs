@@ -1,28 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" >
-  <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033"
-    Manufacturer="SaltStack, Inc"
-    Name="Salt Minion $(var.DisplayVersion)"
-    Version="$(var.InternalVersion)">
+  <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033" Version="$(var.InternalVersion)"
+    Name="Salt Minion $(var.DisplayVersion)" Manufacturer="SaltStack, Inc">
 
+    <!-- must be the first element-->
     <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
-
-    <MajorUpgrade
-      DowngradeErrorMessage="A newer version of [ProductName] is already installed."
-      AllowSameVersionUpgrades="yes" />
-    <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
-
-    <Feature Id="ProductFeature" Title="Minion" Level="1">
-      <ComponentGroupRef Id="ProductComponents" />
-    </Feature>
-
-    <Icon Id="icon" SourceFile="$(var.dist)\salt.ico" />
-    <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
-
-    <!-- override the banners -->
-    <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
-    <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
 
     <!-- set default values -->
     <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />
@@ -33,14 +16,11 @@
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
 
-    <!-- 2016-11-13  mkr
-		We need a custom action to manipulate a previous NSIS installation.
-		This custom action must start before any file operation.
-		Catch: the manipulation will essentially uninstall NSIS, but leave the configuration.
-		If the installer than fails, one needs to reinstall NSIS.
-	-->
-
     <InstallUISequence>
+      <!-- 2016-11-13  mkr
+		      To remove a previous NSIS installation but utilise its configuration (peelNSIS), this custom action must start 'early'.
+		      Catch: If the installation than fails and rolls back, peeling cannot be undone.
+	    -->
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
     </InstallUISequence>
 
@@ -48,7 +28,6 @@
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
 
       <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
-      <!-- 2016-11-17  mkr  The 6 custom actions only write to conf/minion, not read -->
       <Custom Action='SetRootDirPropertiesCA' Before='SetRootDir'>NOT Installed</Custom>
       <Custom Action='SetRootDir' Before='SetMasterPropertiesCA'>NOT Installed</Custom>
 
@@ -64,6 +43,25 @@
     </InstallExecuteSequence>
 
     <UIRef Id="WixUI_Minion" />
+
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed."
+      AllowSameVersionUpgrades="yes" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
+
+    <Feature Id="ProductFeature" Title="Minion" Level="1">
+      <ComponentGroupRef Id="ProductComponents" />
+      <!-- where is this? -->
+    </Feature>
+
+    <Icon Id="icon" SourceFile="$(var.dist)\salt.ico" />
+    <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
+
+    <!-- override the banners -->
+    <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
+    <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
+
+
   </Product>
 
   <Fragment>
