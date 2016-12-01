@@ -1,10 +1,9 @@
 ﻿using Microsoft.Deployment.WindowsInstaller;
+using Microsoft.Tools.WindowsInstallerXml;
 using Microsoft.Win32;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
-using Microsoft.Tools.WindowsInstallerXml;
 
 
 namespace MinionConfigurationExtension {
@@ -21,7 +20,7 @@ namespace MinionConfigurationExtension {
 		[CustomAction]
 		public static ActionResult PrepareEvironmentBeforeInstallation(Session session) {
 			/*
-			 * The function must be called "early". 
+			 * This CustomAction must be called "early". 
 			 * 
 			 * Read the comments for PrepareEvironmentBeforeInstallation in wix/MinionMSI/Product.wxs
 			*/
@@ -37,7 +36,7 @@ namespace MinionConfigurationExtension {
 			 * If NSIS is installed:
 			 * 	remove salt-minion service, 
 			 * 	remove registry
-			 * 	emove files, except /salt/conf and /salt/var
+			 * 	remove files, except /salt/conf and /salt/var
 			*/
 			session.Log("MinionConfiguration.cs:: Begin peel_NSIS");
 			RegistryKey reg = Registry.LocalMachine;
