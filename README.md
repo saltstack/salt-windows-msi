@@ -10,7 +10,7 @@ Builds for both projects are semi-automated using an [MSBuild][MSBuildId] projec
 
 ##General Requirements##
 
-- A successsfuly build NSIS in `git\salt`, whith this project in `git\salt-windows-msi`
+- A successsfuly build NSIS in `git\salt`, with this project in `git\salt-windows-msi`
 - A recent version of MSBuild. The one included with the .NET Framework v4 works fine.
 - [WiX][WiXId] v3.9.
  
