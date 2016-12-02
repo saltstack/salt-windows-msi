@@ -29,11 +29,13 @@
   -->
   <Target Name="setVersionProperties">
 
-    <Error Condition="'$(DisplayVersion)'=='' And '$(InternalVersion)'=='' And '$(Version)'==''" Text="Must set one of: Version, DisplayVersion" />
+    <Error Condition="'$(DisplayVersion)'==''"  Text="Must set DisplayVersion" />
+    <Error Condition="'$(InternalVersion)'==''" Text="Must set InternalVersion" />
 
+    <!-- DO NOT CALCULATE         REQUIRE DisplayVersion And InternalVersion    DUMP Version?
     <PropertyGroup>
       <DisplayVersion Condition="'$(DisplayVersion)'=='' And '$(Version)'!=''">$(Version)</DisplayVersion>
-      <YearPosition>$(DisplayVersion.IndexOf('2'))</YearPosition> <!-- We are not afraid of Y3K! -->
+      <YearPosition>$(DisplayVersion.IndexOf('2'))</YearPosition> 
       <DashPosition>$(DisplayVersion.IndexOf('-'))</DashPosition>
       <InternalVersionStartIndex>$([MSBuild]::Add($(YearPosition),2))</InternalVersionStartIndex>
       <InternalVersionCalculatedLength Condition="$(DashPosition)&gt;0">$([MSBuild]::Subtract($(DashPosition),$(InternalVersionStartIndex)))</InternalVersionCalculatedLength>
@@ -42,11 +44,15 @@
       <InternalVersion Condition="'$(InternalVersion)'==''">$(CalculatedInternalVersion)</InternalVersion>
       <InternalVersion Condition="'$(BUILD_NUMBER)'!=''">$(InternalVersion).$(BUILD_NUMBER)</InternalVersion>
     </PropertyGroup>
-
+    -->
+    
+    <Message Text="******************************************************************************   "/>
     <Message Text="****************** common/targets/Minion.Common.targets **********************   "/>    
     <Message Text="        DisplayVersion  = $(DisplayVersion)"/>
     <Message Text="        InternalVersion = $(InternalVersion)"/>
-
+    <Message Text="        Version         = $(Version)"/>    
+    <Message Text="******************************************************************************   "/>
+    
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
       <TargetName>Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup</TargetName>
