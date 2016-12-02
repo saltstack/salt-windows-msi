@@ -1,11 +1,8 @@
 @echo off
-:: Get the version from git if not passed
-if [%1]==[] (
-    for /f "delims=" %%a in ('git describe') do @set "Version=%%a"
-) else (
-    set "Version=%~1"
-)
-@echo %0 :: Version %Version%
+:: Get the versions from salt/version.py
+for /f "delims=" %%a in ('python versionDisplayOrInternal.py')   do @set "ddd=%%a"
+
+@echo %0 :: DisplayVersion  = %ddd%
 @echo.
 
-msiexec /i wix\MinionMSI\bin\Release\Salt-Minion-%version%-amd64-Setup.msi /l*v yinstall.log
+msiexec /i wix\MinionMSI\bin\Release\Salt-Minion-%ddd%-amd64-Setup.msi /l*v yinstall.log
