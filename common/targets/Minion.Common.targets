@@ -43,8 +43,9 @@
       <InternalVersion Condition="'$(BUILD_NUMBER)'!=''">$(InternalVersion).$(BUILD_NUMBER)</InternalVersion>
     </PropertyGroup>
 
-    <Message Text="Using Display Version $(DisplayVersion)"/>
-    <Message Text="Using Internal Version $(InternalVersion)"/>
+    <Message Text="****************** common/targets/Minion.Common.targets **********************   "/>    
+    <Message Text="        DisplayVersion  = $(DisplayVersion)"/>
+    <Message Text="        InternalVersion = $(InternalVersion)"/>
 
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>

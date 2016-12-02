@@ -43,17 +43,14 @@
       </StartServices>
     </InstallExecuteSequence>
 
-    <UIRef Id="WixUI_Minion" /> <!-- // include the UI element -->
 
     <MajorUpgrade
       DowngradeErrorMessage="A newer version of [ProductName] is already installed."
-      AllowSameVersionUpgrades="yes" />    
+      AllowSameVersionUpgrades="yes" />    <!-- // why has saxonww chosen yes? -->
     
-  
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
-      <ComponentGroupRef Id="ProductComponents" />
-      <!-- where is this? -->
+      <ComponentGroupRef Id="ProductComponents" />  <!-- // include from below. Why so complicated ?  -->
     </Feature>
 
     <Icon Id="icon" SourceFile="$(var.dist)\salt.ico" />
@@ -63,20 +60,24 @@
     <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
 
+    <UIRef Id="WixUI_Minion" />                             <!-- // include from file WixUI_Minion.wxs in this directory -->
+    
     <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- // do not create cab files -->
     
   </Product>
 
+  <!-- From the "Default WiX Project Template" -->
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="INSTALLFOLDER" Name="salt" />
     </Directory>
   </Fragment>
 
+  <!-- From the "Default WiX Project Template" -->
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <ComponentGroupRef Id="dist" />
-      <ComponentGroupRef Id="service" />
+      <ComponentGroupRef Id="dist"    />       <!-- // include from file dist-amd64.wxs in this directory -->
+      <ComponentGroupRef Id="service" />       <!-- // include from file service.wxs    in this directory -->
     </ComponentGroup>
   </Fragment>
 </Wix>
