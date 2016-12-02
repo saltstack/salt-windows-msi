@@ -10,33 +10,10 @@ Builds for both projects are semi-automated using an [MSBuild][MSBuildId] projec
 
 ##General Requirements##
 
-- A successsfuly build NSIS in `$FOO\salt`, and this project in `$FOO\salt-windows-msi`
+- A successsfuly build NSIS in `git\salt`, whith this project in `git\salt-windows-msi`
 - A recent version of MSBuild. The one included with the .NET Framework v4 works fine.
 - [WiX][WiXId] v3.9.
-- A Git tag
-
-```
-A Tag in Git set like ```git tag -a v2000.13.13-0000-00000000 -m "tag mimicing git describe of saltstack"```
-  Probably the safest is to use the output of git describe.
-	Go to the latest release
-	cd salt
-	git checkout v2016.11.0
-	cd salt-windows-msi
-	git tag -a v2016.11.0 -m "tag mimicing git describe of saltstack"
-	The "salt --version" report is independend. Where does it get its information?
-  Later this repository should join the rest of saltstack and find the tag there (or the --version information) .
-
-```
-## Capabilites ##
-
- Tested on 2016.11.0
- Testcycle: install NSIS, test, install msi, test, install NSIS, test.
  
-## Restrictions ##
-Un uninstall: 
- - Some files remains in c:\salt
- - c:\Windows\SaltstackMinionConfigBackup.ini remains
-	
 ##WiX/MSI Installer##
 
 ###Components###
