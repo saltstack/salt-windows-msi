@@ -128,7 +128,7 @@ namespace MinionConfigurationExtension {
 			 * the pattern finds assigment and assigment commented out:
 			 *    #a:b
 			 *    a:b  
-			 * If the new template contains both, only use one
+			 * Only replace the first match, blank out all others
 			 */
 			string configFileFullPath = getConfigFileLocation(session);
 			string[] configText = File.ReadAllLines(configFileFullPath);

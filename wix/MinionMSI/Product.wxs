@@ -1,18 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" >
-  <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033" Version="$(var.InternalVersion)"
+  <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033" Version="$(var.InternalVersion)" 
     Name="Salt Minion $(var.DisplayVersion)" Manufacturer="SaltStack, Inc">
 
-    <!-- must be the first element -->
-    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <!-- Package must be the first element after Product and seems very related -->
+    <Package  InstallerVersion="200" Compressed="yes" InstallScope="perMachine"  Keywords="infrastructure management" />
 
     <!-- set default values -->
-    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />
-    <Property Id="ARPPRODUCTICON"           Value="icon"                 />
-    <Property Id="ARPURLINFOABOUT"          Value="http://saltstack.org" />
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
+    <Property Id="ARPURLINFOABOUT"          Value="http://saltstack.org" />
+    <Property Id="KEEP_CONFIG"              Value="no"                   />
+    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // do not chose the disk with most free space -->
+    <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
 
@@ -42,12 +43,13 @@
       </StartServices>
     </InstallExecuteSequence>
 
-    <UIRef Id="WixUI_Minion" />
+    <UIRef Id="WixUI_Minion" /> <!-- // include the UI element -->
 
     <MajorUpgrade
       DowngradeErrorMessage="A newer version of [ProductName] is already installed."
-      AllowSameVersionUpgrades="yes" />
-    <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
+      AllowSameVersionUpgrades="yes" />    
+    
+  
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
@@ -61,7 +63,8 @@
     <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
 
-
+    <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- // do not create cab files -->
+    
   </Product>
 
   <Fragment>
