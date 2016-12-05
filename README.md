@@ -38,7 +38,7 @@ The build is semi-automated using an [MSBuild][MSBuildId].
   - MinionConfigurationExtensionCA.wxs: A WiX fragment setting up the
     configuration manipulator custom actions.
   - Product.wxs: contains the main MSI description and event sequence
-  - service.wxs: contains a WiX component for nssm.��exe and the
+  - service.wxs: contains a WiX component for nssm.exe and the
     associated Windows Service description/control settings.
   - WixUI\_Minion.wxs: WiX fragment describing the UI for the setup.
   - Banner.jpg: Used as the top bar banner in most of the UI dialogs.
