@@ -10,9 +10,10 @@ Builds for both projects are semi-automated using an [MSBuild][MSBuildId] projec
 
 ##General Requirements##
 
-- A successsfuly build NSIS in `git\salt`, with this project in `git\salt-windows-msi`
-- A recent version of MSBuild. The one included with the .NET Framework v4 works fine.
+- A NSIS build in `git\salt`, with this project in `git\salt-windows-msi`
+- [MSBuild 2013][MSBuild2913Id] and .Net 4.5
 - [WiX][WiXId] v3.9.
+
  
 ##WiX/MSI Installer##
 
@@ -161,4 +162,5 @@ properties, and the current value of those properties:
 - Nice install dialog art.
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
-[MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.100).aspx "MSBuild Reference"
+[MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
+[MSBuild2913Id]: https://www.microsoft.com/en-in/download/details.aspx?id=40760
