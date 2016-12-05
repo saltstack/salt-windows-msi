@@ -149,7 +149,7 @@ properties, and the current value of those properties:
 
 ##On versioning##
 The user sees version as a 3-tuple https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html.
-
+E.g. 2016.11.0
 In salt/salt/version.py, version is a 7-tuple:
 - major,
 - minor,
@@ -162,7 +162,9 @@ In salt/salt/version.py, version is a 7-tuple:
 
 E.g. (2016, 11, 0, 0, '', 0, 461, u'g723699f')
 
-The msi installer reflects these by DisplayVersion and InternalVersion.
+The msi installer holds these in DisplayVersion and InternalVersion.
+msi rules demand that the major version of the InternalVersion must be smaller than 265, therefore only the "short year" is used for the major InternalVersion.
+
 
 ##Suggested Improvements##
 
