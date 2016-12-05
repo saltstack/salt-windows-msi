@@ -1,0 +1,16 @@
+DONT WANT
+
+C:\salt\bin
+C:\salt\var
+C:\salt\conf\minion.d\_schedule.conf
+
+
+OPTIONALLY WANT
+
+C:\salt\conf\minion
+C:\salt\conf\minion.d
+C:\salt\conf\pki
+C:\salt\conf\pki\minion
+C:\salt\conf\pki\minion\minion.pem
+C:\salt\conf\pki\minion\minion.pub
+C:\salt\conf\pki\minion\minion_master.pub

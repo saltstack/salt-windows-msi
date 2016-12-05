@@ -10,4 +10,4 @@ for /f "delims=" %%a in ('python versionDisplayOrInternal.py')   do @set "ddd=%%
 
 
 
-c:\windows\microsoft.net\framework\v4.0.30319\msbuild.exe msbuild.proj /t:clean /p:Version=%ddd%
+"%ProgramFiles(x86)%"\MSBuild\12.0\Bin\msbuild.exe msbuild.proj /t:clean /p:Version=%ddd%

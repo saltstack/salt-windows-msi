@@ -44,9 +44,7 @@
     </InstallExecuteSequence>
 
 
-    <MajorUpgrade
-      DowngradeErrorMessage="A newer version of [ProductName] is already installed."
-      AllowSameVersionUpgrades="yes" />    <!-- // why has saxonww chosen yes? -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />    
     
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
