@@ -148,7 +148,7 @@ properties, and the current value of those properties:
 
 
 ##On versioning##
-The user sees a [3-tuple][versionId] version, e.g. `2016.11.0`.
+The user sees a [3-tuple][version_html] version, e.g. `2016.11.0`.
 
 [Internally][version_py], version is a 8-tuple:
 - major,
