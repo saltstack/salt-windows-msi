@@ -148,7 +148,7 @@ properties, and the current value of those properties:
 
 
 ##On versioning##
-The [user sees version as a 3-tuple][version_numbersId], e.g. `2016.11.0`.
+The user sees version as a [3-tuple][versionId], e.g. `2016.11.0`.
 
 In salt/salt/version.py, version is a 7-tuple:
 - major,
@@ -180,4 +180,4 @@ msi rules demand that the major version of the InternalVersion must be smaller t
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
 [MSBuild2913Id]: https://www.microsoft.com/en-in/download/details.aspx?id=40760
-[version_numbersId]:[https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html]
+[versionId]: https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html
