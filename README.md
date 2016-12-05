@@ -6,17 +6,8 @@ The 'wix/' directory (together with wix.sln ?) produces an msi installer using [
 
 The build is semi-automated using an [MSBuild][MSBuildId].
 
-##General Requirements##
-
-- A NSIS build in `git\salt`, with this project in `git\salt-windows-msi`
-- [WiX][WiXId] v3.9.
-- [MSBuild 2013][MSBuild2913Id] and .Net 4.5
  
- 
-##WiX/MSI Installer##
- 
-
-###Differences vs. NSIS installer###
+##Differences vs. NSIS installer##
 
 This WiX project mimics the NSIS installer as much as possible, with
 the following exceptions:
@@ -32,17 +23,17 @@ There are some additional benefits provided via msiexec:
 - A problem during the .msi install will be rolled back automatically.
 - .msi offers built-in logging (/l option to msiexec).
 
-###Unattended install###
+###Unattended install ("silent install")###
 
-It is possible to install a Salt Minion unattended while still providing
+The msi allows you to install a Salt Minion unattended while still providing
 customized values for the master hostname, minion id, installation path,
 etc. using the following command line:
 
 > msiexec /i Salt-Minion-$version-$platform.msi /qn [ PROPERTY=VALUE [ ..
 > PROPERTY=VALUE ] ]
 
-Since the .msi does not install the Visual C++ redistributable, it must be
-installed separately.
+Since the .msi does not(?) install the Visual C++ redistributable, it must be
+installed separately(?)
 
 Available properties:
 
@@ -52,6 +43,37 @@ Available properties:
 - START\_MINION\_SERVICE: Whether to start the salt-minion service after
   installation. The default is false.
 
+##General Requirements##
+
+- A NSIS build in `git\salt`, with this project in `git\salt-windows-msi`
+- [WiX][WiXId] v3.9.
+- [MSBuild 2013][MSBuild2913Id] and .Net 4.5
+
+###Building###
+
+You can be build the msi from the command line using the included msbuild project.
+
+> msbuild msbuild.proj [ /p:property=value [ /p:... ] ]
+
+See the [msbuild](#msbuild) section for details on available
+targets and properties.
+
+You can build the msi also in Visual Studio, but the embedded defaults for
+version, paths, etc. may be incorrect on your machie.
+
+The build will produce:
+ - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform).msi
+
+###<a id="msbuild"></a>MSBuild###
+
+General command line:
+
+> msbuild msbuild.proj \[/t:target[,target2,..]] \[/p:property=value [ .. /p:... ] ]
+
+A 'help' target is available which prints out all the targets, customizable
+properties, and the current value of those properties:
+
+> msbuild msbuild.proj /t:help
 
 
 ###Components###
@@ -82,33 +104,6 @@ Available properties:
   - WixUI\_Minion.wxs: WiX fragment describing the UI for the setup.
   - Banner.jpg: Used as the top bar banner in most of the UI dialogs.
   - Dialog.jpg: Used as the dialog background for Welcome and Exit dialogs.
-
-###Building###
-
-You can be build the msi from the command line using the included msbuild project.
-
-> msbuild msbuild.proj [ /p:property=value [ /p:... ] ]
-
-See the [msbuild](#msbuild) section for details on available
-targets and properties.
-
-You can build the msi also in Visual Studio, but the embedded defaults for
-version, paths, etc. may be incorrect on your machie.
-
-The build will produce:
- - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform).msi
-
-##<a id="msbuild"></a>MSBuild##
-
-General command line:
-
-> msbuild msbuild.proj \[/t:target[,target2,..]] \[/p:property=value [ .. /p:... ] ]
-
-A 'help' target is available which prints out all the targets, customizable
-properties, and the current value of those properties:
-
-> msbuild msbuild.proj /t:help
-
 
 
 ###Extending###
