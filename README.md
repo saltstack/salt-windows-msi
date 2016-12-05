@@ -148,9 +148,9 @@ properties, and the current value of those properties:
 
 
 ##On versioning##
-The user sees version as a [3-tuple][versionId], e.g. `2016.11.0`.
+The user sees a [3-tuple][versionId] version, e.g. `2016.11.0`.
 
-In salt/salt/version.py, version is a 7-tuple:
+[Internally][version_py], version is a 8-tuple:
 - major,
 - minor,
 - bugfix,
@@ -162,7 +162,8 @@ In salt/salt/version.py, version is a 7-tuple:
 
 E.g. (2016, 11, 0, 0, '', 0, 461, u'g723699f')
 
-The msi installer holds these in DisplayVersion and InternalVersion.
+The msi properties `DisplayVersion` and `InternalVersion` store these values.
+
 msi rules demand that the major version of the InternalVersion must be smaller than 265, therefore only the "short year" is used for the major InternalVersion.
 
 
@@ -180,4 +181,5 @@ msi rules demand that the major version of the InternalVersion must be smaller t
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
 [MSBuild2913Id]: https://www.microsoft.com/en-in/download/details.aspx?id=40760
-[versionId]: https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html
+[version_html]: https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html
+[version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
