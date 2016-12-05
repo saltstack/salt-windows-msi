@@ -134,8 +134,7 @@ changes are required:
 
 ##<a id="msbuild"></a>MSBuild##
 
-Both sets of projects can be build from the command line using the
-included msbuild project.
+You can be build the msi from the command line using the included msbuild project.
 
 General command line:
 
