@@ -1,47 +1,39 @@
 Windows MSI installer build toolkit
 ================
 
-
-The 'wix/' directory (together with wix.sln ?) produces an msi installer using [WiX][WiXId].
+The 'wix/' directory (together with wix.sln ?) produce an msi installer using [WiX][WiXId].
 
 The build is semi-automated using an [MSBuild][MSBuildId].
 
  
 ##Differences vs. NSIS installer##
 
-This WiX project mimics the NSIS installer as much as possible, with
-the following exceptions:
+The msi differs from the NSIS installer in:
 
-- Allows installation to any directory.
-- Supports unattended installation.
-- The .msi does not download or install the VC++ redistributable. The
-  .exe does, but the UI experience is very different.
-- The .msi UI does not display files as they are copied, only a status bar.
+- It allows installation to any directory.
+- It supports unattended installation.
+- It does not download or install the VC++ redistributable. (??)
+- Since the msi does not(?) install the Visual C++ redistributable, it must be installed separately(?)
 
-There are some additional benefits provided via msiexec:
+There are additional benefits:
 
 - A problem during the .msi install will be rolled back automatically.
-- .msi offers built-in logging (/l option to msiexec).
+- An msi offers built-in logging (/l option to msiexec).
 
-###Unattended install ("silent install")###
+###On unattended install ("silent install")###
 
-The msi allows you to install a Salt Minion unattended while still providing
-customized values for the master hostname, minion id, installation path,
-etc. using the following command line:
+An msi allows you to install unattended ("silently"), meaning without opening any Windows, while still providing
+customized values for e.g. master hostname, minion id, installation path, using the following command line:
 
-> msiexec /i Salt-Minion-$version-$platform.msi /qn [ PROPERTY=VALUE [ ..
-> PROPERTY=VALUE ] ]
+> msiexec /i Salt-Minion-$version-$platform.msi /qn [ PROPERTY=VALUE [ .. PROPERTY=VALUE ] ]
 
-Since the .msi does not(?) install the Visual C++ redistributable, it must be
-installed separately(?)
 
 Available properties:
 
 - INSTALLFOLDER: Where to install the files. Default is 'c:\salt'.
 - MASTER\_HOSTNAME: The master hostname. The default is 'salt'.
 - MINION\_HOSTNAME: The minion id. The default is '%COMPUTERNAME%'.
-- START\_MINION\_SERVICE: Whether to start the salt-minion service after
-  installation. The default is false.
+- START\_MINION\_SERVICE: Whether to start the salt-minion service after installation. The default is false.
 
 ##General Requirements##
 
@@ -51,7 +43,7 @@ Available properties:
 
 ###Building###
 
-You can be build the msi from the command line using the included msbuild project.
+You can build the msi from the command line using the included msbuild project.
 
 > msbuild msbuild.proj [ /p:property=value [ /p:... ] ]
 
