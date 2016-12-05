@@ -148,8 +148,8 @@ properties, and the current value of those properties:
 
 
 ##On versioning##
-The user sees version as a 3-tuple https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html.
-E.g. 2016.11.0
+The [user sees version as a 3-tuple][https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html], e.g. 2016.11.0
+
 In salt/salt/version.py, version is a 7-tuple:
 - major,
 - minor,
