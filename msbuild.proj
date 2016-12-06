@@ -11,6 +11,17 @@
   <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
 
   <ItemGroup>
+    <!-- 
+    why does this file (msbuild.proj) references a (line oriented) Visual Studio Solution (wix.sln)? 
+    
+    wix.sln references to wix\MinionMSI\MinionMSI.wixproj
+    Why then not receference from here (msbuild.proj) directly to MinionMSI.wixproj?
+    
+		Was the intention to enable Visual Studio to build the msi?
+			which does not work.
+			which  is not necessary.
+		Why then try?
+    -->
     <Wix Include="$(MSBuildProjectDirectory)\wix.sln" />
   </ItemGroup>
 
@@ -77,15 +88,15 @@ Current Defaults:
   -->
   <Target Name="wix">
     <Message Text="
-		*************************************************************
-		************************ msbuild.proj   *********************
+    *************************************************************
+    ************************ msbuild.proj   *********************
     Version:              '$(Version)'
     DisplayVersion:       '$(DisplayVersion)'
     InternalVersion:      '$(InternalVersion)'
     BUILD_NUMBER:         '$(BUILD_NUMBER)'	
-	  *************************************************************
+    *************************************************************
   " />
-  	
+
     <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />
   </Target>
 
@@ -102,7 +113,7 @@ Current Defaults:
       <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionMSI\bin\$(Configuration)\Salt-Minion-*-Setup.msi">
         <OutputType>wix</OutputType>
       </Artifacts>
-			<!--
+      <!--
       <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionEXE\bin\$(Configuration)\Salt-Minion-*-Setup.exe">
         <OutputType>wix</OutputType>
       </Artifacts>
