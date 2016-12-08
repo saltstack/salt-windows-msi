@@ -20,12 +20,13 @@
     ================================================================================
        setVersionProperties
 
-         Queries salt for DisplayVersion and InternalVersion 
-         Rewrites the output TargetName with the discovered version information.
-         These msbuild variable are sent to WiX by in two different manners
+        Queries salt for DisplayVersion and InternalVersion 
+        These msbuild variable are sent to WiX by in two different manners:
            Output PropertyName
            DefineConstants magic
-         
+
+        Rewrites the output TargetName with the discovered version information.
+
          TODO           get BUILD_NUMBER
          NICE-TO-HAVE   GIT_LAST_LOG    git log - - oneline -1
     ================================================================================
@@ -55,7 +56,6 @@
     <Message Text="        DisplayVersion  = $(DisplayVersion)"/>
     <Message Text="        InternalVersion = $(InternalVersion)"/>
     <Message Text="        Version         = $(Version)"/>
-    <Message Text="        Where is Version set?"/>
     <Message Text="******************************************************************************   "/>
 
     <PropertyGroup>
