@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- see Product.wxs.comments.txt for more comments -->
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" >
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" >
   <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033" Version="$(var.InternalVersion)" 
     Name="Salt Minion $(var.DisplayVersion)" Manufacturer="SaltStack, Inc">
 
@@ -43,12 +43,40 @@
       </StartServices>
     </InstallExecuteSequence>
 
-
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />    
     
 
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <!-- incomplete tutorial: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->    
+    <!-- SRP: Simple Remember Pattern http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/  -->
+    <!-- SRP: to remove a folder on uninstall, RemoveFolderEx must read a *FOLDER property from registry. -->
+    <!-- SRP: write exactly what to registry? During uninstall, I must assume? -->
+    <DirectoryRef Id="BINFOLDER">
+      <Component Id="CleanupBinFolder" Guid="*">
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="string" Value="[BINFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="BINFOLDER" />
+      </Component>
+    </DirectoryRef>
+    <!-- SRP: read from registry. I have no clue why this removes a folder  -->
+    <Property Id="BINFOLDER">
+      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="raw"  Id="BINFOLDER_REGSEARCH" />
+    </Property>
+    <!-- SRP: write to registry. -->
+    <DirectoryRef Id="VARFOLDER">
+      <Component Id="CleanupVarFolder" Guid="*">
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="string" Value="[VARFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="VARFOLDER" />
+      </Component>
+    </DirectoryRef>
+    <!-- SRP: read from registry. -->
+    <Property Id="VARFOLDER">
+      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="raw"  Id="VARFOLDER_REGSEARCH" />
+    </Property>
+
+
     <Feature Id="ProductFeature" Title="Minion" Level="1">
-      <ComponentGroupRef Id="ProductComponents" />  <!-- // include from below. Why so complicated ?  -->
+      <!-- include from above and below. Why (so complicated) ?  -->
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef      Id="CleanupBinFolder" />
+      <ComponentRef      Id="CleanupVarFolder" />
     </Feature>
 
     <Icon Id="icon" SourceFile="$(var.dist)\salt.ico" />
@@ -64,10 +92,13 @@
     
   </Product>
 
-  <!-- From the "Default WiX Project Template" -->
+  <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="INSTALLFOLDER" Name="salt" />
+      <Directory Id="INSTALLFOLDER" Name="salt" >
+        <Directory Id="BINFOLDER" Name="bin" />
+        <Directory Id="VARFOLDER" Name="var" />
+      </Directory>
     </Directory>
   </Fragment>
 
