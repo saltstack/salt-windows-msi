@@ -1,12 +1,13 @@
 @echo off
 
-:: just decoys
-@echo %0 :: DisplayVersion  = 2020.1.1
-@echo %0 :: InternalVersion = 20.1.1.100
+:: decoy values to understand the relationship between msbuild and WiX
+set ddd=2020.1.1
+set iii=20.1.1.100
+@echo %0 :: DisplayVersion  = %ddd%
+@echo %0 :: InternalVersion = %iii%
 @echo.
 
-::c:\windows\microsoft.net\framework\v4.0.30319
-"%ProgramFiles(x86)%"\MSBuild\12.0\Bin\msbuild.exe msbuild.proj /t:wix /p:TargetPlatform=amd64 /p:DisplayVersion=%ddd% /p:InternalVersion=%iii%
+call "%ProgramFiles(x86)%"\MSBuild\12.0\Bin\msbuild.exe msbuild.proj /t:wix /p:TargetPlatform=amd64 /p:DisplayVersion=%ddd% /p:InternalVersion=%iii%
 
-@echo %0 :: dir wix\MinionMSI\bin\Release\
+@echo %0 :: result is in     wix\MinionMSI\bin\Release\
 dir wix\MinionMSI\bin\Release\
