@@ -11,7 +11,7 @@
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
     <Property Id="ARPURLINFOABOUT"          Value="http://saltstack.org" />
-    <Property Id="KEEP_CONFIG"              Value="no"                   />
+    <Property Id="KEEP_CONFIG"              Value="0"                    />
     <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // do not chose the disk with most free space -->
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
@@ -47,9 +47,12 @@
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
+    <!-- Delete a folder recursivly -->
     <!-- incomplete tutorial: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->    
     <!-- SRP: Simple Remember Pattern http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/  -->
     <!-- SRP: to remove a folder on uninstall, RemoveFolderEx must read a *FOLDER property from registry. -->
+    <!--The SRP pattern will be repeated now -->
+    <!--Components CANNOT BECAUSE WRONG TIME depend on Property KEEP_CONFIG-->
     <!-- SRP: write exactly what to registry? During uninstall, I must assume? -->
     <DirectoryRef Id="BINFOLDER">
       <Component Id="CleanupBinFolder" Guid="*">
@@ -70,13 +73,27 @@
     <Property Id="VARFOLDER">
       <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="raw"  Id="VARFOLDER_REGSEARCH" />
     </Property>
+    <!-- SRP: write to registry. -->
+    <DirectoryRef Id="CONFFOLDER">
+      <Component Id="CleanupConfFolder" Guid="*">
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="ConfPath" Type="string" Value="[CONFFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="CONFFOLDER" />
+      </Component>
+    </DirectoryRef>
+    <!-- SRP: read from registry. -->
+    <Property Id="CONFFOLDER">
+      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="ConfPath" Type="raw"  Id="CONFFOLDER_REGSEARCH" />
+    </Property>
 
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <!-- include from above and below. Why (so complicated) ?  -->
-      <ComponentGroupRef Id="ProductComponents" />
-      <ComponentRef      Id="CleanupBinFolder" />
-      <ComponentRef      Id="CleanupVarFolder" />
+      <ComponentGroupRef Id="ProductComponents"     />
+      <ComponentRef      Id="CleanupBinFolder"      />
+      <ComponentRef      Id="CleanupVarFolder"      />
+      <Feature Id='CleanupConfFolderFeature' Level='0'>
+        <ComponentRef Id="CleanupConfFolder"  /> 
+        <Condition Level="1"><![CDATA[KEEP_CONFIG = "0"]]> </Condition>
+      </Feature>
     </Feature>
 
     <Icon Id="icon" SourceFile="$(var.dist)\salt.ico" />
@@ -97,6 +114,7 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="INSTALLFOLDER" Name="salt" >
         <Directory Id="BINFOLDER" Name="bin" />
+        <Directory Id="CONFFOLDER" Name="conf" />
         <Directory Id="VARFOLDER" Name="var" />
       </Directory>
     </Directory>
