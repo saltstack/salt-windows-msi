@@ -2,7 +2,5 @@
 :: Get the file name
 for /f "delims=" %%a in ('dir /b wix\MinionMSI\bin\Release\*.msi')   do @set "msi=%%a"
 
-@echo %0 :: msi  = %msi%
-@echo.
-
-msiexec /i wix\MinionMSI\bin\Release\%msi% /qn /l*v install.log
+@echo on
+msiexec /i wix\MinionMSI\bin\Release\%msi% /qn /l*v log-install.log START_MINION_SERVICE=1

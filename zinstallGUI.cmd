@@ -5,4 +5,4 @@ for /f "delims=" %%a in ('dir /b wix\MinionMSI\bin\Release\*.msi')   do @set "ms
 @echo %0 :: msi  = %msi%
 @echo.
 
-msiexec /i wix\MinionMSI\bin\Release\%msi% /l*v install.log
+msiexec /i wix\MinionMSI\bin\Release\%msi% /l*v log-install.log
