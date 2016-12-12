@@ -30,10 +30,11 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 Available properties:
 
-- INSTALLFOLDER: Where to install the files. Default is 'c:\salt'.
 - MASTER\_HOSTNAME: The master hostname. The default is 'salt'.
 - MINION\_HOSTNAME: The minion id. The default is '%COMPUTERNAME%'.
 - START\_MINION\_SERVICE: Whether to start the salt-minion service after installation. The default is false.
+- KEEP_CONFIG: keep c:\salt\conf. Default is 0 (false). Only from commandline
+- INSTALLFOLDER: Where to install the files. Default is 'c:\salt'. DO NOT CHANGE
 
 ##General Requirements##
 
