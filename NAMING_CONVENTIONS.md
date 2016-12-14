@@ -3,8 +3,8 @@ Naming conventions
 
 ##For WiX##
 
-Prefix | Meaning | Example | Comment
---- | --- | --- | --- |
-P. | property | P.MASTER_HOSTNAME | 
-CAC. | Custom action | CAC.NUKE_CONF |
-CAP. | Custom action parameter| CAP.NUKE_CONF | a.k.a CustomActionData
+Prefix | Example             | Meaning                | Comment
+---- | --------------------- | ---------------------- | --- 
+`P.`   | `P.MASTER_HOSTNAME` | property  | 
+`CAC.` | `CAC.NUKE_CONF`     | Custom action  |
+`CAP.` | `CAP.NUKE_CONF`     | Custom action parameter | a.k.a CustomActionData
