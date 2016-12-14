@@ -22,7 +22,6 @@ namespace MinionConfigurationExtension {
 			/*
 			 * This CustomAction must be called "late". 
 			 * 
-			 * Read the comments for PrepareEvironmentBeforeInstallation in wix/MinionMSI/Product.wxs
 			*/
 			session.Log("MinionConfiguration.cs:: Begin CS_CUSTOM_ACTION_NUKE_CONF");
 			///////////
