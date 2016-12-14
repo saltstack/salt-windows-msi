@@ -18,6 +18,27 @@ namespace MinionConfigurationExtension {
 
 
 		[CustomAction]
+		public static ActionResult CS_CUSTOM_ACTION_NUKE_CONF(Session session) {
+			/*
+			 * This CustomAction must be called "late". 
+			 * 
+			 * Read the comments for PrepareEvironmentBeforeInstallation in wix/MinionMSI/Product.wxs
+			*/
+			session.Log("MinionConfiguration.cs:: Begin CS_CUSTOM_ACTION_NUKE_CONF");
+			///////////
+			// System.Collections.Generic.KeyNotFoundException: The given key was not present in the dictionary.
+			//var KEEP_CONF = session.CustomActionData["KEEP_CONF"];
+			//session.Log("CS_CUSTOM_ACTION_NUKE_CONF:: KEEP_CONF = " + KEEP_CONF);
+			//////////
+			try { Directory.Delete(@"c:\salt\conf", true); } catch (Exception ex) { 
+				just_ExceptionLog (@"while deleting c:\salt\conf", session, ex);
+				return ActionResult.Failure;
+			}
+			session.Log("MinionConfiguration.cs:: End CS_CUSTOM_ACTION_NUKE_CONF");
+			return ActionResult.Success;
+		}
+
+		[CustomAction]
 		public static ActionResult PrepareEvironmentBeforeInstallation(Session session) {
 			/*
 			 * This CustomAction must be called "early". 
