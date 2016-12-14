@@ -93,7 +93,7 @@
     <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
 
-    <UIRef Id="WixUI_Minion" />                             <!-- // include from file WixUI_Minion.wxs in this directory -->
+    <UIRef Id="WixUI_Minion" />                             <!-- // include WixUI_Minion.wxs in this directory -->
     
     <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- // do not create cab files -->
     
@@ -113,8 +113,8 @@
   <!-- From the "Default WiX Project Template" -->
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <ComponentGroupRef Id="dist"    />       <!-- // include from file dist-amd64.wxs in this directory -->
-      <ComponentGroupRef Id="service" />       <!-- // include from file service.wxs    in this directory -->
+      <ComponentGroupRef Id="dist"    />       <!-- // include dist-amd64.wxs in this directory -->
+      <ComponentGroupRef Id="service" />       <!-- // include service.wxs    in this directory -->
     </ComponentGroup>
   </Fragment>
 </Wix>
