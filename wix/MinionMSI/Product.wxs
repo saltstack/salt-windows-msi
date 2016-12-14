@@ -62,7 +62,7 @@
 
     <DirectoryRef Id="BINFOLDER">
       <Component Id="CleanupBinFolder" Guid="*">
-        <!-- The registry key that remembers our DIR and RemoveFolderEx must read from registry. -->
+        <!--   SRP: the registry key that remembers our DIR and RemoveFolderEx must read from registry. -->
         <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="string" Value="[BINFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="BINFOLDER" />
       </Component>
     </DirectoryRef>
@@ -77,9 +77,6 @@
         <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="string" Value="[VARFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="VARFOLDER" />
       </Component>
     </DirectoryRef>
-
-
-
 
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
