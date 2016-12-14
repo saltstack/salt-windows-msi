@@ -50,12 +50,11 @@
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
     <!-- Delete a folder recursivly -->
-    <!-- incomplete tutorial: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->    
-    <!-- SRP: Simple Remember Pattern http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/  -->
-    <!-- SRP: to remove a folder on uninstall, RemoveFolderEx must read a *FOLDER property from registry. -->
-    <!--The SRP pattern will be repeated now -->
-    <!--Components CANNOT BECAUSE WRONG TIME depend on Property KEEP_CONFIG-->
-    <!-- SRP: write exactly what to registry? During uninstall, I must assume? -->
+    <!-- Inspiration 1: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->
+    <!-- Inspiration 2: http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/   Simple Remember Pattern SRP-->
+    <!--  Learn: Condition with KEEP_CONFIG is useless on Components. Therefore Condition must be on Feature -->
+    <!--The SRP pattern 1/3 -->
+    <!-- SRP: the Property that we'll remember  -->
     <DirectoryRef Id="BINFOLDER">
       <Component Id="CleanupBinFolder" Guid="*">
         <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="string" Value="[BINFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="BINFOLDER" />
