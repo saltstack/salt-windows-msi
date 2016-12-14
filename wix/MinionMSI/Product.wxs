@@ -52,28 +52,32 @@
     <!-- Delete a folder recursivly -->
     <!-- Inspiration 1: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->
     <!-- Inspiration 2: http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/   Simple Remember Pattern SRP-->
-    <!--  Learn: Condition with KEEP_CONFIG is useless on Components. Therefore Condition must be on Feature -->
-    <!--The SRP pattern 1/3 -->
-    <!-- SRP: the Property that we'll remember  -->
+    <!-- Learn: Condition with KEEP_CONFIG is useless on Components and on Features -->
+    <!-- SRP pattern 1/2 -->
+    <!--     SRP: the Property that we'll remember  -->
+    <Property Id="BINFOLDER">
+      <!--   SRP:  the registry search that will reload our Property on repair, upgrade and uninstall -->
+      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="raw"  Id="BINFOLDER_REGSEARCH" />
+    </Property>
+
     <DirectoryRef Id="BINFOLDER">
       <Component Id="CleanupBinFolder" Guid="*">
+        <!-- The registry key that remembers our DIR and RemoveFolderEx must read from registry. -->
         <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="string" Value="[BINFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="BINFOLDER" />
       </Component>
     </DirectoryRef>
-    <!-- SRP: read from registry. I have no clue why this removes a folder  -->
-    <Property Id="BINFOLDER">
-      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="raw"  Id="BINFOLDER_REGSEARCH" />
+
+    <!-- SRP pattern 1/2 -->
+    <Property Id="VARFOLDER">
+      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="raw"  Id="VARFOLDER_REGSEARCH" />
     </Property>
-    <!-- SRP: write to registry. -->
+
     <DirectoryRef Id="VARFOLDER">
       <Component Id="CleanupVarFolder" Guid="*">
         <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="string" Value="[VARFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="VARFOLDER" />
       </Component>
     </DirectoryRef>
-    <!-- SRP: read from registry. -->
-    <Property Id="VARFOLDER">
-      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="raw"  Id="VARFOLDER_REGSEARCH" />
-    </Property>
+
 
 
 
