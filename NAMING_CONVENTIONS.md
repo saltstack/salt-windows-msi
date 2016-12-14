@@ -9,7 +9,7 @@ Prefix | Example               | Meaning                                     | C
 `AA.`  | `AA.MASTER_HOSTNAME`  | property copied to CustomActionData         | 
 `DIR.` | `DIR.CONF`            | Directory (a.k.a folder)                    | 
 `CAC.` | `CAC.NukeConf`        | Custom action                               |
-`CAP.` | `CAP.NukeConf`        | Custom action sending properties to a CAC   |  
+`CAA.` | `CAA.NukeConf`        | Custom action sending PP to a CAC           |  
 `COT.` | `COT.NukeBin`         | Component                                   | 
 
 
