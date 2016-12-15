@@ -60,7 +60,7 @@
       </Component>
     </DirectoryRef>
 
-    <!-- SRP pattern 1/2 -->
+    <!-- SRP pattern 2/2 -->
     <Property Id="VARFOLDER">
       <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="raw"  Id="VARFOLDER_REGSEARCH" />
     </Property>
