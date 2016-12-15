@@ -23,7 +23,7 @@
 
         <Control Id="StartMinionServiceCheckBox" Type="CheckBox" X="20" Y="210" 
           Width="280" Height="15" Property="START_MINION_SERVICE" CheckBoxValue="1"
-          Text="Start salt-minion service immediately?" />
+          Text="&amp;Start salt-minion service immediately?"  ToolTip="Command line equivalent START_MINION_SERVICE=1"  />
       </Dialog>
     </UI>
   </Fragment>
