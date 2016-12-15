@@ -33,8 +33,10 @@
       <Custom Action='CAA.SetMaster'   Before='CAC.SetMaster'  >NOT Installed</Custom> <Custom Action='CAC.SetMaster'   Before='StartServices'>NOT Installed</Custom>
       <Custom Action='CAA.SetMinionId' Before='CAC.SetMinionId'>NOT Installed</Custom> <Custom Action='CAC.SetMinionId' Before='StartServices'>NOT Installed</Custom>
 
+			<!-- Conditionally start the service -->
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
 
+			<!-- Conditionally removing configuration un uninstall impedes the use of a component (which would leave uninstall incomplete) -->
       <Custom Action='CAC.NukeConf'  After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
     </InstallExecuteSequence>
 
