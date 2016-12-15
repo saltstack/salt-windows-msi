@@ -1,17 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
-    <!-- 2016-11-13  mkr  This is glue between C# custom action and  Product.wxs, where these are called. -->
-
     <!-- 2016-11-13  mkr
          For PrepareEvironmentBeforeInstallation, read the comment in Product.wxs
 	  -->
     <CustomAction Id="PrepareEvironmentBeforeInstallation"  BinaryKey='MinionConfigExt' DllEntry='PrepareEvironmentBeforeInstallation'   Execute='firstSequence'/>
-    <CustomAction Id="CS_CUSTOM_ACTION_NUKE_CONF"           BinaryKey='MinionConfigExt' DllEntry='CS_CUSTOM_ACTION_NUKE_CONF'                                   />
+    <CustomAction Id="CAC.NukeConf"                         BinaryKey='MinionConfigExt' DllEntry='CS_CUSTOM_ACTION_NUKE_CONF'                                   />
     
-    <CustomAction Id="SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="CAC.SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="CAC.SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="CAC.SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
     <!--
          Executing the above as deferred is necessary to implement the configuration
          changes prior to starting the service, which is done during the install
@@ -19,17 +17,16 @@
          the below unnecessary but doesn't produce any useful log information if
          it fails.
 
-         Deferred custom actions require properties to be passed as CustomActionData
+         (Deferred?) custom actions require properties to be passed as CustomActionData
          via separate type 51 custom actions to set the properties. The 'Property='
          attribute must be set to the name of the custom action receiving the data,
          and the 'Value=' attribute should be a list of key=[Property] pairs.
 
-         Adding more actions here means you will need to add them in the
-         InstallExecuteSequence in Product.wxs.
+         All actions here are called in the InstallExecuteSequence in Product.wxs.
     -->
-    <CustomAction Id="SetMasterPropertiesCA"       Property="SetMaster"       Value="MasterHostname=[MASTER_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
-    <CustomAction Id="SetMinionIdPropertiesCA"     Property="SetMinionId"     Value="MinionHostname=[MINION_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
-    <CustomAction Id="SetRootDirPropertiesCA"      Property="SetRootDir"      Value="MinionRoot=[INSTALLFOLDER]" />
+    <CustomAction Id="CAA.SetMaster"   Property="CAC.SetMaster"   Value="MasterHostname=[MASTER_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
+    <CustomAction Id="CAA.SetMinionId" Property="CAC.SetMinionId" Value="MinionHostname=[MINION_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
+    <CustomAction Id="CAA.SetRootDir"  Property="CAC.SetRootDir"  Value="MinionRoot=[INSTALLFOLDER]" />
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>

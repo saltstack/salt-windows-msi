@@ -29,22 +29,13 @@
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
 
       <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
-      <Custom Action='SetRootDirPropertiesCA' 
-              Before='SetRootDir'>NOT Installed</Custom>
-      <Custom Action='SetRootDir' 
-              Before='SetMasterPropertiesCA'>NOT Installed</Custom>
-      <Custom Action='SetMasterPropertiesCA' 
-              Before='SetMaster'>NOT Installed</Custom>
-      <Custom Action='SetMaster' 
-              Before='SetMinionIdPropertiesCA'>NOT Installed</Custom>
-      <Custom Action='SetMinionIdPropertiesCA' 
-              Before='SetMinionId'>NOT Installed</Custom>
-      <Custom Action='SetMinionId' 
-              Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CAA.SetRootDir'  Before='CAC.SetRootDir' >NOT Installed</Custom> <Custom Action='CAC.SetRootDir'  Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CAA.SetMaster'   Before='CAC.SetMaster'  >NOT Installed</Custom> <Custom Action='CAC.SetMaster'   Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CAA.SetMinionId' Before='CAC.SetMinionId'>NOT Installed</Custom> <Custom Action='CAC.SetMinionId' Before='StartServices'>NOT Installed</Custom>
 
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
 
-      <Custom Action='CS_CUSTOM_ACTION_NUKE_CONF'  After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='CAC.NukeConf'  After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
     </InstallExecuteSequence>
 
     
