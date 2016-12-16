@@ -18,22 +18,30 @@ namespace MinionConfigurationExtension {
 
 
 		[CustomAction]
-		public static ActionResult CS_CUSTOM_ACTION_NUKE_CONF(Session session) {
+		public static ActionResult NukeConf(Session session) {
 			/*
 			 * This CustomAction must be called "late". 
 			 * 
 			*/
-			session.Log("MinionConfiguration.cs:: Begin CS_CUSTOM_ACTION_NUKE_CONF");
+			session.Log("MinionConfiguration.cs:: Begin NukeConf");
 			///////////
 			// System.Collections.Generic.KeyNotFoundException: The given key was not present in the dictionary.
 			//var KEEP_CONF = session.CustomActionData["KEEP_CONF"];
-			//session.Log("CS_CUSTOM_ACTION_NUKE_CONF:: KEEP_CONF = " + KEEP_CONF);
+			//session.Log("NukeConf:: KEEP_CONF = " + KEEP_CONF);
 			//////////
-			try { Directory.Delete(@"c:\salt\conf", true); } catch (Exception ex) { 
-				just_ExceptionLog (@"while deleting c:\salt\conf", session, ex);
-				return ActionResult.Failure;
+			String soon_conf = @"c:\salt\conf";
+			try {
+				session.Log("NukeConf:: going to try to Directory delete " + soon_conf);
+				Directory.Delete(soon_conf, true);
+			} catch (Exception ex) {
+				just_ExceptionLog(@"NukeConf tried to delete " + soon_conf, session, ex);
+				//return ActionResult.Failure;
 			}
-			session.Log("MinionConfiguration.cs:: End CS_CUSTOM_ACTION_NUKE_CONF");
+
+			// quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied 
+			shellout(session, @"rmdir /s /q " + soon_conf);
+
+			session.Log("MinionConfiguration.cs:: End NukeConf");
 			return ActionResult.Success;
 		}
 
@@ -65,9 +73,9 @@ namespace MinionConfigurationExtension {
 			session.Log("peel_NSIS:: NSIS_is_installed = " + NSIS_is_installed);
 			if (NSIS_is_installed) {
 				session.Log("peel_NSIS:: Going to stop service salt-minion ...");
-				shellout("sc stop salt-minion");
+				shellout(session, "sc stop salt-minion");
 				session.Log("peel_NSIS:: Going to delete service salt-minion ...");
-				shellout("sc delete salt-minion");
+				shellout(session, "sc delete salt-minion");
 
 				session.Log("peel_NSIS:: Going to delete ARM registry entry for salt-minion ...");
 				try { reg.DeleteSubKeyTree(NSIS_uninstall_key); } catch (Exception) { ;}
@@ -179,16 +187,21 @@ namespace MinionConfigurationExtension {
 		}
 
 
-		private static void shellout(string s) {
+		private static void shellout(Session session, string s) {
 			// This is a handmade shellout routine
-			System.Diagnostics.Process process = new System.Diagnostics.Process();
-			System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-			startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-			startInfo.FileName = "cmd.exe";
-			startInfo.Arguments = "/C " + s;
-			process.StartInfo = startInfo;
-			process.Start();
-			process.WaitForExit();
+			session.Log("shellout about to try " + s);
+			try {
+				System.Diagnostics.Process process = new System.Diagnostics.Process();
+				System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+				startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+				startInfo.FileName = "cmd.exe";
+				startInfo.Arguments = "/C " + s;
+				process.StartInfo = startInfo;
+				process.Start();
+				process.WaitForExit();
+			} catch (Exception ex) {
+				just_ExceptionLog("shellout tried " + s, session, ex);
+			}
 		}
 
 
