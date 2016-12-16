@@ -13,12 +13,15 @@ xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl">
 </xsl:copy>
 </xsl:template>
 
+<!-- BEGIN remove component for nssm.exe from dist-amd64.wxs because it must be in service.wxs -->
 <!--key to detect nssm-->
 <xsl:key name="nssm" match="wix:Component[contains(wix:File/@Source, 'nssm.exe')]" use="@Id"/>
 
-<!--Match and ignore nssm  (MAYBE DOING NOTHING) -->
+<!--Match and ignore nssm  -->
 <xsl:template match="wix:Component[key('nssm', @Id)]"/>
 <xsl:template match="wix:ComponentRef[key('nssm', @Id)]"/>
+<!-- END  remove component for nssm.exe from dist-amd64.wxs because it must be in service.wxs -->
+
 
 <!--key to detect conf/minion file -->
 <!--                                                          ends-with  ~  substring (A, string-length(A) - string-length(B) + 1)    -->

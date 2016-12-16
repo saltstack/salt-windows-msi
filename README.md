@@ -94,6 +94,10 @@ properties, and the current value of those properties:
   - Product.wxs: contains the main MSI description and event sequence
   - service.wxs: contains a WiX component for nssm.exe and the
     associated Windows Service description/control settings.
+		- wix\MinionMSI\dist-amd64.wxs lists all the discovered sources.
+	  - Because nssm.exe must be a (handwritten) WiX component in service.wxs, it also must be excluded 
+	    from dist-amd64.wxs. 
+	  - nssm.xsl excludes nssm.exe from dist-amd64.wxs.
   - WixUI\_Minion.wxs: WiX fragment describing the UI for the setup.
   - Banner.jpg: Used as the top bar banner in most of the UI dialogs.
   - Dialog.jpg: Used as the dialog background for Welcome and Exit dialogs.
