@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Fragment>
+		<ComponentGroup     Id="service">
+			<Component        Id="service"        Directory="BINFOLDER" Guid="{836BA057-7549-4DA8-B8ED-6F0521FAEFD5}">
+				<File           Id="python.exe"     Source="$(var.dist)\bin\python.exe" KeyPath="yes" />
+				<ServiceInstall Id="ServiceInstall" Name="Minion" DisplayName="salt-minion"  
+												Start="auto"  Type="ownProcess" Vital="yes" Account="LocalSystem" ErrorControl="ignore" Interactive="no"/>
+				<ServiceControl Id="ServiceControl" Name="Minion" Start="install" Stop="both" Remove="uninstall" Wait="yes" />
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>
