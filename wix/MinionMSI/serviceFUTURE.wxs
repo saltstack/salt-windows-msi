@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 	<Fragment>
-		<ComponentGroup     Id="service">
-			<Component        Directory="BINFOLDER"  Guid="{836BA057-7549-4DA8-B8ED-6F0521FAEFD5}">
-				<File           Name="python.exe"  KeyPath="yes" />
-				<ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
-												Arguments="[INSTALLFOLDER]bin\Lib\site-packages\salt\utils\saltminionservice.py -c [INSTALLFOLDER]conf -l quiet" 
-												Start="auto"  Type="ownProcess"  Vital="yes"  Account="LocalSystem"  ErrorControl="ignore" Interactive="no" />
-				<ServiceControl Name="salt-minion"  Id="ServiceControl"  Start="install"  Stop="both"  Remove="uninstall" Wait="yes" />
-			</Component>
-		</ComponentGroup>
+		<Component        Id="service" Directory="BINFOLDER">
+			<File           Name="python.exe"  KeyPath="yes" />
+			<ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
+											Arguments="[SITEPACKAGES]salt\utils\saltminionservice.py -c [INSTALLFOLDER]conf -l quiet"
+										  Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
+				<ServiceConfig OnInstall="yes" OnReinstall="yes" DelayedAutoStart="no" />
+			</ServiceInstall>
+			<ServiceControl Name="salt-minion"  Start="install"  Stop="uninstall"  Remove="uninstall" Wait="yes"  Id="ServiceControl">
+				<ServiceArgument /> <!-- http://stackoverflow.com/questions/10621082/wix-serviceinstall-arguments  -->
+			</ServiceControl>
+		</Component>
 	</Fragment>
 </Wix>
