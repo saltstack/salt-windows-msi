@@ -41,9 +41,9 @@
      
     Exec runs in MSBuildProjectDirectory? why wix\MinionMSI\ ?
     -->
-    <Exec Command="cd ,"                                             ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="mercury" /></Exec>
-    <Exec Command="dir /b             versionDisplayOrInternal.py"   ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="venus" /></Exec>    
-    <Exec Command="C:\Python27\python versionDisplayOrInternal.py"   ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="DisplayVersion" /></Exec>
+    <Exec Command="cd ,"                                             ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="mercury"         /></Exec>
+    <Exec Command="dir /b             versionDisplayOrInternal.py"   ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="venus"           /></Exec>    
+    <Exec Command="C:\Python27\python versionDisplayOrInternal.py"   ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="DisplayVersion"  /></Exec>
     <Exec Command="C:\Python27\python versionDisplayOrInternal.py i" ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="InternalVersion" /></Exec>
 
     <Error Condition="'$(DisplayVersion)'==''"  Text="Must set DisplayVersion" />
