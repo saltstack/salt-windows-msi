@@ -40,7 +40,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="service.wxs" />
-    <Compile Include="serviceFUTURE.wxs" />
+    <Compile Include="servicePython.wxs" />
     <Compile Include="SettingsCustomizationDlg.wxs" />
     <Compile Include="MinionConfigurationExtensionCA.wxs" />
     <Compile Include="Product.wxs" />

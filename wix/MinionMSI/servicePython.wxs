@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 	<Fragment>
-		<Component        Id="service" Directory="BINFOLDER">
-			<File           Name="python.exe"  KeyPath="yes" />
+		<Component        Id="servicePython" Directory="BINFOLDER" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
+			<File           Source="$(var.dist)\bin\python.exe"  KeyPath="yes"/>
 			<ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
 											Arguments="[SITEPACKAGES]salt\utils\saltminionservice.py -c [INSTALLFOLDER]conf -l quiet"
 										  Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >

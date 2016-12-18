@@ -117,7 +117,10 @@
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <ComponentGroupRef Id="dist"    />       <!-- // include dist-amd64.wxs in this directory -->
-      <ComponentGroupRef Id="service" />       <!-- // include service.wxs    in this directory -->
+			<ComponentGroupRef Id="service" /> 
+			<!--
+			<ComponentRef Id="servicePython" />
+			-->
     </ComponentGroup>
   </Fragment>
 </Wix>
