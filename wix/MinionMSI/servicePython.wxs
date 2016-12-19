@@ -4,7 +4,7 @@
 		<Component        Id="servicePython" Directory="BINFOLDER" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
 			<File           Source="$(var.dist)\bin\python.exe"  KeyPath="yes"/>
 			<ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
-											Arguments="[SITEPACKAGES]salt\utils\saltminionservice.py -c [INSTALLFOLDER]conf -l quiet"
+											Arguments="[BINFOLDER]Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet"
 										  Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
 				<ServiceConfig OnInstall="yes" OnReinstall="yes" DelayedAutoStart="no" />
 			</ServiceInstall>

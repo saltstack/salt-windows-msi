@@ -102,13 +102,9 @@
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="INSTALLFOLDER" Name="salt" >
-        <Directory Id="BINFOLDER" Name="bin">
-					<Directory Id="LIBFOLDER" Name="Lib">
-						<Directory Id="SITEPACKAGES" Name="site-packages"/>
-					</Directory>
-				</Directory>
+        <Directory Id="BINFOLDER"  Name="bin" />
         <Directory Id="CONFFOLDER" Name="conf" />
-        <Directory Id="VARFOLDER" Name="var" />
+        <Directory Id="VARFOLDER"  Name="var" />
       </Directory>
     </Directory>
   </Fragment>
