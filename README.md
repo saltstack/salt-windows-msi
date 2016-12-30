@@ -19,6 +19,7 @@ There are additional benefits:
 
 - A problem during the .msi install will be rolled back automatically.
 - An msi offers built-in logging (/l option to msiexec).
+- *_amd64.msi only installs on 64bit Windows
 
 ###On unattended install ("silent install")###
 
