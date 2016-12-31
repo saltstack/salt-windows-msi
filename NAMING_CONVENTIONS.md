@@ -3,13 +3,12 @@ Naming conventions
 
 ##For WiX##
 
-Prefix | Example               | Meaning                                     | Comment
------- | --------------------- | ------------------------------------------- | --- 
-`PP.`  | `PP.MASTER_HOSTNAME`  | property                                    | 
-`AA.`  | `AA.MASTER_HOSTNAME`  | property copied to CustomActionData         | 
-`DIR.` | `DIR.CONF`            | Directory (a.k.a folder)                    | 
-`CAC.` | `CAC.NukeConf`        | Custom action                               |
-`CAA.` | `CAA.NukeConf`        | Custom action sending PP to a CAC           |  
-`COT.` | `COT.NukeBin`         | Component                                   | 
+Prefix | Example                 | Meaning
+------ | ----------------------- | -------
+`CAC.` | `CACT_NukeConf`         | Custom action
+`AA.`  | `CADK_MASTER_HOSTNAME`  | Custom action data key
+`CAA.` | `CADR_NukeConf`         | Custom action data routine
+`COT.` | `COMP_NukeBin`          | Component
+`DIR.` | `DIR_conf`              | Directory
 
 
