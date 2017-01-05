@@ -72,7 +72,7 @@ namespace MinionConfigurationExtension {
 			session.Log("MinionConfiguration.cs:: Begin peel_NSIS");
 			RegistryKey reg = Registry.LocalMachine;
 			string NSIS_uninstall_key = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
-			bool NSIS_is_installed = reg.OpenSubKey(NSIS_uninstall_key) != null;
+			bool NSIS_is_installed = reg.OpenSubKey(NSIS_uninstall_key) != null; // PROBLEM: this is too broad and also an MSI install becomes TRUE
 			session.Log("peel_NSIS:: NSIS_is_installed = " + NSIS_is_installed);
 			if (NSIS_is_installed) {
 				session.Log("peel_NSIS:: Going to stop service salt-minion ...");
@@ -80,7 +80,7 @@ namespace MinionConfigurationExtension {
 				session.Log("peel_NSIS:: Going to delete service salt-minion ...");
 				shellout(session, "sc delete salt-minion");
 
-				session.Log("peel_NSIS:: Going to delete ARM registry entry for salt-minion ...");
+				session.Log("peel_NSIS:: Going to delete ARP registry entry for salt-minion ...");
 				try { reg.DeleteSubKeyTree(NSIS_uninstall_key); } catch (Exception) { ;}
 
 				session.Log("peel_NSIS:: Going to delete files ...");
