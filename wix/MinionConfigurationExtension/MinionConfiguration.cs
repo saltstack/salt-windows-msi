@@ -17,12 +17,15 @@ namespace MinionConfigurationExtension {
 		*/
 
 
-		[CustomAction]
+        /*
+         * Recursivly remove the conf directory.
+         * The MSI easily only removes files installed by the MSI.
+         * 
+         * This CustomAction must be called "late" ("deferred").
+         * 
+        */
+        [CustomAction]
 		public static ActionResult NukeConf(Session session) {
-			/*
-			 * This CustomAction must be called "late". 
-			 * 
-			*/
 			session.Log("MinionConfiguration.cs:: Begin NukeConf");
 			///////////
 			// System.Collections.Generic.KeyNotFoundException: The given key was not present in the dictionary.
