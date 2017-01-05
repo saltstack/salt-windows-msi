@@ -44,6 +44,7 @@
       <Custom Action='CACT_NukeConf'   After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
 
       <!-- Otherwise, leave configuration and write MinionRoot / INSTALLDIR to registry -->
+      <Custom Action='CADR_RegRootDir' Before='CACT_RegRootDir'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
       <Custom Action='CACT_RegRootDir' Before='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
 
     </InstallExecuteSequence>

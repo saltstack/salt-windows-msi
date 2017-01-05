@@ -70,6 +70,12 @@ namespace MinionConfigurationExtension {
 			 * 	remove files, except /salt/conf and /salt/var
 			*/
 			session.Log("MinionConfiguration.cs:: Begin peel_NSIS");
+			session.Log("Environment.Version = " + Environment.Version);
+			if (IntPtr.Size == 8) {
+				session.Log("probably 64 bit process");
+			} else {
+				session.Log("probably 32 bit process");
+			}
 			RegistryKey reg = Registry.LocalMachine;
 			// (Only?) in regedit this is under    SOFTWARE\WoW6432Node
 			string Salt_uninstall_regpath64 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
@@ -87,14 +93,14 @@ namespace MinionConfigurationExtension {
 				shellout(session, "sc delete salt-minion");
 
 				session.Log("peel_NSIS:: Going to delete ARP registry64 entry for salt-minion ...");
-				try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception) { ;}
+				try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
 				session.Log("peel_NSIS:: Going to delete ARP registry32 entry for salt-minion ...");
-				try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception) { ;}
+				try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
 
 				session.Log("peel_NSIS:: Going to delete files ...");
-				try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception) { ;}
-				try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception) { ;}
-				try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception) { ;}
+				try { Directory.Delete(@"c:\salt\bin", true); }  catch (Exception ex) {just_ExceptionLog("", session, ex);}
+				try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
+				try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
 				try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) { ;}
 			}
 			session.Log("MinionConfiguration.cs:: End peel_NSIS");
@@ -132,6 +138,68 @@ namespace MinionConfigurationExtension {
 			return true;
 		}
 
+
+		// ******************* public CustomAction, that you use from WiX *************** must have this header or cannot uninstall not even write to the log
+		[CustomAction]
+		public static ActionResult RegRootDir(Session session) {
+			/*
+			 * IF uninstall and KEEP_CONFIG=1 THEN
+			 *    write INSTALLFOLDER to registry,
+			 *    but not within WiX, 
+			 *    because this requires a component, 
+			 *    and the MSI would not uninstall and Salt-Minion would remain in ARP. 
+			 *    Therefore use a custom action 
+			*/
+			session.Log("MinionConfiguration.cs:: Begin RegRootDir");
+			string CustomActionDataKey = "MinionRoot";
+			string CustomActionData_value;
+			session.Log("RegRootDir:: About to get CustomActionData " + CustomActionDataKey);
+			try {
+				CustomActionData_value = session.CustomActionData[CustomActionDataKey];
+			} catch (Exception ex) {
+				just_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex);
+				return ActionResult.Failure;
+			}
+			RegistryKey reg = Registry.LocalMachine;
+			// (Only?) in regedit this is under    SOFTWARE\WoW6432Node
+			string SaltStack_regpath = @"SOFTWARE\SaltStack";
+			string SaltMinion_regpath = @"SOFTWARE\SaltStack\Salt Minion";
+			/*
+			 *
+			 * maybe I can wrrite to the current user registry on install
+			 * system should be a user too.
+			 * maybe I only cannot write to  HKLM
+			 * 
+			 * try to think along these lines:
+			 * the private key is "user data".
+			 * the location of the private key is "user data".
+			 * 
+			 * 
+			 * 
+			 * 
+System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.UnauthorizedAccessException: Cannot write to the registry key.
+   at System.ThrowHelper.ThrowUnauthorizedAccessException(ExceptionResource resource)
+   at Microsoft.Win32.RegistryKey.EnsureWriteable()
+   at Microsoft.Win32.RegistryKey.SetValue(String name, Object value, RegistryValueKind valueKind)
+   at Microsoft.Win32.RegistryKey.SetValue(String name, Object value)
+   at MinionConfigurationExtension.MinionConfiguration.RegRootDir(Session session)
+   --- End of inner exception stack trace ---
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Object arguments, Signature sig, Boolean constructor)
+   at System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object parameters, Object arguments)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object parameters, CultureInfo culture)
+   at Microsoft.Deployment.WindowsInstaller.CustomActionProxy.InvokeCustomAction(Int32 sessionHandle, String entryPoint, IntPtr remotingDelegatePtr)
+			 * * 
+			 * *************************************************************************
+			session.Log("RegRootDir:: About to  reg.OpenSubKey " + SaltStack_regpath);
+			if (reg.OpenSubKey(SaltStack_regpath) == null) { reg.CreateSubKey(SaltStack_regpath); };
+			if (reg.OpenSubKey(SaltMinion_regpath) == null) { reg.CreateSubKey(SaltMinion_regpath); };
+			reg.OpenSubKey(SaltMinion_regpath).SetValue("INSTALLDIR", CustomActionData_value);
+			 */
+			session.Log("MinionConfiguration.cs:: End RegRootDir");
+			return ActionResult.Success;
+		}
+
+		// ******************* public CustomAction, that you use from WiX *************** must have this header
 
 		// Save user input to conf/minion settings
 		[CustomAction]
@@ -195,36 +263,6 @@ namespace MinionConfigurationExtension {
 				File.WriteAllLines(configFileFullPath, configText);
 			} catch (Exception ex) { just_ExceptionLog("Writing to file", session, ex); return ActionResult.Failure; }
 			return ActionResult.Success;
-		}
-
-
-		private static bool RegRootDir(Session session) {
-			/*
-			 * IF uninstall and KEEP_CONFIG=1 THEN
-			 *    write INSTALLFOLDER to registry,
-			 *    but not within WiX, 
-			 *    because this requires a component, 
-			 *    and the MSI would not uninstall and Salt-Minion would remain in ARP. 
-			 *    Therefore use a custom action 
-			*/
-			session.Log("MinionConfiguration.cs:: Begin write_INSTALLDIR_to_registry");
-			string CustomActionDataKey = "MinionRoot";
-			string CustomActionData_value;
-			try {
-				CustomActionData_value = session.CustomActionData[CustomActionDataKey];
-			} catch (Exception ex) { 
-				just_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex); 
-				return false;
-			}
-			RegistryKey reg = Registry.LocalMachine;
-			// (Only?) in regedit this is under    SOFTWARE\WoW6432Node
-			string SaltStack_regpath = @"SOFTWARE\SaltStack";
-			string SaltMinion_regpath = @"SOFTWARE\SaltStack\Salt Minion";
-			if (reg.OpenSubKey(SaltStack_regpath) == null) { reg.CreateSubKey(SaltStack_regpath); };
-			if (reg.OpenSubKey(SaltMinion_regpath) == null) { reg.CreateSubKey(SaltMinion_regpath); };
-			reg.OpenSubKey(SaltMinion_regpath).SetValue("INSTALLDIR", CustomActionData_value);
-			session.Log("MinionConfiguration.cs:: End write_INSTALLDIR_to_registry");
-			return true;
 		}
 
 
