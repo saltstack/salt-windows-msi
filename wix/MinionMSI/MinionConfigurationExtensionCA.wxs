@@ -24,6 +24,7 @@
 
          All actions here are called in the InstallExecuteSequence in Product.wxs.
     -->
+    <!-- the 3 CADR_ only use one Value, I leave a list because it could be useful later -->
     <CustomAction Id="CADR_SetMaster"   Property="CACT_SetMaster"   Value="MasterHostname=[MASTER_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
     <CustomAction Id="CADR_SetMinionId" Property="CACT_SetMinionId" Value="MinionHostname=[MINION_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
     <CustomAction Id="CADR_SetRootDir"  Property="CACT_SetRootDir"  Value="MinionRoot=[INSTALLFOLDER]" />
