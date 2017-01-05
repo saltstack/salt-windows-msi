@@ -33,15 +33,15 @@
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
 
       <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
-      <Custom Action='CAA.SetRootDir'  Before='CAC.SetRootDir' >NOT Installed</Custom> <Custom Action='CAC.SetRootDir'  Before='StartServices'>NOT Installed</Custom>
-      <Custom Action='CAA.SetMaster'   Before='CAC.SetMaster'  >NOT Installed</Custom> <Custom Action='CAC.SetMaster'   Before='StartServices'>NOT Installed</Custom>
-      <Custom Action='CAA.SetMinionId' Before='CAC.SetMinionId'>NOT Installed</Custom> <Custom Action='CAC.SetMinionId' Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CADR_SetRootDir'  Before='CACT_SetRootDir' >NOT Installed</Custom> <Custom Action='CACT_SetRootDir'  Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CADR_SetMaster'   Before='CACT_SetMaster'  >NOT Installed</Custom> <Custom Action='CACT_SetMaster'   Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CADR_SetMinionId' Before='CACT_SetMinionId'>NOT Installed</Custom> <Custom Action='CACT_SetMinionId' Before='StartServices'>NOT Installed</Custom>
 
 			<!-- Conditionally start the service -->
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
 
 			<!-- Conditionally removing configuration un uninstall impedes the use of a component (which would leave uninstall incomplete) -->
-      <Custom Action='CAC.NukeConf'  After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='CACT_NukeConf'  After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
     </InstallExecuteSequence>
 
     
