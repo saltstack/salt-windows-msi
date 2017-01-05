@@ -40,7 +40,7 @@
 			<!-- Conditionally start the service -->
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
 
-			<!-- Conditionally removing configuration un uninstall impedes the use of a component (which would leave uninstall incomplete) -->
+			<!-- Conditionally removing configuration on uninstall impedes the use of a component (which would leave uninstall incomplete) -->
       <Custom Action='CACT_NukeConf'  After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
     </InstallExecuteSequence>
 
