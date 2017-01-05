@@ -10,6 +10,7 @@
     <CustomAction Id="CACT_SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="CACT_SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="CACT_SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="CACT_RegRootDir"  BinaryKey='MinionConfigExt' DllEntry='RegRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
     <!--
          Executing the above as deferred is necessary to implement the configuration
          changes prior to starting the service, which is done during the install
@@ -28,6 +29,7 @@
     <CustomAction Id="CADR_SetMaster"   Property="CACT_SetMaster"   Value="MasterHostname=[MASTER_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
     <CustomAction Id="CADR_SetMinionId" Property="CACT_SetMinionId" Value="MinionHostname=[MINION_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
     <CustomAction Id="CADR_SetRootDir"  Property="CACT_SetRootDir"  Value="MinionRoot=[INSTALLFOLDER]" />
+    <CustomAction Id="CADR_RegRootDir"  Property="CACT_RegRootDir"  Value="MinionRoot=[INSTALLFOLDER]" />
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>

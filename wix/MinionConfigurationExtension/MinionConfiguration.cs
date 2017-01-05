@@ -72,18 +72,24 @@ namespace MinionConfigurationExtension {
 			session.Log("MinionConfiguration.cs:: Begin peel_NSIS");
 			RegistryKey reg = Registry.LocalMachine;
 			// (Only?) in regedit this is under    SOFTWARE\WoW6432Node
-			string Salt_uninstall_regpath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
-			var SaltRegSubkey = reg.OpenSubKey(Salt_uninstall_regpath);
-			bool NSIS_is_installed = (SaltRegSubkey != null) && SaltRegSubkey.GetValue("UninstallString").ToString() == @"c:\salt\uninst.exe";
-			session.Log("peel_NSIS:: NSIS_is_installed = " + NSIS_is_installed);
-			if (NSIS_is_installed) {
+			string Salt_uninstall_regpath64 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
+			string Salt_uninstall_regpath32 = @"SOFTWARE\WoW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
+			var SaltRegSubkey64 = reg.OpenSubKey(Salt_uninstall_regpath64);
+			var SaltRegSubkey32 = reg.OpenSubKey(Salt_uninstall_regpath32);
+			bool NSIS_is_installed64 = (SaltRegSubkey64 != null) && SaltRegSubkey64.GetValue("UninstallString").ToString() == @"c:\salt\uninst.exe";
+			bool NSIS_is_installed32 = (SaltRegSubkey32 != null) && SaltRegSubkey32.GetValue("UninstallString").ToString() == @"c:\salt\uninst.exe";
+			session.Log("peel_NSIS:: NSIS_is_installed64 = " + NSIS_is_installed64);
+			session.Log("peel_NSIS:: NSIS_is_installed32 = " + NSIS_is_installed32);
+			if (NSIS_is_installed64 || NSIS_is_installed32) {
 				session.Log("peel_NSIS:: Going to stop service salt-minion ...");
 				shellout(session, "sc stop salt-minion");
 				session.Log("peel_NSIS:: Going to delete service salt-minion ...");
 				shellout(session, "sc delete salt-minion");
 
-				session.Log("peel_NSIS:: Going to delete ARP registry entry for salt-minion ...");
-				try { reg.DeleteSubKeyTree(Salt_uninstall_regpath); } catch (Exception) { ;}
+				session.Log("peel_NSIS:: Going to delete ARP registry64 entry for salt-minion ...");
+				try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception) { ;}
+				session.Log("peel_NSIS:: Going to delete ARP registry32 entry for salt-minion ...");
+				try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception) { ;}
 
 				session.Log("peel_NSIS:: Going to delete files ...");
 				try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception) { ;}
@@ -189,6 +195,36 @@ namespace MinionConfigurationExtension {
 				File.WriteAllLines(configFileFullPath, configText);
 			} catch (Exception ex) { just_ExceptionLog("Writing to file", session, ex); return ActionResult.Failure; }
 			return ActionResult.Success;
+		}
+
+
+		private static bool RegRootDir(Session session) {
+			/*
+			 * IF uninstall and KEEP_CONFIG=1 THEN
+			 *    write INSTALLFOLDER to registry,
+			 *    but not within WiX, 
+			 *    because this requires a component, 
+			 *    and the MSI would not uninstall and Salt-Minion would remain in ARP. 
+			 *    Therefore use a custom action 
+			*/
+			session.Log("MinionConfiguration.cs:: Begin write_INSTALLDIR_to_registry");
+			string CustomActionDataKey = "MinionRoot";
+			string CustomActionData_value;
+			try {
+				CustomActionData_value = session.CustomActionData[CustomActionDataKey];
+			} catch (Exception ex) { 
+				just_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex); 
+				return false;
+			}
+			RegistryKey reg = Registry.LocalMachine;
+			// (Only?) in regedit this is under    SOFTWARE\WoW6432Node
+			string SaltStack_regpath = @"SOFTWARE\SaltStack";
+			string SaltMinion_regpath = @"SOFTWARE\SaltStack\Salt Minion";
+			if (reg.OpenSubKey(SaltStack_regpath) == null) { reg.CreateSubKey(SaltStack_regpath); };
+			if (reg.OpenSubKey(SaltMinion_regpath) == null) { reg.CreateSubKey(SaltMinion_regpath); };
+			reg.OpenSubKey(SaltMinion_regpath).SetValue("INSTALLDIR", CustomActionData_value);
+			session.Log("MinionConfiguration.cs:: End write_INSTALLDIR_to_registry");
+			return true;
 		}
 
 

@@ -10,7 +10,7 @@
     <!-- Installer specific properties                                  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
-    <Property Id="KEEP_CONFIG"              Value="0"                    />
+    <Property Id="KEEP_CONFIG"              Value="1"                    />
 		<!-- Generic Windows Installer Properties      https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
 		<Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/" />
 		<Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/" />
@@ -40,8 +40,12 @@
 			<!-- Conditionally start the service -->
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
 
-			<!-- Conditionally removing configuration on uninstall impedes the use of a component (which would leave uninstall incomplete) -->
-      <Custom Action='CACT_NukeConf'  After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+			<!-- Conditionally remove configuration on uninstall. Cannot use WiX/component because it would leave uninstall incomplete -->
+      <Custom Action='CACT_NukeConf'   After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+
+      <!-- Otherwise, leave configuration and write MinionRoot / INSTALLDIR to registry -->
+      <Custom Action='CACT_RegRootDir' Before='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+
     </InstallExecuteSequence>
 
     
