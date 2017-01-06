@@ -17,11 +17,13 @@ On uninstall, we store a plain text file
 which contains the path to the (former) INSTALLDIR/salt/conf.
 
 This file is only created on uninstall with KEEP_CONFIG=1 (the default).
+
 On uninstall with KEEP_CONFIG=0, there is no configuration.
 Maybe the log files should be  kept.
 
 A (renewed) installation looks for configuration path 
  - in %SystemDrive%\ProgramData\SaltStack\SaltMinion\KEPT_CONFIG
+ 
  It could also try
  - %ProgramFiles%\SaltStack\SaltMinion
  - c:\salt
