@@ -10,7 +10,7 @@ The build is semi-automated using an [MSBuild][MSBuildId].
 
 The msi differs from the NSIS installer in:
 
-- It allows installation to any directory TODO.
+- TODO It allows installation to any directory.
 - It supports unattended installation.
 - By default, it leaves configuaration, remove configuration with `KEEP_CONFIG=0`.
 - ?? It does not download or install the VC++ redistributable. ??
