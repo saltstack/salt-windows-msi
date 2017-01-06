@@ -12,15 +12,15 @@ The msi differs from the NSIS installer in:
 
 - It allows installation to any directory TODO.
 - It supports unattended installation.
-- It leaves configuaration. (remove configuration with KEEP_CONFIG=0)
+- By default, it leaves configuaration, remove configuration with `KEEP_CONFIG=0`.
 - ?? It does not download or install the VC++ redistributable. ??
 - ?? Since the msi does not install the Visual C++ redistributable, it must be installed separately ??
 
-There are additional benefits:
+Additional benefits:
 
 - A problem during the .msi install will be rolled back automatically.
 - An msi offers built-in logging (/l option to msiexec).
-- *_amd64.msi only installs on 64bit Windows
+- *_amd64.msi does not run on 32bit Windows.
 
 ###On unattended install ("silent install")###
 
@@ -32,15 +32,11 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 Available properties:
 
-- MASTER\_HOSTNAME: The master hostname. The default is 'salt'.
-- MINION\_HOSTNAME: The minion id. The default is '%COMPUTERNAME%'.
-- START\_MINION\_SERVICE: Whether to start the salt-minion service after installation. The default is false.
-- KEEP_CONFIG: keep c:\salt\conf. Default is 1 (true). Only from commandline
-- INSTALLFOLDER: Where to install the files. Default is 'c:\salt'. DO NOT CHANGE
-
-Note:
-Because the user can set installdir, therefore the location of the configuration, 
-The location of the configuration must be stored in the Registry on uninstall with KEEP_CONFIG=1.
+- `MASTER_HOSTNAME`: The master hostname. The default is `salt.
+- `MINION_HOSTNAME`: The minion id. The default is `%COMPUTERNAME%`.
+- `START_MINION_SERVICE`: Whether to start the salt-minion service after installation. The default is false.
+- `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from commandline.
+- `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
 
 ##General Requirements##
 
