@@ -18,8 +18,8 @@ The msi differs from the NSIS installer in:
 
 Additional benefits:
 
-- A problem during the .msi install will be rolled back automatically.
-- An msi offers built-in logging (/l option to msiexec).
+- Any problem during the install causes the installation to be rolled back, as in database transactions.
+- Built-in logging (/l option to msiexec).
 - *_amd64.msi does not run on 32bit Windows.
 
 ###On unattended install ("silent install")###
