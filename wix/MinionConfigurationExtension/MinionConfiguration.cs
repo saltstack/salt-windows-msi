@@ -61,7 +61,7 @@ namespace MinionConfigurationExtension {
 			session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
 			return ActionResult.Success;
 		}
-
+		
 		private static bool peel_NSIS(Session session) {
 			/*
 			 * If NSIS is installed:
@@ -82,8 +82,8 @@ namespace MinionConfigurationExtension {
 			string Salt_uninstall_regpath32 = @"SOFTWARE\WoW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
 			var SaltRegSubkey64 = reg.OpenSubKey(Salt_uninstall_regpath64);
 			var SaltRegSubkey32 = reg.OpenSubKey(Salt_uninstall_regpath32);
-			bool NSIS_is_installed64 = (SaltRegSubkey64 != null) && SaltRegSubkey64.GetValue("UninstallString").ToString() == @"c:\salt\uninst.exe";
-			bool NSIS_is_installed32 = (SaltRegSubkey32 != null) && SaltRegSubkey32.GetValue("UninstallString").ToString() == @"c:\salt\uninst.exe";
+			bool NSIS_is_installed64 = (SaltRegSubkey64 != null) && SaltRegSubkey64.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
+			bool NSIS_is_installed32 = (SaltRegSubkey32 != null) && SaltRegSubkey32.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
 			session.Log("peel_NSIS:: NSIS_is_installed64 = " + NSIS_is_installed64);
 			session.Log("peel_NSIS:: NSIS_is_installed32 = " + NSIS_is_installed32);
 			if (NSIS_is_installed64 || NSIS_is_installed32) {
@@ -160,41 +160,45 @@ namespace MinionConfigurationExtension {
 				just_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex);
 				return ActionResult.Failure;
 			}
-			RegistryKey reg = Registry.LocalMachine;
-			// (Only?) in regedit this is under    SOFTWARE\WoW6432Node
-			string SaltStack_regpath = @"SOFTWARE\SaltStack";
-			string SaltMinion_regpath = @"SOFTWARE\SaltStack\Salt Minion";
-			/*
-			 *
-			 * maybe I can wrrite to the current user registry on install
-			 * system should be a user too.
-			 * maybe I only cannot write to  HKLM
-			 * 
-			 * try to think along these lines:
-			 * the private key is "user data".
-			 * the location of the private key is "user data".
-			 * 
-			 * 
-			 * 
-			 * 
-System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.UnauthorizedAccessException: Cannot write to the registry key.
-   at System.ThrowHelper.ThrowUnauthorizedAccessException(ExceptionResource resource)
-   at Microsoft.Win32.RegistryKey.EnsureWriteable()
-   at Microsoft.Win32.RegistryKey.SetValue(String name, Object value, RegistryValueKind valueKind)
-   at Microsoft.Win32.RegistryKey.SetValue(String name, Object value)
-   at MinionConfigurationExtension.MinionConfiguration.RegRootDir(Session session)
-   --- End of inner exception stack trace ---
-   at System.RuntimeMethodHandle.InvokeMethod(Object target, Object arguments, Signature sig, Boolean constructor)
-   at System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object parameters, Object arguments)
-   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object parameters, CultureInfo culture)
-   at Microsoft.Deployment.WindowsInstaller.CustomActionProxy.InvokeCustomAction(Int32 sessionHandle, String entryPoint, IntPtr remotingDelegatePtr)
-			 * * 
-			 * *************************************************************************
-			session.Log("RegRootDir:: About to  reg.OpenSubKey " + SaltStack_regpath);
-			if (reg.OpenSubKey(SaltStack_regpath) == null) { reg.CreateSubKey(SaltStack_regpath); };
-			if (reg.OpenSubKey(SaltMinion_regpath) == null) { reg.CreateSubKey(SaltMinion_regpath); };
-			reg.OpenSubKey(SaltMinion_regpath).SetValue("INSTALLDIR", CustomActionData_value);
-			 */
+			session.Log("RegRootDir:: CustomActionData_value = " + CustomActionData_value);
+
+			bool write_to_registry = false;
+			if (write_to_registry) {
+				RegistryKey reg = Registry.LocalMachine;
+				// (Only?) in regedit this is under    SOFTWARE\WoW6432Node
+				string SaltStack_regpath = @"SOFTWARE\SaltStack";
+				string SaltMinion_regpath = @"SOFTWARE\SaltStack\Salt Minion";
+				/*
+				 *
+				 * why? why? why? why?
+				 * 
+				 * 
+				 * 
+	System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.UnauthorizedAccessException: Cannot write to the registry key.
+		 at System.ThrowHelper.ThrowUnauthorizedAccessException(ExceptionResource resource)
+		 at Microsoft.Win32.RegistryKey.EnsureWriteable()
+		 at Microsoft.Win32.RegistryKey.SetValue(String name, Object value, RegistryValueKind valueKind)
+		 at Microsoft.Win32.RegistryKey.SetValue(String name, Object value)
+		 at MinionConfigurationExtension.MinionConfiguration.RegRootDir(Session session)
+		 --- End of inner exception stack trace ---
+		 at System.RuntimeMethodHandle.InvokeMethod(Object target, Object arguments, Signature sig, Boolean constructor)
+		 at System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object parameters, Object arguments)
+		 at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object parameters, CultureInfo culture)
+		 at Microsoft.Deployment.WindowsInstaller.CustomActionProxy.InvokeCustomAction(Int32 sessionHandle, String entryPoint, IntPtr remotingDelegatePtr)
+				 * * 
+				 * *************************************************************************
+				 */
+				session.Log("RegRootDir:: About to  reg.OpenSubKey " + SaltStack_regpath);
+				if (reg.OpenSubKey(SaltStack_regpath) == null) { reg.CreateSubKey(SaltStack_regpath); };
+				if (reg.OpenSubKey(SaltMinion_regpath) == null) { reg.CreateSubKey(SaltMinion_regpath); };
+				reg.OpenSubKey(SaltMinion_regpath).SetValue("INSTALLDIR", CustomActionData_value);
+			} else {
+				string SaltStackAppdataPath = @"c:\ProgramData\SaltStack\SaltMinion\";
+				string SaltStackAppdataFile = SaltStackAppdataPath + "KEPT_CONFIG";
+				session.Log("RegRootDir:: About to  write " + CustomActionData_value + " into " + SaltStackAppdataFile);
+				shellout(session, "mkdir " + SaltStackAppdataPath);
+				shellout(session, "echo " + CustomActionData_value + " > " + SaltStackAppdataFile);
+			}
 			session.Log("MinionConfiguration.cs:: End RegRootDir");
 			return ActionResult.Success;
 		}
