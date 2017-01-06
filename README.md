@@ -18,16 +18,16 @@ The msi differs from the NSIS installer in:
 
 Additional benefits:
 
-- Any problem during the install causes the installation to be rolled back, as in database transactions.
+- A problem during the install causes the installation to be rolled back, as in a database transaction.
 - Built-in logging (/l option to msiexec).
 - *_amd64.msi does not run on 32bit Windows.
 
 ###On unattended install ("silent install")###
 
-An msi allows you to install unattended ("silently"), meaning without opening any Windows, while still providing
+An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
 customized values for e.g. master hostname, minion id, installation path, using the following command line:
 
-> msiexec /i Salt-Minion-$version-$platform.msi /qn [ PROPERTY=VALUE [ .. PROPERTY=VALUE ] ]
+> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
 
 
 Available properties:
@@ -160,16 +160,9 @@ The msi properties `DisplayVersion` and `InternalVersion` store these values.
 msi rules demand that the major version of the InternalVersion must be smaller than 265, therefore only the "short year" is used for the major InternalVersion.
 
 
-##Suggested Improvements##
+##Features##
+- The msi detects and uninstalls an existing NSIS installations.
 
-- Have the WiX setup detect and uninstall existing NSIS installations (and
-  vice-versa).
-- Add other configuration manipulations.
-- Write new configuration to minion.d instead of editing the distributed
-  minion config.
-- Develop a custom bootstrapper application to replace the default WiX
-  bootstrapper, and move the UI from the .msi to the bundle .exe.
-- Nice install dialog art.
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
