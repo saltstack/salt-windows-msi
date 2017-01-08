@@ -5,7 +5,8 @@
          For PrepareEvironmentBeforeInstallation, read the comment in Product.wxs
 	  -->
     <CustomAction Id="PrepareEvironmentBeforeInstallation"  BinaryKey='MinionConfigExt' DllEntry='PrepareEvironmentBeforeInstallation'   Execute='firstSequence'/>
-    <CustomAction Id="CACT_NukeConf"                         BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
+    <CustomAction Id="HACKStopSaltOnUninstall"              BinaryKey='MinionConfigExt' DllEntry='HACKStopSaltOnUninstall'               Execute='firstSequence'/>
+    <CustomAction Id="CACT_NukeConf"                        BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
     
     <CustomAction Id="CACT_SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="CACT_SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
@@ -24,12 +25,17 @@
          and the 'Value=' attribute should be a list of key=[Property] pairs.
 
          All actions here are called in the InstallExecuteSequence in Product.wxs.
+         
+         C# Signature must be [CustomAction] public static ActionResult
     -->
-    <!-- the 3 CADR_ only use one Value, I leave a list because it could be useful later -->
-    <CustomAction Id="CADR_SetMaster"   Property="CACT_SetMaster"   Value="MasterHostname=[MASTER_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
-    <CustomAction Id="CADR_SetMinionId" Property="CACT_SetMinionId" Value="MinionHostname=[MINION_HOSTNAME];MinionRoot=[INSTALLFOLDER]" />
-    <CustomAction Id="CADR_SetRootDir"  Property="CACT_SetRootDir"  Value="MinionRoot=[INSTALLFOLDER]" />
-    <CustomAction Id="CADR_RegRootDir"  Property="CACT_RegRootDir"  Value="MinionRoot=[INSTALLFOLDER]" />
+    <!-- 
+         the 3 Set* CACT_ need root_dir. Maybe a single CACT_ CADR_ pair could be enough??
+         Naming/terminology changes from msi to Salt.
+    -->
+    <CustomAction Id="CADR_SetMaster"   Property="CACT_SetMaster"   Value="master=[MASTER_HOSTNAME];root_dir=[INSTALLFOLDER]" />
+    <CustomAction Id="CADR_SetMinionId" Property="CACT_SetMinionId" Value="id=[MINION_HOSTNAME];root_dir=[INSTALLFOLDER]" />
+    <CustomAction Id="CADR_SetRootDir"  Property="CACT_SetRootDir"  Value="root_dir=[INSTALLFOLDER]" />
+    <CustomAction Id="CADR_RegRootDir"  Property="CACT_RegRootDir"  Value="root_dir=[INSTALLFOLDER]" />
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>

@@ -27,11 +27,25 @@
 		      Catch: If the installation then fails and rolls back, peeling cannot be undone.
 	    -->
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
+      <!--
+      the msi cannot delete C:\salt\var\log\salt\minion bewcause of saltrunning -minion service.
+      HACK stop the service HACK
+      This should not be necessary, and was not necessary for month. 
+      CONTINUE THINKING AFTER YOU REPLACED NSSM issue https://github.com/markuskramerIgitt/salt-windows-msi/issues/32
+      -->
+      <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
     </InstallUISequence>
 
     <InstallExecuteSequence>
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
-
+      <!--
+      the msi cannot delete C:\salt\var\log\salt\minion bewcause of saltrunning -minion service.
+      HACK stop the service HACK
+      This should not be necessary, and was not necessary for month. 
+      CONTINUE THINKING AFTER YOU REPLACED NSSM issue https://github.com/markuskramerIgitt/salt-windows-msi/issues/32
+      -->
+      <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
+      
       <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
       <Custom Action='CADR_SetRootDir'  Before='CACT_SetRootDir' >NOT Installed</Custom> <Custom Action='CACT_SetRootDir'  Before='StartServices'>NOT Installed</Custom>
       <Custom Action='CADR_SetMaster'   Before='CACT_SetMaster'  >NOT Installed</Custom> <Custom Action='CACT_SetMaster'   Before='StartServices'>NOT Installed</Custom>

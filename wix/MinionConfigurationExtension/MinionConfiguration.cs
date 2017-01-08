@@ -61,7 +61,16 @@ namespace MinionConfigurationExtension {
 			session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
 			return ActionResult.Success;
 		}
+
+		[CustomAction]
+		public static ActionResult HACKStopSaltOnUninstall(Session session) {
+			session.Log("MinionConfiguration.cs:: Begin HACKStopSaltOnUninstall");
+			shellout(session, "sc stop salt-minion");
+			session.Log("MinionConfiguration.cs:: End HACKStopSaltOnUninstall");
+			return ActionResult.Success;
+		}
 		
+
 		private static bool peel_NSIS(Session session) {
 			/*
 			 * If NSIS is installed:
@@ -139,19 +148,19 @@ namespace MinionConfigurationExtension {
 		}
 
 
-		// ******************* public CustomAction, that you use from WiX *************** must have this header or cannot uninstall not even write to the log
+		// Must have this signature or cannot uninstall not even write to the log
 		[CustomAction]
 		public static ActionResult RegRootDir(Session session) {
 			/*
 			 * IF uninstall and KEEP_CONFIG=1 THEN
-			 *    write INSTALLFOLDER to registry,
-			 *    but not within WiX, 
-			 *    because this requires a component, 
+			 *    write INSTALLFOLDER to registry||ProgramData,
+			 *    but not within msi, 
+			 *    because the msi would require a component, 
 			 *    and the MSI would not uninstall and Salt-Minion would remain in ARP. 
 			 *    Therefore use a custom action 
 			*/
 			session.Log("MinionConfiguration.cs:: Begin RegRootDir");
-			string CustomActionDataKey = "MinionRoot";
+			string CustomActionDataKey = "root_dir";
 			string CustomActionData_value;
 			session.Log("RegRootDir:: About to get CustomActionData " + CustomActionDataKey);
 			try {
@@ -170,7 +179,7 @@ namespace MinionConfigurationExtension {
 				string SaltMinion_regpath = @"SOFTWARE\SaltStack\Salt Minion";
 				/*
 				 *
-				 * why? why? why? why?
+				 * why? why? why? 
 				 * 
 				 * 
 				 * 
@@ -203,24 +212,23 @@ namespace MinionConfigurationExtension {
 			return ActionResult.Success;
 		}
 
-		// ******************* public CustomAction, that you use from WiX *************** must have this header
-
+		// Must have this signature or cannot be called
 		// Save user input to conf/minion settings
 		[CustomAction]
-		public static ActionResult SetRootDir(Session session) /***/ { return save_CustomActionDataKeyValue_to_config_file(session, "MinionRoot", "root_dir"); }
+		public static ActionResult SetRootDir(Session session) /***/ { return save_CustomActionDataKeyValue_to_config_file(session, "root_dir"); }
 		[CustomAction]
-		public static ActionResult SetMaster(Session session) /****/ { return save_CustomActionDataKeyValue_to_config_file(session, "MasterHostname", "master"); }
+		public static ActionResult SetMaster(Session session) /****/ { return save_CustomActionDataKeyValue_to_config_file(session, "master"); }
 		[CustomAction]
-		public static ActionResult SetMinionId(Session session) /**/ { return save_CustomActionDataKeyValue_to_config_file(session, "MinionHostname", "id"); }
+		public static ActionResult SetMinionId(Session session) /**/ { return save_CustomActionDataKeyValue_to_config_file(session, "id"); }
 
-		private static ActionResult save_CustomActionDataKeyValue_to_config_file(Session session, string CustomActionDataKey, string SaltKey) {
+		private static ActionResult save_CustomActionDataKeyValue_to_config_file(Session session, string SaltKey) {
 			session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
 			session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
 			session.Log("save_CustomActionDataKeyValue_to_config_file " + SaltKey);
 			string CustomActionData_value;
 			try {
-				CustomActionData_value = session.CustomActionData[CustomActionDataKey];
-			} catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex); return ActionResult.Failure; }
+				CustomActionData_value = session.CustomActionData[SaltKey];
+			} catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + SaltKey, session, ex); return ActionResult.Failure; }
 			session.Message(InstallMessage.Progress, new Record(2, 1));
 			// pattern description
 			// ^        start of line
@@ -293,20 +301,24 @@ namespace MinionConfigurationExtension {
 			string rootDir;
 			session.Log("getConfigFileLocation Start");
 			try {
-				rootDir = session.CustomActionData["MinionRoot"];
-			} catch (Exception ex) { just_ExceptionLog("Getting CustomActionData MinionRoot", session, ex); throw ex; }
+				rootDir = session.CustomActionData["root_dir"];
+			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while getting CustomActionData root_dir", session, ex); throw ex; }
 
 			try {
 				config = rootDir + "conf\\minion";
-			} catch (Exception ex) { just_ExceptionLog("Concatening config file name", session, ex); throw ex; }
+			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while concatening config file name", session, ex); throw ex; }
 			session.Log("getConfigFileLocation Stop");
 			return config;
 		}
+
+
 		private static void just_ExceptionLog(string description, Session session, Exception ex) {
 			session.Log(description);
 			session.Log("Exception: {0}", ex.Message.ToString());
 			session.Log(ex.StackTrace.ToString());
 		}
+
+
 		private static bool False_after_ExceptionLog(string description, Session session, Exception ex) {
 			just_ExceptionLog(description, session, ex);
 			return false;
