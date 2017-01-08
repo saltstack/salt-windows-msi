@@ -3,12 +3,12 @@ Naming conventions
 
 ##For WiX##
 
-Prefix | Example                 | Meaning
------- | ----------------------- | -------
-`CAC.` | `CACT_NukeConf`         | Custom action
-`AA.`  | `CADK_MASTER_HOSTNAME`  | Custom action data key
-`CAA.` | `CADR_NukeConf`         | Custom action data routine
-`COT.` | `COMP_NukeBin`          | Component
-`DIR.` | `DIR_conf`              | Directory
+Prefix  | Example                 | Meaning
+------- | ----------------------- | -------
+`CACT_` | `IMCA_NukeConf`         | Immediate custom action
+`CACT_` | `DECA_SetMaster`        | Deferred custom action
+`CADR_` | `CADH_NukeConf`         | Custom action data helper for DECA_
+`COT.`  | `COMP_NukeBin`          | Component
+`DIR.`  | `DIR_conf`              | Directory
 
 
