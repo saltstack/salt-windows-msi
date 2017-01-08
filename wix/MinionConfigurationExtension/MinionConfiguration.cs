@@ -17,22 +17,24 @@ namespace MinionConfigurationExtension {
 		*/
 
 
-        /*
-         * Recursivly remove the conf directory.
-         * The MSI easily only removes files installed by the MSI.
-         * 
-         * This CustomAction must be called "late" ("deferred").
-         * 
-        */
-        [CustomAction]
+		/*
+		 * Recursivly remove the conf directory.
+		 * The MSI easily only removes files installed by the MSI.
+		 * 
+		 * This CustomAction must be immediate.
+		 * 
+		*/
+		[CustomAction]
 		public static ActionResult NukeConf(Session session) {
 			session.Log("MinionConfiguration.cs:: Begin NukeConf");
-			///////////
-			// System.Collections.Generic.KeyNotFoundException: The given key was not present in the dictionary.
-			//var KEEP_CONF = session.CustomActionData["KEEP_CONF"];
-			//session.Log("NukeConf:: KEEP_CONF = " + KEEP_CONF);
-			//////////
 			String soon_conf = @"c:\salt\conf";
+			String root_dir = ""; 
+			try {
+				root_dir = session["INSTALLFOLDER"];
+			} catch (Exception ex) {
+				just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex); 
+			}
+			session.Log("NukeConf::  root_dir = " + root_dir);
 			try {
 				session.Log("NukeConf:: going to try to Directory delete " + soon_conf);
 				Directory.Delete(soon_conf, true);

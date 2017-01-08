@@ -19,7 +19,8 @@
          the below unnecessary but doesn't produce any useful log information if
          it fails.
 
-         (Deferred?) custom actions require properties to be passed as CustomActionData
+         Immediate custom actions can read/write msi Properties.
+         Deferred custom actions require properties to be passed as CustomActionData
          via separate type 51 custom actions to set the properties. The 'Property='
          attribute must be set to the name of the custom action receiving the data,
          and the 'Value=' attribute should be a list of key=[Property] pairs.
