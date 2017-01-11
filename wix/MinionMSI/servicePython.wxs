@@ -11,9 +11,9 @@
       <!-- 
         Stop the service on both install (upgrade) and uninstall. 
         msiexec adds files before service start and removes files after service stop.
-        Wait=yes is the default.
+        Wait=yes is the default, but Ramirez ch 11 p 300 mentions it.
         -->
-      <ServiceControl Name="salt-minion"  Start="install"  Stop="both"  Remove="uninstall" Id="ServiceControl">
+      <ServiceControl Name="salt-minion"  Start="install"  Stop="both"  Remove="uninstall"  Wait="yes" Id="ServiceControl">
 				<ServiceArgument /> <!-- http://stackoverflow.com/questions/10621082/wix-serviceinstall-arguments  -->
 			</ServiceControl>
 		</Component>
