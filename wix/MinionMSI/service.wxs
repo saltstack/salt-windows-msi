@@ -9,7 +9,7 @@
           <ServiceConfig OnInstall="yes" OnReinstall="yes" DelayedAutoStart="no" />
           <ServiceDependency Id="nsi" />
         </ServiceInstall>
-        <ServiceControl Id="SaltMinionServiceControlNoStart" Name="salt-minion" Remove="uninstall" Stop="uninstall" Start="install">
+        <ServiceControl Id="SaltMinionServiceControlNoStart" Name="salt-minion" Remove="uninstall" Stop="both" Start="install">
           <ServiceArgument />
         </ServiceControl>
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion\Parameters">
