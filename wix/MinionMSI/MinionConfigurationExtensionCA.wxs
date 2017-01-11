@@ -8,12 +8,12 @@
     <!--
     <CustomAction Id="HACKStopSaltOnUninstall"              BinaryKey='MinionConfigExt' DllEntry='HACKStopSaltOnUninstall'               Execute='firstSequence'/>
     -->
-    <CustomAction Id="CACT_NukeConf"                        BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
+    <CustomAction Id="IMCA_NukeConf"                        BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
     
-    <CustomAction Id="CACT_SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="CACT_SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="CACT_SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="CACT_RegRootDir"  BinaryKey='MinionConfigExt' DllEntry='RegRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DECA_SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DECA_SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DECA_SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DECA_RegRootDir"  BinaryKey='MinionConfigExt' DllEntry='RegRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
     <!--
          Executing the above as deferred is necessary to implement the configuration
          changes prior to starting the service, which is done during the install
@@ -32,13 +32,13 @@
          C# Signature must be [CustomAction] public static ActionResult
     -->
     <!-- 
-         the 3 Set* CACT_ need root_dir. Maybe a single CACT_ CADR_ pair could be enough??
+         the 3 Set* DECA_ need root_dir. Maybe a single DECA_ CADH_ pair could be enough??
          Naming/terminology changes from msi to Salt.
     -->
-    <CustomAction Id="CADR_SetMaster"   Property="CACT_SetMaster"   Value="master=[MASTER_HOSTNAME];root_dir=[INSTALLFOLDER]" />
-    <CustomAction Id="CADR_SetMinionId" Property="CACT_SetMinionId" Value="id=[MINION_HOSTNAME];root_dir=[INSTALLFOLDER]" />
-    <CustomAction Id="CADR_SetRootDir"  Property="CACT_SetRootDir"  Value="root_dir=[INSTALLFOLDER]" />
-    <CustomAction Id="CADR_RegRootDir"  Property="CACT_RegRootDir"  Value="root_dir=[INSTALLFOLDER]" />
+    <CustomAction Id="CADH_SetMaster"   Property="DECA_SetMaster"   Value="master=[MASTER_HOSTNAME];root_dir=[INSTALLFOLDER]" />
+    <CustomAction Id="CADH_SetMinionId" Property="DECA_SetMinionId" Value="id=[MINION_HOSTNAME];root_dir=[INSTALLFOLDER]" />
+    <CustomAction Id="CADH_SetRootDir"  Property="DECA_SetRootDir"  Value="root_dir=[INSTALLFOLDER]" />
+    <CustomAction Id="CADH_RegRootDir"  Property="DECA_RegRootDir"  Value="root_dir=[INSTALLFOLDER]" />
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>

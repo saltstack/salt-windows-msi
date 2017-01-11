@@ -47,19 +47,19 @@
       -->      
       
       <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
-      <Custom Action='CADR_SetRootDir'  Before='CACT_SetRootDir' >NOT Installed</Custom> <Custom Action='CACT_SetRootDir'  Before='StartServices'>NOT Installed</Custom>
-      <Custom Action='CADR_SetMaster'   Before='CACT_SetMaster'  >NOT Installed</Custom> <Custom Action='CACT_SetMaster'   Before='StartServices'>NOT Installed</Custom>
-      <Custom Action='CADR_SetMinionId' Before='CACT_SetMinionId'>NOT Installed</Custom> <Custom Action='CACT_SetMinionId' Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CADH_SetRootDir'  Before='DECA_SetRootDir' >NOT Installed</Custom> <Custom Action='DECA_SetRootDir'  Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CADH_SetMaster'   Before='DECA_SetMaster'  >NOT Installed</Custom> <Custom Action='DECA_SetMaster'   Before='StartServices'>NOT Installed</Custom>
+      <Custom Action='CADH_SetMinionId' Before='DECA_SetMinionId'>NOT Installed</Custom> <Custom Action='DECA_SetMinionId' Before='StartServices'>NOT Installed</Custom>
 
 			<!-- Conditionally start the service -->
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
 
 			<!-- Conditionally remove configuration on uninstall. With SRP a component remain and ARP entries remain if KEEP_CONFIG=1  -->
-      <Custom Action='CACT_NukeConf'   After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>      
+      <Custom Action='IMCA_NukeConf'   After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
 
       <!-- Otherwise, leave configuration and write root_dir / INSTALLDIR to registry -->
-      <Custom Action='CADR_RegRootDir' Before='CACT_RegRootDir'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      <Custom Action='CACT_RegRootDir' Before='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='CADH_RegRootDir' Before='DECA_RegRootDir'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='DECA_RegRootDir' Before='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
 
     </InstallExecuteSequence>
 
