@@ -44,7 +44,7 @@ else:
 ```
  
  
-## Request for comnment ##
+## Request for comment ##
 
 Files under INSTALLDIR are intended to be immutable in Windows.
 Mutable data, created and changed after installation, as log files or a private key, should not be stored under INSTALLDIR.
