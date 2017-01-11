@@ -28,6 +28,8 @@ Installation could also search
 
 
 ## Install procedure ##
+
+```
 If not installed, search for old root.
 if configuration found and tested:
   show old root, master, minion
@@ -39,7 +41,7 @@ else:
   remove old configuration
   remove KEPT_CONFIG
   ask user for root.
-
+```
  
  
 ## Further thinking ##
