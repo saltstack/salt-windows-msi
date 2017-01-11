@@ -27,7 +27,22 @@ Installation could also search
  - `c:\salt`
 
 
-Further thinking: 
+## Install procedure ##
+If not installed, search for old root.
+if configuration found and tested:
+  show old root, master, minion
+Does the user want to keep minion and master? If yes:
+  Does the user want to change root? If yes:
+    ask for new root
+    change root
+else:
+  remove old configuration
+  remove KEPT_CONFIG
+  ask user for root.
+
+ 
+ 
+## Further thinking ##
 
 Files under INSTALLDIR are intended to be immutable in Windows.
 Mutable data, created and changed after installation, as log files or a private key, should not be stored under INSTALLDIR.
