@@ -44,11 +44,28 @@ else:
 ```
  
  
-## Further thinking ##
+## Request for comnment ##
 
 Files under INSTALLDIR are intended to be immutable in Windows.
 Mutable data, created and changed after installation, as log files or a private key, should not be stored under INSTALLDIR.
 Doing so makes install/uninstall complex.
+
+
+Name the private/public keys (do not scatter the information):
+```
+salt/conf/jim.pem
+salt/conf/master/joe.pub
+salt/conf/master/jane.pub
+```
+
+Master private key change:
+```
+salt/conf/master/joe.pub
+salt/conf/master/joe(2018-04-12--14-30).pub
+```
+
+
+
 
 
 [MSDN_WELL_KNONW_FOLDERS]: https://msdn.microsoft.com/en-us/library/windows/desktop/dd378457.aspx
