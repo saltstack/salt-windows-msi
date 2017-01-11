@@ -31,9 +31,9 @@
       the msi cannot delete C:\salt\var\log\salt\minion bewcause of saltrunning -minion service.
       HACK stop the service HACK
       This should not be necessary, and was not necessary for month. 
-      CONTINUE THINKING AFTER YOU REPLACED NSSM issue https://github.com/markuskramerIgitt/salt-windows-msi/issues/32
-      -->
+      solved by ServiceControl stop=both ?
       <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
+      -->
     </InstallUISequence>
 
     <InstallExecuteSequence>
@@ -42,9 +42,9 @@
       the msi cannot delete C:\salt\var\log\salt\minion bewcause of saltrunning -minion service.
       HACK stop the service HACK
       This should not be necessary, and was not necessary for month. 
-      CONTINUE THINKING AFTER YOU REPLACED NSSM issue https://github.com/markuskramerIgitt/salt-windows-msi/issues/32
-      -->
+      solved by ServiceControl stop=both ?
       <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
+      -->      
       
       <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
       <Custom Action='CADR_SetRootDir'  Before='CACT_SetRootDir' >NOT Installed</Custom> <Custom Action='CACT_SetRootDir'  Before='StartServices'>NOT Installed</Custom>

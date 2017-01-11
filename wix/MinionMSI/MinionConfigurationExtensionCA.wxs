@@ -5,7 +5,9 @@
          For PrepareEvironmentBeforeInstallation, read the comment in Product.wxs
 	  -->
     <CustomAction Id="PrepareEvironmentBeforeInstallation"  BinaryKey='MinionConfigExt' DllEntry='PrepareEvironmentBeforeInstallation'   Execute='firstSequence'/>
+    <!--
     <CustomAction Id="HACKStopSaltOnUninstall"              BinaryKey='MinionConfigExt' DllEntry='HACKStopSaltOnUninstall'               Execute='firstSequence'/>
+    -->
     <CustomAction Id="CACT_NukeConf"                        BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
     
     <CustomAction Id="CACT_SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
