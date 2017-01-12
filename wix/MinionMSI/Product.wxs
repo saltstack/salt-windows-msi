@@ -22,16 +22,8 @@
 		<Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
 
 		<InstallUISequence>
-      <!-- 2016-11-13  mkr
-		      To remove a previous NSIS installation but utilise its configuration (peelNSIS), this custom action must start 'early'.
-		      Catch: If the installation then fails and rolls back, peeling cannot be undone.
-	    -->
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
       <!--
-      the msi cannot delete C:\salt\var\log\salt\minion bewcause of saltrunning -minion service.
-      HACK stop the service HACK
-      This should not be necessary, and was not necessary for month. 
-      solved by ServiceControl stop=both ?
       <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
       -->
     </InstallUISequence>
@@ -39,14 +31,10 @@
     <InstallExecuteSequence>
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
       <!--
-      the msi cannot delete C:\salt\var\log\salt\minion bewcause of saltrunning -minion service.
-      HACK stop the service HACK
-      This should not be necessary, and was not necessary for month. 
-      solved by ServiceControl stop=both ?
       <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
       -->      
       
-      <!-- 2016-11-13  mkr  Both C# and WiX custom actions are forced into an execution order by the Before attribute. -->
+      <!-- Custom actions are forced into an execution order by the Before attribute. -->
       <Custom Action='CADH_SetRootDir'  Before='DECA_SetRootDir' >NOT Installed</Custom> <Custom Action='DECA_SetRootDir'  Before='StartServices'>NOT Installed</Custom>
       <Custom Action='CADH_SetMaster'   Before='DECA_SetMaster'  >NOT Installed</Custom> <Custom Action='DECA_SetMaster'   Before='StartServices'>NOT Installed</Custom>
       <Custom Action='CADH_SetMinionId' Before='DECA_SetMinionId'>NOT Installed</Custom> <Custom Action='DECA_SetMinionId' Before='StartServices'>NOT Installed</Custom>

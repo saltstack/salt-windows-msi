@@ -1,11 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
-    <!-- 2016-11-13  mkr
-         For PrepareEvironmentBeforeInstallation, read the comment in Product.wxs
-	  -->
+    <!--  
+		    To remove a previous NSIS installation but utilise its configuration (peelNSIS), this custom action must start 'early'.
+		    Catch: If the installation then fails and rolls back, peeling cannot be undone.
+	    -->
     <CustomAction Id="PrepareEvironmentBeforeInstallation"  BinaryKey='MinionConfigExt' DllEntry='PrepareEvironmentBeforeInstallation'   Execute='firstSequence'/>
     <!--
+      the msi cannot delete C:\salt\var\log\salt\minion bewcause of saltrunning -minion service.
+      HACK stop the service HACK
+      This should not be necessary, and was not necessary for month. 
+      solved by ServiceControl stop=both ?
+      
     <CustomAction Id="HACKStopSaltOnUninstall"              BinaryKey='MinionConfigExt' DllEntry='HACKStopSaltOnUninstall'               Execute='firstSequence'/>
     -->
     <CustomAction Id="IMCA_NukeConf"    BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
@@ -25,7 +31,7 @@
            The 'Property=' attribute must be set to the name of the custom action receiving the data, and 
            the 'Value=' attribute must be a list of key=[Property] pairs.
 
-         Actions are declared here and called in Product.wxs.
+         Actions are declared here and called (repeatedly) in Product.wxs.
          Actions must have C# Signature [CustomAction] public static ActionResult
     -->
     <!-- 
