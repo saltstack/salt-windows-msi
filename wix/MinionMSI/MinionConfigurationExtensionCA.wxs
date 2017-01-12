@@ -8,31 +8,28 @@
     <!--
     <CustomAction Id="HACKStopSaltOnUninstall"              BinaryKey='MinionConfigExt' DllEntry='HACKStopSaltOnUninstall'               Execute='firstSequence'/>
     -->
-    <CustomAction Id="IMCA_NukeConf"                        BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
+    <CustomAction Id="IMCA_NukeConf"    BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
     
     <CustomAction Id="DECA_SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DECA_SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DECA_SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DECA_RegRootDir"  BinaryKey='MinionConfigExt' DllEntry='RegRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
     <!--
-         Executing the above as deferred is necessary to implement the configuration
-         changes prior to starting the service, which is done during the install
-         instead of running 'net start' at the end. Running 'net start' makes all of
-         the below unnecessary but doesn't produce any useful log information if
-         it fails.
+         Deferred execution is necessary to change the configuration prior 
+         to start the service, which is done during the install instead of running 'net start' at the end. 
+         Running 'net start' would not produce any useful log information.
 
-         Immediate custom actions can read/write msi Properties.
-         Deferred custom actions require properties to be passed as CustomActionData
-         via separate type 51 custom actions to set the properties. The 'Property='
-         attribute must be set to the name of the custom action receiving the data,
-         and the 'Value=' attribute should be a list of key=[Property] pairs.
+         Immediate custom actions (IMCA_ ) can read/write msi Properties.
+         Deferred custom actions (DECA_) require properties to be passed as CustomActionData
+         via separate type 51 custom actions (CADH_): 
+           The 'Property=' attribute must be set to the name of the custom action receiving the data, and 
+           the 'Value=' attribute must be a list of key=[Property] pairs.
 
-         All actions here are called in the InstallExecuteSequence in Product.wxs.
-         
-         C# Signature must be [CustomAction] public static ActionResult
+         Actions are declared here and called in Product.wxs.
+         Actions must have C# Signature [CustomAction] public static ActionResult
     -->
     <!-- 
-         the 3 Set* DECA_ need root_dir. Maybe a single DECA_ CADH_ pair could be enough??
+         The 3 Set* DECA_ get root_dir. Maybe a single CADH_ DECA_ pair could be enough??
          Naming/terminology changes from msi to Salt.
     -->
     <CustomAction Id="CADH_SetMaster"   Property="DECA_SetMaster"   Value="master=[MASTER_HOSTNAME];root_dir=[INSTALLFOLDER]" />
