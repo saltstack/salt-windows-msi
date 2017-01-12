@@ -119,7 +119,7 @@
 
   <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->
   <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir">
+    <Directory Id="TARGETDIR" Name="SourceDir"> <!-- Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
       <Directory Id="INSTALLFOLDER" Name="salt" >
         <Directory Id="BINFOLDER"  Name="bin" />
         <Directory Id="CONFFOLDER" Name="conf" />
