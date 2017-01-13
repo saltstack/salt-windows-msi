@@ -99,15 +99,15 @@
     <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
 
-    <UIRef Id="WixUI_Minion" />                             <!-- // include WixUI_Minion.wxs in this directory -->
+    <UIRef Id="WixUI_Minion" />                             <!-- // Include WixUI_Minion.wxs in this directory -->
     
-    <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- // do not create cab files -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- // Do not create cab files -->
     
   </Product>
 
   <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->
   <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir"> <!-- Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
+    <Directory Id="TARGETDIR" Name="SourceDir"> <!-- // Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
       <Directory Id="INSTALLFOLDER" Name="salt" >
         <Directory Id="BINFOLDER"  Name="bin" />
         <Directory Id="CONFFOLDER" Name="conf" />
@@ -119,7 +119,7 @@
   <!-- From the "Default WiX Project Template" -->
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <ComponentGroupRef Id="dist"    />       <!-- // include dist-amd64.wxs in this directory -->
+      <ComponentGroupRef Id="dist"    />       <!-- // Include dist-amd64.wxs in this directory -->
 			<ComponentGroupRef Id="service" /> 
 			<!--
 			<ComponentRef Id="servicePython" />
