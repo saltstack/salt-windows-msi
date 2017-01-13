@@ -5,10 +5,10 @@ Naming conventions
 
 Prefix  | Example                 | Meaning
 ------- | ----------------------- | -------
-`CACT_` | `IMCA_NukeConf`         | Immediate custom action
-`CACT_` | `DECA_SetMaster`        | Deferred custom action
-`CADR_` | `CADH_SetMaster`        | Custom action data helper for DECA_
-`COT.`  | `COMP_NukeBin`          | Component
-`DIR.`  | `DIR_conf`              | Directory
+`IMCA_` | `IMCA_NukeConf`         | Immediate custom action
+`DECA_` | `DECA_SetMaster`        | Deferred custom action
+`CADH_` | `CADH_SetMaster`        | Custom action data helper for DECA_
+`COMP_` | `COMP_NukeBin`          | Component
+`DIR_`  | `DIR_conf`              | Directory
 
 
