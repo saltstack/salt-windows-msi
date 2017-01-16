@@ -40,9 +40,15 @@ Available properties:
 
 ##General Requirements##
 
+- Python 2.7 in c:\python27
 - A NSIS build in `git\salt`, with this project in `git\salt-windows-msi`
-- [WiX][WiXId] v3.9.
-- [MSBuild 2013][MSBuild2913Id] and .Net 4.5
+- [WiX][WiXId] v3.10.
+- Visual Studio 2013 or 2015 because msbuild needs a reference to Wix: 
+   <Reference Include="wix">
+      <HintPath>c:\Program Files (x86)\WiX Toolset v3.10\bin\wix.dll</HintPath>
+   </Reference>
+   Probably one can tell msbuild to find the wix.dll without Visual Studio. Currently I don't know how.
+- [MSBuild 2013][MSBuild2913Id] (or MSBuild 2015) and .Net 4.5
 
 ###Building###
 
