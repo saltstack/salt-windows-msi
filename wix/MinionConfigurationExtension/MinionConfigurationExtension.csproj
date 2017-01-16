@@ -10,7 +10,8 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MinionConfigurationExtension</RootNamespace>
     <AssemblyName>MinionConfigurationExtension</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>  <!-- 2016-11-15  mkr  See comment for Microsoft.Win32.RegistryKey.OpenBaseKey in MinionConfiguration.cs-->
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <!-- 2016-11-15  mkr  See comment for Microsoft.Win32.RegistryKey.OpenBaseKey in MinionConfiguration.cs-->
     <FileAlignment>512</FileAlignment>
     <WixCATargetsPath Condition=" '$(WixCATargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.CA.targets</WixCATargetsPath>
     <TargetFrameworkProfile />
@@ -57,8 +58,7 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="wix">
-      <HintPath>$(MSBuildExtensionsPath)\..\WiX Toolset v3.9\bin\wix.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>c:\Program Files (x86)\WiX Toolset v3.10\bin\wix.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
