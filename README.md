@@ -48,7 +48,7 @@ Available properties:
       <HintPath>c:\Program Files (x86)\WiX Toolset v3.10\bin\wix.dll</HintPath>
    </Reference>
    Probably one can tell msbuild to find the wix.dll without Visual Studio. Currently I don't know how.
-- [MSBuild 2013][MSBuild2913Id] (or MSBuild 2015) and .Net 4.5
+- [MSBuild 2015][MSBuild2015Id] and .Net 4.5
 
 ###Building###
 
@@ -172,6 +172,6 @@ msi rules demand that the major version of the InternalVersion must be smaller t
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
-[MSBuild2913Id]: https://www.microsoft.com/en-in/download/details.aspx?id=40760
+[MSBuild2015Id]: https://www.microsoft.com/en-in/download/details.aspx?id=48159
 [version_html]: https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html
 [version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
