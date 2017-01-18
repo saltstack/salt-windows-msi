@@ -18,6 +18,12 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <DefineConstants>Debug</DefineConstants>
+    <WixVariables>
+    </WixVariables>
+    <CompilerAdditionalOptions>
+    </CompilerAdditionalOptions>
+    <LinkerAdditionalOptions>
+    </LinkerAdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -34,6 +40,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="service.wxs" />
+    <Compile Include="servicePython.wxs" />
     <Compile Include="SettingsCustomizationDlg.wxs" />
     <Compile Include="MinionConfigurationExtensionCA.wxs" />
     <Compile Include="Product.wxs" />

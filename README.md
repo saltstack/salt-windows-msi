@@ -1,38 +1,81 @@
-salt-windows-msi
+Windows MSI installer build toolkit
 ================
 
-Windows MSI installer build toolkit
+The 'wix/' directory (together with wix.sln ?) produce an msi installer using [WiX][WiXId].
 
-- The 'wix/' directory (and wix.sln) produce .msi and .exe setup projects
-  implemented using [WiX][WiXId].
+The build is semi-automated using an [MSBuild][MSBuildId].
 
-Builds for both projects are semi-automated using an [MSBuild][MSBuildId] project in this directory.
+ 
+##Differences vs. NSIS installer##
+
+The msi differs from the NSIS installer in:
+
+- TODO It allows installation to any directory.
+- It supports unattended installation.
+- By default, it leaves configuaration, remove configuration with `KEEP_CONFIG=0`.
+- ?? It does not download or install the VC++ redistributable. ??
+- ?? Since the msi does not install the Visual C++ redistributable, it must be installed separately ??
+
+Additional benefits:
+
+- A problem during the install causes the installation to be rolled back, as in a database transaction.
+- Built-in logging (/l option to msiexec).
+- *_amd64.msi does not run on 32bit Windows.
+
+###On unattended install ("silent install")###
+
+An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
+customized values for e.g. master hostname, minion id, installation path, using the following command line:
+
+> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
+
+
+Available properties:
+
+- `MASTER_HOSTNAME`: The master hostname. The default is `salt.
+- `MINION_HOSTNAME`: The minion id. The default is `%COMPUTERNAME%`.
+- `START_MINION_SERVICE`: Whether to start the salt-minion service after installation. The default is false.
+- `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from commandline.
+- `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
 
 ##General Requirements##
 
-- A recent version of MSBuild. The one included with the .NET Framework v4 works fine.
-- [WiX][WiXId] v3.9.
-- A Tag in Git set like ```git tag -a v2000.13.13-0000-00000000 -m "tag mimicing git describe of saltstack"```
-  Probably the safest is to use the output of git describe.
-	Go to the latest release
-	cd salt
-	git checkout v2016.11.0
-	cd salt-windows-msi
-	git tag -a v2016.11.0 -m "tag mimicing git describe of saltstack"
-	The "salt --version" report is independend. Where does it get its information?
-  Later this repository should join the rest of saltstack and find the tag there (or the --version information) .
+- Python 2.7 in c:\python27
+- A NSIS build in `git\salt`, with this project in `git\salt-windows-msi`
+- [WiX][WiXId] v3.10.
+- Visual Studio 2013 or 2015 because msbuild needs a reference to Wix: 
+   <Reference Include="wix">
+      <HintPath>c:\Program Files (x86)\WiX Toolset v3.10\bin\wix.dll</HintPath>
+   </Reference>
+   Probably one can tell msbuild to find the wix.dll without Visual Studio. Currently I don't know how.
+- [MSBuild 2015][MSBuild2015Id] and .Net 4.5
 
-## Capabilites ##
+###Building###
 
- Tested on 2016.11.0
- Testcycle: install NSIS, test, install msi, test, install NSIS, test.
- 
-## Restrictions ##
-Un uninstall: 
- - Some files remains in c:\salt
- - c:\Windows\SaltstackMinionConfigBackup.ini remains
-	
-##WiX/MSI Installer##
+You can build the msi from the command line using the included msbuild project.
+
+> msbuild msbuild.proj [ /p:property=value [ /p:... ] ]
+
+See the [msbuild](#msbuild) section for details on available
+targets and properties.
+
+You can build the msi also in Visual Studio, but the embedded defaults for
+version, paths, etc. may be incorrect on your machie.
+
+The build will produce:
+ - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform).msi
+
+###<a id="msbuild"></a>MSBuild###
+
+General command line:
+
+> msbuild msbuild.proj \[/t:target[,target2,..]] \[/p:property=value [ .. /p:... ] ]
+
+A 'help' target is available which prints out all the targets, customizable
+properties, and the current value of those properties:
+
+> msbuild msbuild.proj /t:help
+
 
 ###Components###
 
@@ -59,63 +102,15 @@ Un uninstall:
   - Product.wxs: contains the main MSI description and event sequence
   - service.wxs: contains a WiX component for nssm.exe and the
     associated Windows Service description/control settings.
+    - wix\MinionMSI\dist-amd64.wxs lists all the discovered sources.
+    - Because nssm.exe must be a (handwritten) WiX component in service.wxs, it also must be excluded from dist-amd64.wxs. 
+    - nssm.xsl excludes nssm.exe from dist-amd64.wxs.
   - WixUI\_Minion.wxs: WiX fragment describing the UI for the setup.
   - Banner.jpg: Used as the top bar banner in most of the UI dialogs.
   - Dialog.jpg: Used as the dialog background for Welcome and Exit dialogs.
 - wix/MinionEXE/: This is the WiX bundle .exe project
   - Bundle.wxs: contains the bundle description and package chain
 
-###Building###
-
-From the command line:
-
-> msbuild msbuild.proj [ /p:property=value [ /p:... ] ]
-
-See the [msbuild](#msbuild) section for details on available
-targets and properties.
-
-The solution can also be built in Visual Studio, but the embedded defaults for
-version, paths, etc. may be incorrect on your machine.
-
-The build will produce:
- - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.msi
- - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup.exe
-
-###Differences vs. NSIS installer###
-
-This WiX project mimics the NSIS installer as much as possible, with
-the following exceptions:
-
-- Allows installation to any directory.
-- Supports unattended installation.
-- The .msi does not download or install the VC++ redistributable. The
-  .exe does, but the UI experience is very different.
-- The .msi UI does not display files as they are copied, only a status bar.
-
-There are some additional benefits provided via msiexec:
-
-- A problem during the .msi install will be rolled back automatically.
-- .msi offers much better built-in logging (/l option to msiexec).
-
-###Unattended install###
-
-It is possible to install a Salt Minion unattended while still providing
-customized values for the master hostname, minion id, installation path,
-etc. using the following command line:
-
-> msiexec /i Salt-Minion-$version-$platform.msi /qn [ PROPERTY=VALUE [ ..
-> PROPERTY=VALUE ] ]
-
-Since the .msi does not install the Visual C++ redistributable, it must be
-installed separately.
-
-Available properties:
-
-- INSTALLFOLDER: Where to install the files. Default is 'c:\salt'.
-- MASTER\_HOSTNAME: The master hostname. The default is 'salt'.
-- MINION\_HOSTNAME: The minion id. The default is '%COMPUTERNAME%'.
-- START\_MINION\_SERVICE: Whether to start the salt-minion service after
-  installation. The default is false.
 
 ###Extending###
 
@@ -153,30 +148,32 @@ changes are required:
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt;
   item to be included in the build.
 
-##<a id="msbuild"></a>MSBuild##
+##On versioning##
+The user sees a [3-tuple][version_html] version, e.g. `2016.11.0`.
 
-Both sets of projects can be build from the command line using the
-included msbuild project.
+[Internally][version_py], version is a 8-tuple:
+- major,
+- minor,
+- bugfix,
+- mbugfix,
+- pre_type,
+- pre_num,
+- noc,
+- sha
 
-General command line:
+E.g. (2016, 11, 0, 0, '', 0, 461, u'g723699f')
 
-> msbuild msbuild.proj \[/t:target[,target2,..]] \[/p:property=value [ .. /p:... ] ]
+The msi properties `DisplayVersion` and `InternalVersion` store these values.
 
-A 'help' target is available which prints out all the targets, customizable
-properties, and the current value of those properties:
+msi rules demand that the major version of the InternalVersion must be smaller than 265, therefore only the "short year" is used for the major InternalVersion.
 
-> msbuild msbuild.proj /t:help
 
-##Suggested Improvements##
+##Features##
+- The msi detects and uninstalls an existing NSIS installations.
 
-- Have the WiX setup detect and uninstall existing NSIS installations (and
-  vice-versa).
-- Add other configuration manipulations.
-- Write new configuration to minion.d instead of editing the distributed
-  minion config.
-- Develop a custom bootstrapper application to replace the default WiX
-  bootstrapper, and move the UI from the .msi to the bundle .exe.
-- Nice install dialog art.
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
-[MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.100).aspx "MSBuild Reference"
+[MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
+[MSBuild2015Id]: https://www.microsoft.com/en-in/download/details.aspx?id=48159
+[version_html]: https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html
+[version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py

@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
 
   <!--
     ================================================================================
@@ -20,35 +20,47 @@
     ================================================================================
        setVersionProperties
 
-         Locates the distribution zip file and builds the DisplayVersion and
-         InternalVersion variables based on the name.
+        Queries salt for DisplayVersion and InternalVersion 
+        These msbuild variable are sent to WiX by in two different manners:
+           Output PropertyName
+           DefineConstants magic
 
-         This target rewrites the output TargetName with the discovered version
-         information.
+        Rewrites the output TargetName with the discovered version information.
+
+         TODO           get BUILD_NUMBER
+         NICE-TO-HAVE   GIT_LAST_LOG    git log - - oneline -1
     ================================================================================
   -->
   <Target Name="setVersionProperties">
 
-    <Error Condition="'$(DisplayVersion)'=='' And '$(InternalVersion)'=='' And '$(Version)'==''" Text="Must set one of: Version, DisplayVersion" />
+    <!--  
+    ConsoleToMsBuild in Exec requires ToolsVersion="12.0" 
+    Microsoft Build Tools 2013 
+    download https://www.microsoft.com/en-in/download/details.aspx?id=40760  
+    docs https://msdn.microsoft.com/en-us/library/hh162058(v=vs.121).aspx
+     
+    Exec runs in MSBuildProjectDirectory? why wix\MinionMSI\ ?
+    -->
+    <Exec Command="cd ,"                                             ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="mercury"         /></Exec>
+    <Exec Command="dir /b             versionDisplayOrInternal.py"   ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="venus"           /></Exec>    
+    <Exec Command="C:\Python27\python versionDisplayOrInternal.py"   ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="DisplayVersion"  /></Exec>
+    <Exec Command="C:\Python27\python versionDisplayOrInternal.py i" ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="InternalVersion" /></Exec>
 
-    <PropertyGroup>
-      <DisplayVersion Condition="'$(DisplayVersion)'=='' And '$(Version)'!=''">$(Version)</DisplayVersion>
-      <YearPosition>$(DisplayVersion.IndexOf('2'))</YearPosition> <!-- We are not afraid of Y3K! -->
-      <DashPosition>$(DisplayVersion.IndexOf('-'))</DashPosition>
-      <InternalVersionStartIndex>$([MSBuild]::Add($(YearPosition),2))</InternalVersionStartIndex>
-      <InternalVersionCalculatedLength Condition="$(DashPosition)&gt;0">$([MSBuild]::Subtract($(DashPosition),$(InternalVersionStartIndex)))</InternalVersionCalculatedLength>
-      <CalculatedInternalVersion Condition="$(DashPosition)&gt;0">$(DisplayVersion.SubString($(InternalVersionStartIndex),$(InternalVersionCalculatedLength)))</CalculatedInternalVersion>
-      <CalculatedInternalVersion Condition="$(DashPosition)&lt;=0">$(DisplayVersion.SubString($(InternalVersionStartIndex)))</CalculatedInternalVersion>
-      <InternalVersion Condition="'$(InternalVersion)'==''">$(CalculatedInternalVersion)</InternalVersion>
-      <InternalVersion Condition="'$(BUILD_NUMBER)'!=''">$(InternalVersion).$(BUILD_NUMBER)</InternalVersion>
-    </PropertyGroup>
+    <Error Condition="'$(DisplayVersion)'==''"  Text="Must set DisplayVersion" />
+    <Error Condition="'$(InternalVersion)'==''" Text="Must set InternalVersion" />
 
-    <Message Text="Using Display Version $(DisplayVersion)"/>
-    <Message Text="Using Internal Version $(InternalVersion)"/>
+    <Message Text="******************************************************************************   "/>
+    <Message Text="****************** common/targets/Minion.Common.targets **********************   "/>
+    <Message Text="        pwd             = $(mercury)"/>
+    <Message Text="        version shim    = $(venus)"/>
+    <Message Text="        DisplayVersion  = $(DisplayVersion)"/>
+    <Message Text="        InternalVersion = $(InternalVersion)"/>
+    <Message Text="        Version         = $(Version)"/>
+    <Message Text="******************************************************************************   "/>
 
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
-      <TargetName>Salt-Minion-$(DisplayVersion)-$(TargetPlatform)-Setup</TargetName>
+      <TargetName>Salt-Minion-$(DisplayVersion)-$(TargetPlatform)</TargetName>
     </PropertyGroup>
   </Target>
 
