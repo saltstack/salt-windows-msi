@@ -1,22 +1,30 @@
+# 2017-01-18 Markus   git describe
 # 2016-12-02 Markus   
-# show DisplayVersion or InternalVersion
+# show DisplayVersion 2016.11.1 or InternalVersion 16.11.1.444
 #
-# Could be much nicer but I don't know how to access the class in version
-# So __version__ is all I have
-# e.g.       2016.3.2-72-gc1deb94
-# Could also be directly in version.py
 
 from __future__ import absolute_import, print_function
 
 import sys
-sys.path.insert(0, '../../../salt/salt')   # path to version.py
-import version
+import subprocess
+version_git_describe = ""
 
-version_list   = version.__version__.replace('.',' ').replace('-',' ').split() # all elements are strings
+try:
+	version_git_describe = str(subprocess.check_output (r'"C:\Program Files\Git\cmd\git.exe" --git-dir=/git/salt/.git --work-tree=/git/salt describe'))
+	#print (version_git_describe)
+except Exception as  e:
+	print (str(e))
+	sys.exit(1)
+	
+#print("version_git_describe = " + version_git_describe)
+	
+version_list   = version_git_describe.replace('.',' ').replace('-',' ').split() # all elements are strings
 year    = version_list[0]
 minor   = version_list[1]
 bugfix  = version_list[2]
-DisplayVersion  =   year    + '.' + minor + '.' + bugfix                                   # 
+if year.startswith('v'):                 year                 = year[1:]
+if version_git_describe.startswith('v'): version_git_describe = version_git_describe[1:]
+DisplayVersion  =  version_git_describe    # Probably `git describe` becomes v2016.11.1 after a long series of 2016.11.1-2151-g559bee3 
 InternalVersion =  year[2:] + '.' + minor + '.' + bugfix 
 if len(version_list) > 3: # mbugfix
 	InternalVersion += '.' + version_list[3]
