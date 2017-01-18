@@ -108,6 +108,8 @@ properties, and the current value of those properties:
   - WixUI\_Minion.wxs: WiX fragment describing the UI for the setup.
   - Banner.jpg: Used as the top bar banner in most of the UI dialogs.
   - Dialog.jpg: Used as the dialog background for Welcome and Exit dialogs.
+- wix/MinionEXE/: This is the WiX bundle .exe project
+  - Bundle.wxs: contains the bundle description and package chain
 
 
 ###Extending###
