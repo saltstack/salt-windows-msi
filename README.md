@@ -1,14 +1,14 @@
 Windows MSI installer build toolkit
 ================
 
-The 'wix/' directory (together with wix.sln ?) produce an msi installer using [WiX][WiXId].
+This project creates an msi installer using [WiX][WiXId].
 
 The build is semi-automated using an [MSBuild][MSBuildId].
 
  
-##Differences vs. NSIS installer##
+##Differences vs. NSIS (Nullsoft) installer##
 
-The msi differs from the NSIS installer in:
+The msi differs from the NSIS exe installer in:
 
 - TODO It allows installation to any directory.
 - It supports unattended installation.
@@ -38,17 +38,16 @@ Available properties:
 - `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from commandline.
 - `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
 
-##General Requirements##
+##Setup/General Requirement##
 
-- Python 2.7 in c:\python27
-- A NSIS build in `git\salt`, with this project in `git\salt-windows-msi`
+- Python 2.7 in `c:\python27`
+- This project git clone in `c:\git\salt-windows-msi`
+- Salt git clone in `c:\git\salt`
+- The NSIS build in `c:\git\salt\pkg\windows`
 - [WiX][WiXId] v3.10.
-- Visual Studio 2013 or 2015 because msbuild needs a reference to Wix: 
-   <Reference Include="wix">
-      <HintPath>c:\Program Files (x86)\WiX Toolset v3.10\bin\wix.dll</HintPath>
-   </Reference>
-   Probably one can tell msbuild to find the wix.dll without Visual Studio. Currently I don't know how.
-- [MSBuild 2015][MSBuild2015Id] and .Net 4.5
+- [MSBuild 2015][MSBuild2015Id]  https://www.microsoft.com/en-in/download/confirmation.aspx?id=48159
+- .Net 4.5
+- (Probably not required: Visual Studio 2013 or 2015)
 
 ###Building###
 
