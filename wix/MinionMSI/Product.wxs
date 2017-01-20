@@ -113,6 +113,40 @@
         <Directory Id="VARFOLDER"  Name="var" />
       </Directory>
     </Directory>
+
+    <!-- populate properties witch localised WixQueryOsWellKnownSID http://wixtoolset.org/documentation/manual/v3/customactions/osinfo.html -->
+    <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
+
+    <Component Id="InstallfolderPermissions"  Directory="INSTALLFOLDER" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
+      <CreateFolder> <!-- // like mkdir, the folder will not be created if present. -->
+        <!--
+          Function win_verify_env()  in  salt/slt/utils/verify.py sets permissions on each start of the salt-minion services.
+          The installer must create the folder with the same permissions, so you keep sets of permissions in sync.
+
+          The Permission element(s) below replace any present permissions,
+          except NT AUTHORITY\SYSTEM:(OI)(CI)(F), which seems to be the basis.
+          Therefore, you don't need to specify User="[WIX_ACCOUNT_LOCALSYSTEM]"  GenericAll="yes"
+
+          Use icacls to test the result:
+            C:\>icacls salt
+            salt BUILTIN\Administrators:(OI)(CI)(F)
+                 NT AUTHORITY\SYSTEM:(OI)(CI)(F)
+            ~~ read ~~
+            (object inherit)(container inherit)(full access)
+
+            C:\>icacls salt\bin\include
+            salt\bin\include BUILTIN\Administrators:(I)(OI)(CI)(F)
+                             NT AUTHORITY\SYSTEM:(I)(OI)(CI)(F)
+                             w7h64\Markus:(I)(OI)(CI)(F)
+            ~~ read ~~
+            (permission inherited from parent container)(object inherit)(container inherit)(full access)
+
+          Maybe even the Administrator group full access is "basis", so there is no result of the instruction,
+          I leave it for clarity, and potential future use.
+          -->
+        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
+      </CreateFolder>
+    </Component>
   </Fragment>
   
   <!-- From the "Default WiX Project Template" -->
@@ -123,6 +157,7 @@
 			<!--
 			<ComponentRef Id="servicePython" />
 			-->
+      <ComponentRef Id="InstallfolderPermissions" />
     </ComponentGroup>
   </Fragment>
 </Wix>
