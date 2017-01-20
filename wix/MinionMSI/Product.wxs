@@ -21,7 +21,6 @@
 		<!-- WiX properties                                                 -->
 		<Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
 
-      
 		<InstallUISequence>
       <Custom Action="PhysicalMemoryWarning" Before="PrepareEvironmentBeforeInstallation" />
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
@@ -52,8 +51,6 @@
       <Custom Action='DECA_RegRootDir' Before='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
 
     </InstallExecuteSequence>
-
-    
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
@@ -107,12 +104,12 @@
     
   </Product>
 
-  <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir"> <!-- // Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
       <Directory Id="INSTALLFOLDER" Name="salt" >
-        <Directory Id="BINFOLDER"  Name="bin" />
         <Directory Id="CONFFOLDER" Name="conf" />
+        <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->        
+        <Directory Id="BINFOLDER"  Name="bin" />
         <Directory Id="VARFOLDER"  Name="var" />
       </Directory>
     </Directory>
