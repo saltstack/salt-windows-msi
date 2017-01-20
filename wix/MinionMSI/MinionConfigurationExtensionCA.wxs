@@ -43,6 +43,14 @@
     <CustomAction Id="CADH_SetRootDir"  Property="DECA_SetRootDir"  Value="root_dir=[INSTALLFOLDER]" />
     <CustomAction Id="CADH_RegRootDir"  Property="DECA_RegRootDir"  Value="root_dir=[INSTALLFOLDER]" />
 
+    <!--could be nice to use later -->
+    <CustomAction Id="PhysicalMemoryWarning" Script="vbscript"><![CDATA[
+  If session.Property("PhysicalMemory") < 100 Then
+    MsgBox("For running Salt Minion $(var.DisplayVersion), 100MB of physical memory are recommended.")
+  End If
+  ]]></CustomAction>
+
+
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>
 </Wix>

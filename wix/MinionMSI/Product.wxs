@@ -21,7 +21,9 @@
 		<!-- WiX properties                                                 -->
 		<Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
 
+      
 		<InstallUISequence>
+      <Custom Action="PhysicalMemoryWarning" Before="PrepareEvironmentBeforeInstallation" />
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
       <!--
       <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
