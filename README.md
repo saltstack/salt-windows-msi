@@ -10,7 +10,7 @@ The build is semi-automated using an [MSBuild][MSBuildId].
 
 The msi differs from the NSIS exe installer in:
 
-- TODO It allows installation to any directory.
+- It allows installation to any directory. (TODO!)
 - It supports unattended installation.
 - By default, it leaves configuaration, remove configuration with `KEEP_CONFIG=0`.
 - ?? It does not download or install the VC++ redistributable. ??
@@ -20,7 +20,8 @@ Additional benefits:
 
 - A problem during the install causes the installation to be rolled back, as in a database transaction.
 - Built-in logging (/l option to msiexec).
-- *_amd64.msi does not run on 32bit Windows.
+- The 32/64bit msi installer only run on the respecitve 32/64bit Windows.
+- Both 32/64bit msi installers can be build on the same client. 
 
 ###On unattended install ("silent install")###
 
