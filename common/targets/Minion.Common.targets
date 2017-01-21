@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="14.0">
 
   <!--
     ================================================================================
@@ -20,15 +20,13 @@
     ================================================================================
        setVersionProperties
 
-        Queries salt for DisplayVersion and InternalVersion 
+        Queries git for salt DisplayVersion and InternalVersion 
         These msbuild variable are sent to WiX by in two different manners:
            Output PropertyName
            DefineConstants magic
 
         Rewrites the output TargetName with the discovered version information.
 
-         TODO           get BUILD_NUMBER
-         NICE-TO-HAVE   GIT_LAST_LOG    git log - - oneline -1
     ================================================================================
   -->
   <Target Name="setVersionProperties">
@@ -36,8 +34,6 @@
     <!--  
     ConsoleToMsBuild in Exec requires ToolsVersion="12.0" 
     Microsoft Build Tools 2013 
-    download https://www.microsoft.com/en-in/download/details.aspx?id=40760  
-    docs https://msdn.microsoft.com/en-us/library/hh162058(v=vs.121).aspx
      
     Exec runs in MSBuildProjectDirectory? why wix\MinionMSI\ ?
     -->
@@ -51,6 +47,7 @@
 
     <Message Text="******************************************************************************   "/>
     <Message Text="****************** common/targets/Minion.Common.targets **********************   "/>
+    <Message Text="MSBuildProjectDirectory = $(MSBuildProjectDirectory)"/>
     <Message Text="        pwd             = $(mercury)"/>
     <Message Text="        version shim    = $(venus)"/>
     <Message Text="        DisplayVersion  = $(DisplayVersion)"/>

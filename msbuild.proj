@@ -1,4 +1,4 @@
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="build">
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="build">
   <PropertyGroup>
     <Configuration  Condition="'$(Configuration)'==''">Release</Configuration>
     <TargetPlatform Condition="'$(TargetPlatform)'==''">amd64</TargetPlatform>
