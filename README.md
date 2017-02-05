@@ -3,8 +3,6 @@ Windows MSI installer build toolkit
 
 This project creates a Salt Minion msi installer using [WiX][WiXId].
 
-The build is semi-automated using [MSBuild][MSBuildId].
-
 ##Requirements##
 - [Windows Installer][WindowsInstaller] 2.0, included since Windows XP. (Version probably changes)
 -  VC++ 2008 Redistributable, included since Windows Server 2008 SP2/Windows Vista.
@@ -12,13 +10,11 @@ The build is semi-automated using [MSBuild][MSBuildId].
  
 ##Differences vs. NSIS (Nullsoft) installer##
 The msi differs from the NSIS exe installer in:
-
 - It allows installation to any directory. (TODO!)
 - It supports unattended installation.
 - By default, it leaves configuaration, remove configuration with `KEEP_CONFIG=0`.
 
 Additional benefits:
-
 - A problem during the install causes the installation to be rolled back, as in a database transaction.
 - Built-in logging (/l option to msiexec).
 - The 32/64bit msi installer only run on the respecitve 32/64bit Windows.
@@ -41,6 +37,7 @@ Available properties:
 - `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
 
 ##Build Requirement##
+The build is semi-automated using [MSBuild][MSBuildId].
 
 - Python 2.7 in `c:\python27`
 - This project git clone in `c:\git\salt-windows-msi`
