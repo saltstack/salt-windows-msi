@@ -8,7 +8,7 @@ The build is semi-automated using [MSBuild][MSBuildId].
 ##Requirements##
 - [Windows Installer][WindowsInstaller] 2.0, included since Windows XP. (Version probably changes)
 -  VC++ 2008 Redistributable, included since Windows Server 2008 SP2/Windows Vista.
-  - Due to the old age, I intentionally do not include them, see Issue #18, comments welcome
+  - Due to the old age, I intentionally do not include it, see [Issue #18][issue18], comments welcome.
  
 ##Differences vs. NSIS (Nullsoft) installer##
 The msi differs from the NSIS exe installer in:
@@ -179,3 +179,4 @@ msi rules demand that the major version of the InternalVersion must be smaller t
 [version_html]: https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html
 [version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
 [WindowsInstaller]:https://en.wikipedia.org/wiki/Windows_Installer#Versions
+[issue18]:https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
