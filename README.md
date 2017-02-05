@@ -1,20 +1,21 @@
 Windows MSI installer build toolkit
 ================
 
-This project creates an msi installer using [WiX][WiXId].
+This project creates a Salt Minion msi installer using [WiX][WiXId].
 
-The build is semi-automated using an [MSBuild][MSBuildId].
+The build is semi-automated using [MSBuild][MSBuildId].
 
+##Requirements##
+- [Windows Installer][WindowsInstaller] 2.0, included since Windows XP. (Version probably changes)
+-  VC++ 2008 Redistributable, included since Windows Server 2008 SP2/Windows Vista.
+  - Due to the old age, I intentionally do not include them, see Issue #18, comments welcome
  
 ##Differences vs. NSIS (Nullsoft) installer##
-
 The msi differs from the NSIS exe installer in:
 
 - It allows installation to any directory. (TODO!)
 - It supports unattended installation.
 - By default, it leaves configuaration, remove configuration with `KEEP_CONFIG=0`.
-- ?? It does not download or install the VC++ redistributable. ??
-- ?? Since the msi does not install the Visual C++ redistributable, it must be installed separately ??
 
 Additional benefits:
 
@@ -39,7 +40,7 @@ Available properties:
 - `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from commandline.
 - `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
 
-##Setup/General Requirement##
+##Build Requirement##
 
 - Python 2.7 in `c:\python27`
 - This project git clone in `c:\git\salt-windows-msi`
@@ -177,3 +178,4 @@ msi rules demand that the major version of the InternalVersion must be smaller t
 [MSBuild2015Id]: https://www.microsoft.com/en-in/download/details.aspx?id=48159
 [version_html]: https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html
 [version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
+[WindowsInstaller]:https://en.wikipedia.org/wiki/Windows_Installer#Versions
