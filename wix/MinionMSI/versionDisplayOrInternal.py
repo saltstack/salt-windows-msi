@@ -1,6 +1,9 @@
 # 2017-01-18 Markus   git describe
 # 2016-12-02 Markus   
 # show DisplayVersion 2016.11.1 or InternalVersion 16.11.1.444
+# 
+# git repository /c/git/salt must be checked out with `git checkout 2016.1` (or higher).
+# This script fails if `git checkout develop` with error on version string from git describe in WiX.
 #
 
 from __future__ import absolute_import, print_function

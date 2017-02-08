@@ -36,17 +36,21 @@ Available properties:
 - `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from commandline.
 - `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
 
+
 ##Build Requirement##
-The build is semi-automated using [MSBuild][MSBuildId].
 
 - Python 2.7 in `c:\python27`
 - This project git clone in `c:\git\salt-windows-msi`
 - Salt git clone in `c:\git\salt`
+  - git repository /c/git/salt must be checked out with `git checkout 2016.1` (or higher).
+    - if this repository has been `git checkout develop` the version string from git describe is wrong.
+      - see c:\git\salt-windows-msi\wix\MinionMSI\versionDisplayOrInternal.py
 - The NSIS build in `c:\git\salt\pkg\windows`
 - [WiX][WiXId] v3.10.
 - [MSBuild 2015][MSBuild2015Id]  https://www.microsoft.com/en-in/download/confirmation.aspx?id=48159
 - .Net 4.5
 - (Probably not required: Visual Studio 2013 or 2015)
+
 
 ###Building###
 
