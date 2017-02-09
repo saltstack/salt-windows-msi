@@ -154,7 +154,7 @@
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <ComponentGroupRef Id="dist"    />       <!-- // Include dist-amd64.wxs in this directory -->
       <ComponentGroupRef Id="service" /> 
-      <!--
+      <!-- experimental, does not work. Also goto nssm.xsl and remove python.exe
       <ComponentRef Id="servicePython" />
       -->
       <ComponentRef Id="InstallfolderPermissions" />
