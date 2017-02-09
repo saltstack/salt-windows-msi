@@ -62,6 +62,8 @@ You can build the msi from the command line using the included msbuild project.
 See the [msbuild](#msbuild) section for details on available
 targets and properties.
 
+yclean and ybuild are shortcuts for msbuild.
+
 You can build the msi also in Visual Studio, but the embedded defaults for
 version, paths, etc. may be incorrect on your machine.
 
