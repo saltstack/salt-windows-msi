@@ -12,13 +12,17 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 The msi differs from the NSIS exe installer in:
 - It allows installation to any directory. (TODO!)
 - It supports unattended installation.
-- By default, it leaves configuaration, remove configuration with `KEEP_CONFIG=0`.
+- By default, it leaves configuration, remove configuration with `KEEP_CONFIG=0`.
 
 Additional benefits:
 - A problem during the install causes the installation to be rolled back, as in a database transaction.
 - Built-in logging (/l option to msiexec).
-- The 32/64bit msi installer only run on the respecitve 32/64bit Windows.
+- The 32/64bit msi installer only run on the respective 32/64bit Windows.
 - Both 32/64bit msi installers can be build on the same client. 
+
+##Features##
+- The msi detects and uninstalls an existing NSIS installation.
+
 
 ###On unattended install ("silent install")###
 
@@ -33,7 +37,7 @@ Available properties:
 - `MASTER_HOSTNAME`: The master hostname. The default is `salt.
 - `MINION_HOSTNAME`: The minion id. The default is `%COMPUTERNAME%`.
 - `START_MINION_SERVICE`: Whether to start the salt-minion service after installation. The default is false.
-- `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from commandline.
+- `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from command line.
 - `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
 
 
@@ -62,7 +66,7 @@ See the [msbuild](#msbuild) section for details on available
 targets and properties.
 
 You can build the msi also in Visual Studio, but the embedded defaults for
-version, paths, etc. may be incorrect on your machie.
+version, paths, etc. may be incorrect on your machine.
 
 The build will produce:
  - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform).msi
@@ -151,27 +155,14 @@ changes are required:
   item to be included in the build.
 
 ##On versioning##
-The user sees a [3-tuple][version_html] version, e.g. `2016.11.0`.
+The user sees a [3-tuple][version_html] version, e.g. `2016.11.3`.
 
-[Internally][version_py], version is a 8-tuple:
-- major,
-- minor,
-- bugfix,
-- mbugfix,
-- pre_type,
-- pre_num,
-- noc,
-- sha
-
-E.g. (2016, 11, 0, 0, '', 0, 461, u'g723699f')
+msi rules demand that numbers must be smaller than 256, therefore only the "short year" is used.
+e.g. `16.11.3.77`
 
 The msi properties `DisplayVersion` and `InternalVersion` store these values.
 
-msi rules demand that the major version of the InternalVersion must be smaller than 265, therefore only the "short year" is used for the major InternalVersion.
-
-
-##Features##
-- The msi detects and uninstalls an existing NSIS installations.
+[Internally][version_py], version is a 8-tuple.
 
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
