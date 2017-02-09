@@ -29,7 +29,7 @@
       ToolPath="$(WixToolPath)"
       SuppressRootDirectory="true"
       SuppressSpecificWarnings="5150"
-      Transforms="$(MSBuildThisFileDirectory)nssm.xsl"/>
+      Transforms="$(MSBuildThisFileDirectory)heat_post_transform.xsl"/>
   </Target>
 
   <!--
