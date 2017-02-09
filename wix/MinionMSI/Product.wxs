@@ -91,7 +91,7 @@
       <ComponentRef      Id="CleanupVarFolder"      />
     </Feature>
 
-    <Icon Id="icon" SourceFile="salt.ico" />
+    <Icon Id="icon" SourceFile="$(var.dist)\..\installer\salt.ico" />
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
 
     <!-- override the banners -->
