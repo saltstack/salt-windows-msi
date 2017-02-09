@@ -17,10 +17,10 @@
     wix.sln references to wix\MinionMSI\MinionMSI.wixproj
     Why then not receference from here (msbuild.proj) directly to MinionMSI.wixproj?
     
-		Was the intention to enable Visual Studio to build the msi?
-			which does not work.
-			which  is not necessary.
-		Why then try?
+    Was the intention to enable Visual Studio to build the msi?
+      which does not work.
+      which  is not necessary.
+    Why then try?
     -->
     <Wix Include="$(MSBuildProjectDirectory)\wix.sln" />
   </ItemGroup>
@@ -93,7 +93,7 @@ Current Defaults:
     Version:              '$(Version)'
     DisplayVersion:       '$(DisplayVersion)'
     InternalVersion:      '$(InternalVersion)'
-    BUILD_NUMBER:         '$(BUILD_NUMBER)'	
+    BUILD_NUMBER:         '$(BUILD_NUMBER)'  
     *************************************************************
   " />
 
@@ -117,7 +117,7 @@ Current Defaults:
       <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionEXE\bin\$(Configuration)\Salt-Minion-*-Setup.exe">
         <OutputType>wix</OutputType>
       </Artifacts>
-			-->
+      -->
     </ItemGroup>
     <Message Text="Copying %(Artifacts.Identity) to $(StagingDir)\%(OutputType)" />
     <Copy Condition="'$(StagingDir)'!=''" SourceFiles="@(Artifacts)" DestinationFolder="$(StagingDir)\%(Artifacts.OutputType)" />

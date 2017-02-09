@@ -11,17 +11,17 @@
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
     <Property Id="KEEP_CONFIG"              Value="1"                    />
-		<!-- Generic Windows Installer Properties      https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
-		<Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/" />
-		<Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/" />
-		<Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/" />
-		<Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // do not chose the disk with most free space -->
+    <!-- Generic Windows Installer Properties      https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
+    <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/" />
+    <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/" />
+    <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/" />
+    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // do not chose the disk with most free space -->
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
-		<!-- WiX properties                                                 -->
-		<Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
+    <!-- WiX properties                                                 -->
+    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
 
-		<InstallUISequence>
+    <InstallUISequence>
       <Custom Action="PhysicalMemoryWarning" Before="PrepareEvironmentBeforeInstallation" />
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
       <!--
@@ -40,10 +40,10 @@
       <Custom Action='CADH_SetMaster'   Before='DECA_SetMaster'  >NOT Installed</Custom> <Custom Action='DECA_SetMaster'   Before='StartServices'>NOT Installed</Custom>
       <Custom Action='CADH_SetMinionId' Before='DECA_SetMinionId'>NOT Installed</Custom> <Custom Action='DECA_SetMinionId' Before='StartServices'>NOT Installed</Custom>
 
-			<!-- Conditionally start the service -->
+      <!-- Conditionally start the service -->
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
 
-			<!-- Conditionally remove configuration on uninstall. With SRP a component remain and ARP entries remain if KEEP_CONFIG=1  -->
+      <!-- Conditionally remove configuration on uninstall. With SRP a component remain and ARP entries remain if KEEP_CONFIG=1  -->
       <Custom Action='IMCA_NukeConf'   After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
 
       <!-- Otherwise, leave configuration and write root_dir / INSTALLDIR to registry -->
@@ -153,10 +153,10 @@
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <ComponentGroupRef Id="dist"    />       <!-- // Include dist-amd64.wxs in this directory -->
-			<ComponentGroupRef Id="service" /> 
-			<!--
-			<ComponentRef Id="servicePython" />
-			-->
+      <ComponentGroupRef Id="service" /> 
+      <!--
+      <ComponentRef Id="servicePython" />
+      -->
       <ComponentRef Id="InstallfolderPermissions" />
     </ComponentGroup>
   </Fragment>
