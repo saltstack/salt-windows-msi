@@ -35,24 +35,25 @@
     ConsoleToMsBuild in Exec requires ToolsVersion="12.0" 
     Microsoft Build Tools 2013 
      
-    Exec runs in MSBuildProjectDirectory? why wix\MinionMSI\ ?
+    Exec runs in MSBuildProjectDirectory
+    This depends on the target, it is      C:\git\salt-windows-msi\wix\MinionMSI       or    C:\git\salt-windows-msi
+    So MSBuildProjectDirectory is not very usefull.
+    Quirk: using hard coded path
+    Maybe abandon to get the version from within msbuild, and give it to msbuild as a parameter, as saxonww did.
     -->
-    <Exec Command="cd ,"                                             ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="mercury"         /></Exec>
-    <Exec Command="dir /b             versionDisplayOrInternal.py"   ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="venus"           /></Exec>    
-    <Exec Command="C:\Python27\python versionDisplayOrInternal.py"   ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="DisplayVersion"  /></Exec>
-    <Exec Command="C:\Python27\python versionDisplayOrInternal.py i" ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="InternalVersion" /></Exec>
-
-    <Error Condition="'$(DisplayVersion)'==''"  Text="Must set DisplayVersion" />
-    <Error Condition="'$(InternalVersion)'==''" Text="Must set InternalVersion" />
-
     <Message Text="******************************************************************************   "/>
     <Message Text="****************** common/targets/Minion.Common.targets **********************   "/>
+    <Exec Command="C:\Python27\python \git\salt\salt\version.py"     ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="DisplayVersion"  /></Exec>
+    <Exec Command="C:\Python27\python \git\salt\salt\version.py msi" ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="InternalVersion" /></Exec>
+
+    <Error Condition="'$(DisplayVersion)'==''"  Text="DisplayVersion must be set" />
+    <Error Condition="'$(InternalVersion)'==''" Text="InternalVersion must be set" />
+
+    <Message Text="******************************************************************************   "/>
     <Message Text="MSBuildProjectDirectory = $(MSBuildProjectDirectory)"/>
-    <Message Text="        pwd             = $(mercury)"/>
-    <Message Text="        version shim    = $(venus)"/>
     <Message Text="        DisplayVersion  = $(DisplayVersion)"/>
     <Message Text="        InternalVersion = $(InternalVersion)"/>
-    <Message Text="        Version         = $(Version)"/>
+    <Message Text="        Version (???)   = $(Version)"/>
     <Message Text="******************************************************************************   "/>
 
     <PropertyGroup>
