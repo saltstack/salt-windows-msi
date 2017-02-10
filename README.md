@@ -73,7 +73,7 @@ properties, and the current value of those properties:
 > msbuild msbuild.proj /t:help
 
 
-###Components###
+###Directory structure###
 
 - msbuild.d/: MSBuild files:
   - BuildDistFragment.targets: find files, generate a WiX fragment from the extracted distribution.
@@ -96,7 +96,8 @@ properties, and the current value of those properties:
     - Dialog.jpg: Used as the dialog background for Welcome and Exit dialogs.
   - MinionConfigurationExtension/: A WiX Extension implementing custom actions for configuration manipulation.
   - MinionEXE/: (ORPHANED) This was the WiX bundle .exe project
-- wix.sln: Visual Studio solution file. Requires VS2010 or above. See note above about dependencies.
+- wix.sln: Visual Studio solution file. 
+  - msbuild looks up the location of the wix.d directory, somehow using a GUID. Difficult to understand.
 
 
 
