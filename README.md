@@ -152,7 +152,8 @@ The msi properties `DisplayVersion` and `InternalVersion` store these values.
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
 [MSBuild2015Id]: https://www.microsoft.com/en-in/download/details.aspx?id=48159
-[version_html]: https://docs.saltstack.com/en/latest/topics/releases/version_numbers.html
+[version_html]:https://docs.saltstack.com/en/develop/topics/releases/version_numbers.html
 [version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
 [WindowsInstaller]:https://en.wikipedia.org/wiki/Windows_Installer#Versions
 [issue18]:https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
+
