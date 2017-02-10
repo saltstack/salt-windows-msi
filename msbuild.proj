@@ -90,7 +90,7 @@ Current Defaults:
     <Message Text="
     *************************************************************
     ************************ msbuild.proj   *********************
-    Version:              '$(Version)'
+    Version (?!?!):       '$(Version)'
     DisplayVersion:       '$(DisplayVersion)'
     InternalVersion:      '$(InternalVersion)'
     BUILD_NUMBER:         '$(BUILD_NUMBER)'  

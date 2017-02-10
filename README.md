@@ -97,7 +97,8 @@ properties, and the current value of those properties:
   - MinionConfigurationExtension/: A WiX Extension implementing custom actions for configuration manipulation.
   - MinionEXE/: (ORPHANED) This was the WiX bundle .exe project
 - wix.sln: Visual Studio solution file. 
-  - msbuild looks up the location of the wix.d directory, somehow using a GUID. Difficult to understand.
+  - msbuild looks up the location of the wix.d directory, somehow using a GUID. 
+  - ...Difficult to understand.
 
 
 
