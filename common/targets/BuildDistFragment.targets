@@ -1,8 +1,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Called from both MinionMSI.wixproj and msbuild.proj to stage the
-       correct distribution for the compile. Called from both places to
-       support WiX and NSIS compiles -->
+  <!--
+    Called from MinionMSI.wixproj to
+    "stage the correct distribution for the compile" (collect files).
+    Uses stylesheet BuildDistFragment.xsl to post-process the xml output of heat.
+    -->
 
   <Import Project="Minion.Common.targets" />
 
@@ -29,7 +31,7 @@
       ToolPath="$(WixToolPath)"
       SuppressRootDirectory="true"
       SuppressSpecificWarnings="5150"
-      Transforms="$(MSBuildThisFileDirectory)heat_post_transform.xsl"/>
+      Transforms="$(MSBuildThisFileDirectory)BuildDistFragment.xsl"/>
   </Target>
 
   <!--
