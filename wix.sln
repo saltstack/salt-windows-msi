@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		common\targets\BuildDistFragment.targets = common\targets\BuildDistFragment.targets
 		common\targets\Minion.Common.targets = common\targets\Minion.Common.targets
 		msbuild.proj = msbuild.proj
-		common\targets\nssm.xsl = common\targets\nssm.xsl
+		common\targets\BuildDistFragment.xsl = common\targets\BuildDistFragment.xsl
 	EndProjectSection
 EndProject
 Global
