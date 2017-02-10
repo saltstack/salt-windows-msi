@@ -70,7 +70,7 @@
     </ProjectReference>
   </ItemGroup>
   <!-- Import our targets BEFORE the WiX ones so the dist fragment is picked up -->
-  <Import Project="..\..\common\targets\BuildDistFragment.targets" />
+  <Import Project="..\..\msbuild.d\BuildDistFragment.targets" />
   <Import Project="$(WixTargetsPath)" />
   <!--
   To modify your build process, add your task inside one of the targets below and uncomment it.

@@ -8,7 +8,7 @@
     <TimestampUrl>http://timestamp.verisign.com/scripts/timstamp.dll</TimestampUrl>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
+  <Import Project="$(MSBuildProjectDirectory)\msbuild.d\Minion.Common.targets" />
 
   <ItemGroup>
     <!-- 

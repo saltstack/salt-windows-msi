@@ -42,7 +42,7 @@
     Maybe abandon to get the version from within msbuild, and give it to msbuild as a parameter, as saxonww did.
     -->
     <Message Text="******************************************************************************   "/>
-    <Message Text="****************** common/targets/Minion.Common.targets **********************   "/>
+    <Message Text="****************** msbuild.d/Minion.Common.targets ***************************   "/>
     <Exec Command="C:\Python27\python \git\salt\salt\version.py"     ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="DisplayVersion"  /></Exec>
     <Exec Command="C:\Python27\python \git\salt\salt\version.py msi" ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="InternalVersion" /></Exec>
 
