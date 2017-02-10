@@ -1,40 +1,25 @@
 @echo off
 
-@echo Detecting git...
-@echo ---------------------------------------------------------------------
+:: Detecting git...
 dir "C:\Program Files\Git\cmd\git.exe" >nul 2>&1
-if %errorLevel%==0 (
-    echo ...Success: Git found.
-) else (
-    echo ...Failure: This script needs git in "C:\Program Files\Git\cmd\git.exe"
+if not %errorLevel%==0 (
+    echo FATAL failure: This script needs git in "C:\Program Files\Git\cmd\git.exe"
     goto eof
 )
-@echo =====================================================================
-@echo.
 
-@echo Detecting Python...
-@echo ---------------------------------------------------------------------
+:: Detecting Python...
 dir "C:\python27\python.exe" >nul 2>&1
-if %errorLevel%==0 (
-    echo ...Success: Python found.
-) else (
-    echo ...Failure: This script needs Python in "C:\python27\python.exe"
+if not %errorLevel%==0 (
+    echo FATAL failure: This script needs Python in "C:\python27\python.exe"
     goto eof
 )
-@echo =====================================================================
-@echo.
 
-@echo Detecting Salt repository...
-@echo ---------------------------------------------------------------------
+:: Detecting Salt repository...
 dir "C:\git\salt\.git" >nul 2>&1
-if %errorLevel%==0 (
-    echo ...Success: Salt repository found.
-) else (
-    echo ...Failure: This script needs the Salt repository  in "C:\git\salt\"
+if not %errorLevel%==0 (
+    echo FATAL failure: This script needs the Salt repository  in "C:\git\salt\"
     goto eof
 )
-@echo =====================================================================
-@echo.
 
 
 :: decoy values to understand the relationship between msbuild and WiX
