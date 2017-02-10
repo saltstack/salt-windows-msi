@@ -1,12 +1,5 @@
 @echo off
 
-:: Detecting git...
-dir "C:\Program Files\Git\cmd\git.exe" >nul 2>&1
-if not %errorLevel%==0 (
-    echo FATAL failure: This script needs git in "C:\Program Files\Git\cmd\git.exe"
-    goto eof
-)
-
 :: Detecting Python...
 dir "C:\python27\python.exe" >nul 2>&1
 if not %errorLevel%==0 (
