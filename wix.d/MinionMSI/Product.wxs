@@ -94,9 +94,9 @@
     <Icon Id="icon" SourceFile="$(var.dist)\..\installer\salt.ico" />
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
 
-    <!-- override the banners -->
-    <WixVariable Id="WixUIBannerBmp" Value="Banner.jpg" />
-    <WixVariable Id="WixUIDialogBmp" Value="Dialog.jpg" />
+    <!-- Dimensions of images must follow http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html  -->
+    <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
+    <WixVariable Id="WixUIDialogBmp" Value="imgLeft.jpg" />
 
     <UIRef Id="WixUI_Minion" />                             <!-- // Include WixUI_Minion.wxs in this directory -->
     
