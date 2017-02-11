@@ -22,10 +22,10 @@ set iii=20.1.1.100
 @echo %0 :: msbuild will get InternalVersion = %iii%
 @echo.
 
-call "%ProgramFiles(x86)%"\MSBuild\14.0\Bin\msbuild.exe msbuild.proj /t:wix /p:TargetPlatform=amd64 /p:DisplayVersion=%ddd% /p:InternalVersion=%iii%
+call "%ProgramFiles(x86)%"\MSBuild\14.0\Bin\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=amd64 /p:DisplayVersion=%ddd% /p:InternalVersion=%iii%
 
-@echo %0 :: result is in     wix.d\MinionMSI\bin\Release\
-dir                          wix.d\MinionMSI\bin\Release\
+::@echo %0 :: result is in     wix.d\MinionMSI\bin\Release\
+dir                          wix.d\MinionMSI\bin\Release\*.msi
 
 
 :eof
