@@ -57,9 +57,6 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\MinionConfigurationExtension\MinionConfigurationExtension.csproj">
       <Name>MinionConfigurationExtension</Name>
       <Project>{ba2a4d99-7701-4ac5-a43c-4dd456d158b9}</Project>
