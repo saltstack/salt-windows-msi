@@ -12,24 +12,12 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 The msi differs from the NSIS exe installer in:
 - It allows installation to any directory. (TODO!)
 - It supports unattended installation.
-- By default, it leaves configuration, remove configuration with `KEEP_CONFIG=0`.
+- It leaves configuration. You can remove configuration with `KEEP_CONFIG=0` option to msiexec.
+- It detects and upgrades an existing NSIS-installed Minion.
 
 Additional benefits:
-- A problem during the install causes the installation to be rolled back, as in a database transaction.
+- A problem during the install causes the installation to be rolled back.
 - Built-in logging (/l option to msiexec).
-- The 32/64bit msi installer only run on the respective 32/64bit Windows.
-- Both 32/64bit msi installers can be build on the same client. 
-
-##Features##
-- The msi detects and upgrades an existing NSIS-installed Minion.
-
-
-###On unattended install ("silent install")###
-
-An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
-customized values for e.g. master hostname, minion id, installation path, using the following command line:
-
-> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
 
 
 Available properties:
@@ -39,6 +27,13 @@ Available properties:
 - `START_MINION_SERVICE`: Whether to start the salt-minion service after installation. The default is false.
 - `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from command line.
 - `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
+
+###On unattended install ("silent install")###
+
+An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
+customized values for e.g. master hostname, minion id, installation path, using the following command line:
+
+> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
 
 
 ##Build Requirement##
@@ -117,20 +112,15 @@ manipulation will require changes to the following files:
 If the new custom action should be exposed to the UI, additional changes
 are required:
 
-- SettingsCustomizatonDlg.wxs: There is room to add 1-2 more properties
-  to this dialog.
-- WixUI\_Minion.wxs: A &lt;ProgressText /&gt; entry providing a brief
-  description of what the new action is doing.
+- SettingsCustomizatonDlg.wxs: There is room to add 1-2 more properties to this dialog.
+- WixUI_Minion.wxs: A &lt;ProgressText /&gt; entry providing a brief description of what the new action is doing.
 
-If the new custom action requires its own dialog, these additional
-changes are required:
+If the new custom action requires its own dialog, these additional changes are required:
 
 - The new dialog file.
-- WixUI\_Minion.wxs: &lt;Publish /&gt; entries hooking up the dialog
-  buttons to other dialogs. Other dialogs will also have to be adjusted
-  to maintain correct sequencing.
-- MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt;
-  item to be included in the build.
+- WixUI_Minion.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs. 
+  Other dialogs will also have to be adjusted to maintain correct sequencing.
+- MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
 ##On versioning##
 The user sees a [3-tuple][version_html] version, e.g. `2016.11.3`.

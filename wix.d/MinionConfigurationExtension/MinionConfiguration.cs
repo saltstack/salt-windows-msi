@@ -165,7 +165,7 @@ namespace MinionConfigurationExtension {
 			 * But is done always.
 			 * So this is a nice-to-have.
 			 * 
-			 * Register should not happen at install time, but at uninstall time, and only at KEEP_CONFIG=1
+			 * Register must happen at uninstall time, and only at KEEP_CONFIG=1
 			 * Implemented in Product.wxs with   (REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")
 			 *
 			 * IF uninstall and KEEP_CONFIG=1 THEN
