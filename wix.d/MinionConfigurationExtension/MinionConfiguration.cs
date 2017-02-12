@@ -166,15 +166,13 @@ namespace MinionConfigurationExtension {
 			 * So this is a nice-to-have.
 			 * 
 			 * Register should not happen at install time, but at uninstall time, and only at KEEP_CONFIG=1
-			 * But it is currently done at install time.
-			 * So this is a nice-to-have.
+			 * Implemented in Product.wxs with   (REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")
 			 *
 			 * IF uninstall and KEEP_CONFIG=1 THEN
 			 *    write INSTALLFOLDER to registry||ProgramData,
-			 *    but not within msi, 
-			 *    because the msi would require a component, 
+			 *    but not with WiX, because this would be a change and would require a component, 
 			 *    and the MSI would not uninstall and Salt-Minion would remain in ARP. 
-			 *    Therefore use a custom action 
+			 *    Therefore use a custom action that can persist changes without components.
 			*/
 			session.Log("MinionConfiguration.cs:: Begin RegRootDir (Register the Root directory)");
 			string CustomActionDataKey = "root_dir";
