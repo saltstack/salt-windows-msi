@@ -17,7 +17,7 @@ namespace MinionConfigurationExtension {
 		*/
 
 		static string SaltStackAppdataPath = @"c:\ProgramData\SaltStack\SaltMinion\";
-		static string SaltStackAppdataFile = SaltStackAppdataPath + "KEPT_CONFIG";
+		static string KEEP_CONFIG_File = SaltStackAppdataPath + "KEPT_CONFIG";
 
 
 		/*
@@ -219,9 +219,9 @@ namespace MinionConfigurationExtension {
 			} else {
 				// Write to file
 				session.Log("RegRootDir:: BEGIN  save the location of the (to be uninstalled) instalation");
-				session.Log("RegRootDir:: About to  write " + CustomActionData_value + " into " + SaltStackAppdataFile);
+				session.Log("RegRootDir:: About to  write " + CustomActionData_value + " into " + KEEP_CONFIG_File);
 				shellout(session, "mkdir " + SaltStackAppdataPath);
-				shellout(session, "echo " + CustomActionData_value + " > " + SaltStackAppdataFile);
+				File.WriteAllText(KEEP_CONFIG_File, CustomActionData_value);
 				session.Log("RegRootDir:: END  save the location of the (to be uninstalled) instalation");
 			}
 			session.Log("MinionConfiguration.cs:: End RegRootDir");
@@ -311,6 +311,22 @@ namespace MinionConfigurationExtension {
 			}
 		}
 
+		private static void looking_for_the_config(Session session, string path_with_backslash) {
+			if (Directory.Exists(path_with_backslash)) {
+				session.Log(path_with_backslash + "    exists");
+			} else {
+				session.Log(path_with_backslash + "    does not exist");
+			}
+			session.Log("looking for Salt Minion config file");
+			string salt_minion_config_file_of_KEEP_CONFIG = path_with_backslash + @"conf\minion";
+			session.Log("salt_minion_config_file = " + salt_minion_config_file_of_KEEP_CONFIG);
+			if (File.Exists(salt_minion_config_file_of_KEEP_CONFIG)) {
+				session.Log(salt_minion_config_file_of_KEEP_CONFIG + "    exists");
+			} else {
+				session.Log(salt_minion_config_file_of_KEEP_CONFIG + "    does not exist");
+			}
+
+		}
 		/*
          * root_dir = INSTALLDIR  the planned installation dir.
 		 * 
@@ -322,18 +338,34 @@ namespace MinionConfigurationExtension {
 		 * 
          * How do I get the old installation dir previous_root_dir?
          * - try c:\salt
-         * - read content from SaltStackAppdataFile
+         * - read content from KEEP_CONFIG_File
          * 
          * if config at previous_root_dir then
          *   move to root_dir
          */
 		private static string getConfigFileLocation(Session session) {
+			session.Log("getConfigFileLocation BEGIN ");
+			session.Log("looking for KEEP_CONFIG_File = " + KEEP_CONFIG_File);
+			session.Log("read KEEP_CONFIG_File if exists");
+			string line_of_KEEP_CONFIG = "";
+			if (File.Exists(KEEP_CONFIG_File)) {
+				using (System.IO.StreamReader file = new System.IO.StreamReader(KEEP_CONFIG_File)) {
+					line_of_KEEP_CONFIG = file.ReadLine().TrimEnd(Environment.NewLine.ToCharArray());
+				}
+			}
+			session.Log("line_of_KEEP_CONFIG = >" + line_of_KEEP_CONFIG + '<');
+			session.Log("looking for directory of KEEP_CONFIG");
+			looking_for_the_config(session, line_of_KEEP_CONFIG);
+			session.Log(@"looking for directory FIX   c:\salt");
+			looking_for_the_config(session, @"c:\salt\");
 
 			string config;
 			string rootDir;
 			try {
 				rootDir = session.CustomActionData["root_dir"];
 			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while getting CustomActionData root_dir", session, ex); throw ex; }
+
+			session.Log("look: (current) INSTALLDIR is " + rootDir);
 
 			try {
 				config = rootDir + "conf\\minion";
