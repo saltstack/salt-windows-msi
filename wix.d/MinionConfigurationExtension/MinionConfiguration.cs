@@ -16,6 +16,9 @@ namespace MinionConfigurationExtension {
 		 * 
 		*/
 
+		static string SaltStackAppdataPath = @"c:\ProgramData\SaltStack\SaltMinion\";
+		static string SaltStackAppdataFile = SaltStackAppdataPath + "KEPT_CONFIG";
+
 
 		/*
 		 * Recursivly remove the conf directory.
@@ -154,6 +157,18 @@ namespace MinionConfigurationExtension {
 		[CustomAction]
 		public static ActionResult RegRootDir(Session session) {
 			/*
+			 * Name    == Register the Root directory.
+			 * Meaning == Save the installation path, because it may be uninstallated in a distant future.
+			 * Reason  == A new installation will find the previous configuation.
+			 * 
+			 * Register is only needed if the installation path is != c:\salt
+			 * But is done always.
+			 * So this is a nice-to-have.
+			 * 
+			 * Register should not happen at install time, but at uninstall time, and only at KEEP_CONFIG=1
+			 * But it is currently done at install time.
+			 * So this is a nice-to-have.
+			 *
 			 * IF uninstall and KEEP_CONFIG=1 THEN
 			 *    write INSTALLFOLDER to registry||ProgramData,
 			 *    but not within msi, 
@@ -161,7 +176,7 @@ namespace MinionConfigurationExtension {
 			 *    and the MSI would not uninstall and Salt-Minion would remain in ARP. 
 			 *    Therefore use a custom action 
 			*/
-			session.Log("MinionConfiguration.cs:: Begin RegRootDir");
+			session.Log("MinionConfiguration.cs:: Begin RegRootDir (Register the Root directory)");
 			string CustomActionDataKey = "root_dir";
 			string CustomActionData_value;
 			session.Log("RegRootDir:: About to get CustomActionData " + CustomActionDataKey);
@@ -181,8 +196,7 @@ namespace MinionConfigurationExtension {
 				string SaltMinion_regpath = @"SOFTWARE\SaltStack\Salt Minion";
 				/*
 				 *
-				 * why? why? why? 
-				 * 
+				 * It seems I cannot write to the Windows Registry....
 				 * 
 				 * 
 	System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.UnauthorizedAccessException: Cannot write to the registry key.
@@ -196,19 +210,19 @@ namespace MinionConfigurationExtension {
 		 at System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object parameters, Object arguments)
 		 at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object parameters, CultureInfo culture)
 		 at Microsoft.Deployment.WindowsInstaller.CustomActionProxy.InvokeCustomAction(Int32 sessionHandle, String entryPoint, IntPtr remotingDelegatePtr)
-				 * * 
-				 * *************************************************************************
+				 * 
 				 */
 				session.Log("RegRootDir:: About to  reg.OpenSubKey " + SaltStack_regpath);
 				if (reg.OpenSubKey(SaltStack_regpath) == null) { reg.CreateSubKey(SaltStack_regpath); };
 				if (reg.OpenSubKey(SaltMinion_regpath) == null) { reg.CreateSubKey(SaltMinion_regpath); };
 				reg.OpenSubKey(SaltMinion_regpath).SetValue("INSTALLDIR", CustomActionData_value);
 			} else {
-				string SaltStackAppdataPath = @"c:\ProgramData\SaltStack\SaltMinion\";
-				string SaltStackAppdataFile = SaltStackAppdataPath + "KEPT_CONFIG";
+				// Write to file
+				session.Log("RegRootDir:: BEGIN  save the location of the (to be uninstalled) instalation");
 				session.Log("RegRootDir:: About to  write " + CustomActionData_value + " into " + SaltStackAppdataFile);
 				shellout(session, "mkdir " + SaltStackAppdataPath);
 				shellout(session, "echo " + CustomActionData_value + " > " + SaltStackAppdataFile);
+				session.Log("RegRootDir:: END  save the location of the (to be uninstalled) instalation");
 			}
 			session.Log("MinionConfiguration.cs:: End RegRootDir");
 			return ActionResult.Success;
@@ -297,11 +311,26 @@ namespace MinionConfigurationExtension {
 			}
 		}
 
-
+		/*
+         * root_dir = INSTALLDIR  the planned installation dir.
+		 * 
+         * I need to move the old installation dir to the new installation dir.
+         * 
+		 * When?
+		 *  - After NukeConf
+		 *  - After the user has given INSTALLDIR
+		 * 
+         * How do I get the old installation dir previous_root_dir?
+         * - try c:\salt
+         * - read content from SaltStackAppdataFile
+         * 
+         * if config at previous_root_dir then
+         *   move to root_dir
+         */
 		private static string getConfigFileLocation(Session session) {
+
 			string config;
 			string rootDir;
-			session.Log("getConfigFileLocation Start");
 			try {
 				rootDir = session.CustomActionData["root_dir"];
 			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while getting CustomActionData root_dir", session, ex); throw ex; }
@@ -309,7 +338,7 @@ namespace MinionConfigurationExtension {
 			try {
 				config = rootDir + "conf\\minion";
 			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while concatening config file name", session, ex); throw ex; }
-			session.Log("getConfigFileLocation Stop");
+			session.Log("getConfigFileLocation END");
 			return config;
 		}
 
