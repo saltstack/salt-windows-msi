@@ -21,6 +21,8 @@ namespace MinionConfigurationExtension {
 
 
 		/*
+		 * Must only be called when KEEP_CONFIG=0
+		 * 
 		 * Recursivly remove the conf directory.
 		 * The MSI easily only removes files installed by the MSI.
 		 * 
@@ -30,7 +32,7 @@ namespace MinionConfigurationExtension {
 		[CustomAction]
 		public static ActionResult NukeConf(Session session) {
 			session.Log("MinionConfiguration.cs:: Begin NukeConf");
-			String soon_conf = @"c:\salt\conf";
+			String soon_conf = @"c:\salt\conf"; //TODO
 			String root_dir = ""; 
 			try {
 				root_dir = session["INSTALLFOLDER"];
@@ -82,6 +84,9 @@ namespace MinionConfigurationExtension {
 			 * 	remove salt-minion service, 
 			 * 	remove registry
 			 * 	remove files, except /salt/conf and /salt/var
+			 * 	
+			 * 	all fixed path are OK here.
+			 * 	The msi is never peeled.
 			*/
 			session.Log("MinionConfiguration.cs:: Begin peel_NSIS");
 			session.Log("Environment.Version = " + Environment.Version);
@@ -128,7 +133,7 @@ namespace MinionConfigurationExtension {
 			 * Is there anybody getting  session.Message(InstallMessage.Progress, new Record(2, 1)) ?
 			 */
 			session.Log("read_SimpleSetting_into_Parameters Begin");
-			string configFileFullpath = "c:\\salt\\conf\\minion";
+			string configFileFullpath = "c:\\salt\\conf\\minion"; // TODO
 			bool configExists = File.Exists(configFileFullpath);
 			if (!configExists) { return true; }
 			session.Message(InstallMessage.Progress, new Record(2, 1));
@@ -309,11 +314,37 @@ namespace MinionConfigurationExtension {
 			}
 		}
 
-		private static void looking_for_the_config(Session session, string path_with_backslash) {
+		private static void maybe_move_config_folder(Session session, string old_install_path, string new_install_path) {
+			session.Log("maybe_move_config_folder");
+			session.Log(old_install_path  + " to " + new_install_path );
+			if (old_install_path.Equals(new_install_path, StringComparison.InvariantCultureIgnoreCase)) {
+				session.Log(old_install_path + " == " + new_install_path);
+				return;
+			}
+			if (! is_config_folder(session, old_install_path))
+				return;
+			if (is_config_folder(session, new_install_path)) {
+				var a = System.IO.File.GetLastWriteTime(old_install_path + "conf\\minion");
+				var b = System.IO.File.GetLastWriteTime(new_install_path + "conf\\minion");
+				if (a < b) {
+					session.Log(old_install_path + "conf\\minion" + " is source but older than target " + new_install_path + "conf\\minion");
+					session.Log(old_install_path + "conf" + " now deleting ");
+					System.IO.Directory.Delete(old_install_path + "conf", true);
+				} else {
+					session.Log(new_install_path + "conf" + " now deleting");
+					System.IO.Directory.Delete(new_install_path + "conf", true);
+					session.Log(old_install_path + "conf" + " now moving to " + new_install_path + "conf");
+					Directory.Move(old_install_path + "conf", new_install_path + "conf");
+				}
+			}
+		}
+
+		private static bool is_config_folder(Session session, string path_with_backslash) {
 			if (Directory.Exists(path_with_backslash)) {
 				session.Log(path_with_backslash + "    exists");
 			} else {
 				session.Log(path_with_backslash + "    does not exist");
+				return false;
 			}
 			session.Log("looking for Salt Minion config file");
 			string salt_minion_config_file_of_KEEP_CONFIG = path_with_backslash + @"conf\minion";
@@ -322,8 +353,9 @@ namespace MinionConfigurationExtension {
 				session.Log(salt_minion_config_file_of_KEEP_CONFIG + "    exists");
 			} else {
 				session.Log(salt_minion_config_file_of_KEEP_CONFIG + "    does not exist");
+				return false;
 			}
-
+			return true;
 		}
 		/*
          * root_dir = INSTALLDIR  the planned installation dir.
@@ -343,6 +375,14 @@ namespace MinionConfigurationExtension {
          */
 		private static string getConfigFileLocation(Session session) {
 			session.Log("getConfigFileLocation BEGIN ");
+
+			string salt_config_file;
+			string rootDir;
+			try {
+				rootDir = session.CustomActionData["root_dir"];
+			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while getting CustomActionData root_dir", session, ex); throw ex; }
+			session.Log("INSTALLFOLDER == rootDir = " + rootDir);
+
 			session.Log("looking for KEEP_CONFIG_File = " + KEEP_CONFIG_File);
 			session.Log("read KEEP_CONFIG_File if exists");
 			string line_of_KEEP_CONFIG = "";
@@ -353,23 +393,16 @@ namespace MinionConfigurationExtension {
 			}
 			session.Log("line_of_KEEP_CONFIG = >" + line_of_KEEP_CONFIG + '<');
 			session.Log("looking for directory of KEEP_CONFIG");
-			looking_for_the_config(session, line_of_KEEP_CONFIG);
+			maybe_move_config_folder(session, line_of_KEEP_CONFIG, rootDir);
+
 			session.Log(@"looking for directory FIX   c:\salt");
-			looking_for_the_config(session, @"c:\salt\");
-
-			string config;
-			string rootDir;
-			try {
-				rootDir = session.CustomActionData["root_dir"];
-			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while getting CustomActionData root_dir", session, ex); throw ex; }
-
-			session.Log("look: (current) INSTALLDIR is " + rootDir);
+			maybe_move_config_folder(session, @"c:\salt\", rootDir); // This is intenionally using the fixed NSIS installation path
 
 			try {
-				config = rootDir + "conf\\minion";
+				salt_config_file = rootDir + "conf\\minion";
 			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while concatening config file name", session, ex); throw ex; }
 			session.Log("getConfigFileLocation END");
-			return config;
+			return salt_config_file;
 		}
 
 
