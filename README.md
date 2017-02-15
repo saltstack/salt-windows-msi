@@ -28,6 +28,8 @@ Available properties:
 - `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from command line.
 - `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
 
+When keeping configuration on uninstall the administrator must remember its location.
+
 ###On unattended install ("silent install")###
 
 An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
@@ -43,7 +45,7 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - Salt git clone in `c:\git\salt`
 - The NSIS build in `c:\git\salt\pkg\windows`
 - [WiX][WiXId] v3.10.
-- [MSBuild 2015][MSBuild2015Id]  https://www.microsoft.com/en-in/download/confirmation.aspx?id=48159
+- [MSBuild 2015][MSBuild2015Id]
 - .Net 4.5
 - (Probably not required: Visual Studio 2013 or 2015)
 
@@ -131,6 +133,28 @@ e.g. `16.11.3.77`
 The msi properties `DisplayVersion` and `InternalVersion` store these values.
 
 [Internally][version_py], version is a 8-tuple.
+
+
+##On directory structure##
+Files under INSTALLDIR are intended to be immutable in Windows.
+Mutable data, created and changed after installation, as log files or a private key, should not be stored under INSTALLDIR.
+Doing so makes install/uninstall complex.
+
+
+## Request for comment ##
+Currently, the minion id is in the config file.
+Proposal: name the private/public keys directly as the name of the file:
+```
+salt/conf/jim.pem
+salt/conf/master/joe.pub
+salt/conf/master/jane.pub
+```
+
+Allow master private key change:
+```
+salt/conf/master/joe.pub
+salt/conf/master/joe(2018-04-12--14-30).pub
+```
 
 ##Understanding imports##
 msbuild.proj imports msbuild.d\Minion.Common.targets

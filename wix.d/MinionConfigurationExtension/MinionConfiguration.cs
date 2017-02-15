@@ -16,9 +16,6 @@ namespace MinionConfigurationExtension {
 		 * 
 		*/
 
-		static string SaltStackAppdataPath = @"c:\ProgramData\SaltStack\SaltMinion\";
-		static string KEEP_CONFIG_File = SaltStackAppdataPath + "KEPT_CONFIG";
-
 
 		/*
 		 * Must only be called when KEEP_CONFIG=0
@@ -160,80 +157,6 @@ namespace MinionConfigurationExtension {
 
 		// Must have this signature or cannot uninstall not even write to the log
 		[CustomAction]
-		public static ActionResult RegRootDir(Session session) {
-			/*
-			 * Name    == Register the Root directory.
-			 * Meaning == Save the installation path, because it may be uninstallated in a distant future.
-			 * Reason  == A new installation will find the previous configuation.
-			 * 
-			 * Register is only needed if the installation path is != c:\salt
-			 * But is done always.
-			 * So this is a nice-to-have.
-			 * 
-			 * Register must happen at uninstall time, and only at KEEP_CONFIG=1
-			 * Implemented in Product.wxs with   (REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")
-			 *
-			 * IF uninstall and KEEP_CONFIG=1 THEN
-			 *    write INSTALLFOLDER to registry||ProgramData,
-			 *    but not with WiX, because this would be a change and would require a component, 
-			 *    and the MSI would not uninstall and Salt-Minion would remain in ARP. 
-			 *    Therefore use a custom action that can persist changes without components.
-			*/
-			session.Log("MinionConfiguration.cs:: Begin RegRootDir (Register the Root directory)");
-			string CustomActionDataKey = "root_dir";
-			string CustomActionData_value;
-			session.Log("RegRootDir:: About to get CustomActionData " + CustomActionDataKey);
-			try {
-				CustomActionData_value = session.CustomActionData[CustomActionDataKey];
-			} catch (Exception ex) {
-				just_ExceptionLog("Getting CustomActionData " + CustomActionDataKey, session, ex);
-				return ActionResult.Failure;
-			}
-			session.Log("RegRootDir:: CustomActionData_value = " + CustomActionData_value);
-
-			bool write_to_registry = false;
-			if (write_to_registry) {
-				RegistryKey reg = Registry.LocalMachine;
-				// (Only?) in regedit this is under    SOFTWARE\WoW6432Node
-				string SaltStack_regpath = @"SOFTWARE\SaltStack";
-				string SaltMinion_regpath = @"SOFTWARE\SaltStack\Salt Minion";
-				/*
-				 *
-				 * It seems I cannot write to the Windows Registry....
-				 * 
-				 * 
-	System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation. ---> System.UnauthorizedAccessException: Cannot write to the registry key.
-		 at System.ThrowHelper.ThrowUnauthorizedAccessException(ExceptionResource resource)
-		 at Microsoft.Win32.RegistryKey.EnsureWriteable()
-		 at Microsoft.Win32.RegistryKey.SetValue(String name, Object value, RegistryValueKind valueKind)
-		 at Microsoft.Win32.RegistryKey.SetValue(String name, Object value)
-		 at MinionConfigurationExtension.MinionConfiguration.RegRootDir(Session session)
-		 --- End of inner exception stack trace ---
-		 at System.RuntimeMethodHandle.InvokeMethod(Object target, Object arguments, Signature sig, Boolean constructor)
-		 at System.Reflection.RuntimeMethodInfo.UnsafeInvokeInternal(Object obj, Object parameters, Object arguments)
-		 at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object parameters, CultureInfo culture)
-		 at Microsoft.Deployment.WindowsInstaller.CustomActionProxy.InvokeCustomAction(Int32 sessionHandle, String entryPoint, IntPtr remotingDelegatePtr)
-				 * 
-				 */
-				session.Log("RegRootDir:: About to  reg.OpenSubKey " + SaltStack_regpath);
-				if (reg.OpenSubKey(SaltStack_regpath) == null) { reg.CreateSubKey(SaltStack_regpath); };
-				if (reg.OpenSubKey(SaltMinion_regpath) == null) { reg.CreateSubKey(SaltMinion_regpath); };
-				reg.OpenSubKey(SaltMinion_regpath).SetValue("INSTALLDIR", CustomActionData_value);
-			} else {
-				// Write to file
-				session.Log("RegRootDir:: BEGIN  save the location of the (to be uninstalled) instalation");
-				session.Log("RegRootDir:: About to  write " + CustomActionData_value + " into " + KEEP_CONFIG_File);
-				shellout(session, "mkdir " + SaltStackAppdataPath);
-				File.WriteAllText(KEEP_CONFIG_File, CustomActionData_value);
-				session.Log("RegRootDir:: END  save the location of the (to be uninstalled) instalation");
-			}
-			session.Log("MinionConfiguration.cs:: End RegRootDir");
-			return ActionResult.Success;
-		}
-
-		// Must have this signature or cannot be called
-		// Save user input to conf/minion settings
-		[CustomAction]
 		public static ActionResult SetRootDir(Session session) /***/ { return save_CustomActionDataKeyValue_to_config_file(session, "root_dir"); }
 		[CustomAction]
 		public static ActionResult SetMaster(Session session) /****/ { return save_CustomActionDataKeyValue_to_config_file(session, "master"); }
@@ -314,47 +237,80 @@ namespace MinionConfigurationExtension {
 			}
 		}
 
-		private static void maybe_move_config_folder(Session session, string old_install_path, string new_install_path) {
-			session.Log("maybe_move_config_folder");
+		private static void re_use_NSIS_config_folder(Session session, string old_install_path, string new_install_path) {
+			session.Log("re_use_NSIS_config_folder BEGIN");
 			session.Log(old_install_path  + " to " + new_install_path );
 			if (old_install_path.Equals(new_install_path, StringComparison.InvariantCultureIgnoreCase)) {
+				// same location!
 				session.Log(old_install_path + " == " + new_install_path);
 				return;
 			}
-			if (! is_config_folder(session, old_install_path))
+			log_config_folder_content(session, old_install_path);
+			if (! (File.Exists(minion_pem(old_install_path))
+				&& File.Exists(minion_pup(old_install_path))
+				&& File.Exists(minion_master_pup(old_install_path)))) {
+				session.Log("There is no complete configuration at " + old_install_path);
+				session.Log("re_use_NSIS_config_folder END PREMATURLY");
 				return;
-			if (is_config_folder(session, new_install_path)) {
-				var a = System.IO.File.GetLastWriteTime(old_install_path + "conf\\minion");
-				var b = System.IO.File.GetLastWriteTime(new_install_path + "conf\\minion");
-				if (a < b) {
-					session.Log(old_install_path + "conf\\minion" + " is source but older than target " + new_install_path + "conf\\minion");
-					session.Log(old_install_path + "conf" + " now deleting ");
-					System.IO.Directory.Delete(old_install_path + "conf", true);
-				} else {
-					session.Log(new_install_path + "conf" + " now deleting");
-					System.IO.Directory.Delete(new_install_path + "conf", true);
-					session.Log(old_install_path + "conf" + " now moving to " + new_install_path + "conf");
-					Directory.Move(old_install_path + "conf", new_install_path + "conf");
-				}
 			}
+
+			// Now we assume:
+			//   there is a NSIS configuration.
+			//   this is not an msi upgrade but a first install
+			// Therefore move configuation into the target install dir
+
+
+			log_config_folder_content(session, new_install_path);
+			if (File.Exists(minion_pem(new_install_path))
+				|| File.Exists(minion_pup(new_install_path)) 
+				|| File.Exists(minion_master_pup(new_install_path))) {
+				session.Log("There is a configuration at " + new_install_path);
+				session.Log("No move");
+				session.Log("re_use_NSIS_config_folder END PREMATURLY");
+				return;
+			}
+			session.Log(old_install_path + "conf" + " now moving to " + new_install_path + "conf");
+			// minion.pem permission do not allow to move it
+			// change permission
+			// move files or folder?
+			session.Log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! move !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+			if (false) 
+				File.Move(minion_pem(old_install_path), minion_pem(new_install_path));
+			
+			session.Log("re_use_NSIS_config_folder END");
 		}
 
-		private static bool is_config_folder(Session session, string path_with_backslash) {
-			if (Directory.Exists(path_with_backslash)) {
-				session.Log(path_with_backslash + "    exists");
-			} else {
-				session.Log(path_with_backslash + "    does not exist");
+		private static string minion_config(string config_folder) { return config_folder + @"conf\minion"; }
+		private static string pki_minion_folder(string config_folder) { return config_folder + @"conf\pki\minion"; }
+		private static string minion_pem(string config_folder) { return config_folder + @"conf\pki\minion\minion.pem"; }
+		private static string minion_pup(string config_folder) { return config_folder + @"conf\pki\minion\minion.pub"; }
+		private static string minion_master_pup(string config_folder) { return config_folder + @"conf\pki\minion\minion_master.pub"; }
+
+
+		private static bool log_config_folder_content(Session session, string potential_config_folder) {
+			session.Log("potential_config_folder         = " + potential_config_folder);
+			session.Log("potential_config_folder_exists  = " + Directory.Exists(potential_config_folder));
+			if (!Directory.Exists(potential_config_folder)) { 
 				return false;
 			}
-			session.Log("looking for Salt Minion config file");
-			string salt_minion_config_file_of_KEEP_CONFIG = path_with_backslash + @"conf\minion";
-			session.Log("salt_minion_config_file = " + salt_minion_config_file_of_KEEP_CONFIG);
-			if (File.Exists(salt_minion_config_file_of_KEEP_CONFIG)) {
-				session.Log(salt_minion_config_file_of_KEEP_CONFIG + "    exists");
-			} else {
-				session.Log(salt_minion_config_file_of_KEEP_CONFIG + "    does not exist");
+
+			session.Log("salt_minion_config_file        = " + minion_config(potential_config_folder));
+			session.Log("salt_minion_config_file_exists = " + File.Exists(minion_config(potential_config_folder)));
+			
+			session.Log("pki_minion_folder        = " + pki_minion_folder(potential_config_folder));
+			session.Log("pki_minion_folder_exists = " + Directory.Exists(pki_minion_folder(potential_config_folder)));
+			if (!Directory.Exists(pki_minion_folder(potential_config_folder))) {
 				return false;
 			}
+
+			session.Log("minion_pem        = " + minion_pem(potential_config_folder));
+			session.Log("minion_pem_exists = " + File.Exists(minion_pem(potential_config_folder)));
+
+			session.Log("minion_pub        = " + minion_pup(potential_config_folder));
+			session.Log("minion_pub_exists = " + File.Exists(minion_pup(potential_config_folder)));
+
+			session.Log("minion_master_pub        = " + minion_master_pup(potential_config_folder));
+			session.Log("minion_master_pub_exists = " + File.Exists(minion_master_pup(potential_config_folder)));
 			return true;
 		}
 		/*
@@ -376,31 +332,19 @@ namespace MinionConfigurationExtension {
 		private static string getConfigFileLocation(Session session) {
 			session.Log("getConfigFileLocation BEGIN ");
 
-			string salt_config_file;
 			string rootDir;
+			string salt_config_file;
+
 			try {
 				rootDir = session.CustomActionData["root_dir"];
 			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while getting CustomActionData root_dir", session, ex); throw ex; }
 			session.Log("INSTALLFOLDER == rootDir = " + rootDir);
 
-			session.Log("looking for KEEP_CONFIG_File = " + KEEP_CONFIG_File);
-			session.Log("read KEEP_CONFIG_File if exists");
-			string line_of_KEEP_CONFIG = "";
-			if (File.Exists(KEEP_CONFIG_File)) {
-				using (System.IO.StreamReader file = new System.IO.StreamReader(KEEP_CONFIG_File)) {
-					line_of_KEEP_CONFIG = file.ReadLine().TrimEnd(Environment.NewLine.ToCharArray());
-				}
-			}
-			session.Log("line_of_KEEP_CONFIG = >" + line_of_KEEP_CONFIG + '<');
-			session.Log("looking for directory of KEEP_CONFIG");
-			maybe_move_config_folder(session, line_of_KEEP_CONFIG, rootDir);
+			session.Log(@"looking for NSIS configuration in c:\salt");
+			re_use_NSIS_config_folder(session, @"c:\salt\", rootDir); // This is intentionally using the fixed NSIS installation path
 
-			session.Log(@"looking for directory FIX   c:\salt");
-			maybe_move_config_folder(session, @"c:\salt\", rootDir); // This is intenionally using the fixed NSIS installation path
+			salt_config_file = rootDir + "conf\\minion";
 
-			try {
-				salt_config_file = rootDir + "conf\\minion";
-			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while concatening config file name", session, ex); throw ex; }
 			session.Log("getConfigFileLocation END");
 			return salt_config_file;
 		}
