@@ -4,20 +4,21 @@
   <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033" Version="$(var.InternalVersion)" 
     Name="Salt Minion $(var.DisplayVersion)" Manufacturer="SaltStack, Inc.">
 
-    <!-- Package must be the first element after Product and seems very related -->
-    <Package  InstallerVersion="200" Compressed="yes" InstallScope="perMachine"  Keywords="infrastructure management" />
+    <!-- Windows Installer Version 4.0 = 400 -->
+    <Package  InstallerVersion="400" Compressed="yes" InstallScope="perMachine"  Keywords="Infrastructure management" />
 
-    <!-- Installer specific properties                                  -->
+    <!-- Salt properties                                  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
     <Property Id="KEEP_CONFIG"              Value="1"                    />
-    <!-- Generic Windows Installer Properties      https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
-    <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/" />
-    <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/" />
-    <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/" />
-    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // do not chose the disk with most free space -->
+    <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
+    <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
+    <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"                                                />
+    <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"                           />
+    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // dont chose disk with the most free space -->
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
+    <Property Id="MsiLogging"               Value="v"                    />
     <!-- WiX properties                                                 -->
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
 

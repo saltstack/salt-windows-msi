@@ -157,11 +157,26 @@ namespace MinionConfigurationExtension {
 
 		// Must have this signature or cannot uninstall not even write to the log
 		[CustomAction]
-		public static ActionResult SetRootDir(Session session) /***/ { return save_CustomActionDataKeyValue_to_config_file(session, "root_dir"); }
+		public static ActionResult SetRootDir(Session session) /***/ {
+			string rootDir;
+			try {
+				rootDir = session.CustomActionData["root_dir"];
+			} catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + "root_dir", session, ex); return ActionResult.Failure; }
+
+			session.Log(@"looking for NSIS configuration in c:\salt");
+			re_use_NSIS_config_folder(session, @"c:\salt\", rootDir); // This is intentionally using the fixed NSIS installation path
+
+			return save_CustomActionDataKeyValue_to_config_file(session, "root_dir");
+		}
+		// todo refactor the two below 2 Set???? procedures into the above
 		[CustomAction]
-		public static ActionResult SetMaster(Session session) /****/ { return save_CustomActionDataKeyValue_to_config_file(session, "master"); }
+		public static ActionResult SetMaster(Session session) /****/ {
+			return save_CustomActionDataKeyValue_to_config_file(session, "master");
+		}
 		[CustomAction]
-		public static ActionResult SetMinionId(Session session) /**/ { return save_CustomActionDataKeyValue_to_config_file(session, "id"); }
+		public static ActionResult SetMinionId(Session session) /**/ {
+			return save_CustomActionDataKeyValue_to_config_file(session, "id");
+		}
 
 		private static ActionResult save_CustomActionDataKeyValue_to_config_file(Session session, string SaltKey) {
 			session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
@@ -280,7 +295,8 @@ namespace MinionConfigurationExtension {
 			session.Log("re_use_NSIS_config_folder END");
 		}
 
-		private static string minion_config(string config_folder) { return config_folder + @"conf\minion"; }
+		private static string minion_config_file(string config_folder) { return config_folder + @"conf\minion"; }
+		private static string minion_d_folder(string config_folder) { return config_folder + @"conf\minion.d"; }
 		private static string pki_minion_folder(string config_folder) { return config_folder + @"conf\pki\minion"; }
 		private static string minion_pem(string config_folder) { return config_folder + @"conf\pki\minion\minion.pem"; }
 		private static string minion_pup(string config_folder) { return config_folder + @"conf\pki\minion\minion.pub"; }
@@ -294,9 +310,12 @@ namespace MinionConfigurationExtension {
 				return false;
 			}
 
-			session.Log("salt_minion_config_file        = " + minion_config(potential_config_folder));
-			session.Log("salt_minion_config_file_exists = " + File.Exists(minion_config(potential_config_folder)));
-			
+			session.Log("salt_minion_config_file        = " + minion_config_file(potential_config_folder));
+			session.Log("salt_minion_config_file_exists = " + File.Exists(minion_config_file(potential_config_folder)));
+
+			session.Log("minion_d_folder        = " + minion_d_folder(potential_config_folder));
+			session.Log("minion_d_folder_exists = " + Directory.Exists(minion_d_folder(potential_config_folder)));
+
 			session.Log("pki_minion_folder        = " + pki_minion_folder(potential_config_folder));
 			session.Log("pki_minion_folder_exists = " + Directory.Exists(pki_minion_folder(potential_config_folder)));
 			if (!Directory.Exists(pki_minion_folder(potential_config_folder))) {
@@ -339,9 +358,6 @@ namespace MinionConfigurationExtension {
 				rootDir = session.CustomActionData["root_dir"];
 			} catch (Exception ex) { just_ExceptionLog("FATAL ERROR while getting CustomActionData root_dir", session, ex); throw ex; }
 			session.Log("INSTALLFOLDER == rootDir = " + rootDir);
-
-			session.Log(@"looking for NSIS configuration in c:\salt");
-			re_use_NSIS_config_folder(session, @"c:\salt\", rootDir); // This is intentionally using the fixed NSIS installation path
 
 			salt_config_file = rootDir + "conf\\minion";
 

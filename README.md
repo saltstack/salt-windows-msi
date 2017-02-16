@@ -4,31 +4,28 @@ Windows MSI installer build toolkit
 This project creates a Salt Minion msi installer using [WiX][WiXId].
 
 ##Requirements##
-- [Windows Installer][WindowsInstaller] 2.0, included since Windows XP. (Version probably changes)
+- [Windows Installer][WindowsInstaller] 4.0
 -  VC++ 2008 Redistributable, included since Windows Server 2008 SP2/Windows Vista.
-  - Due to the old age, I intentionally do not include it, see [Issue #18][issue18], comments welcome.
+  - (intentionally excluded due to its old age, see [Issue #18][issue18])
  
-##Differences vs. NSIS (Nullsoft) installer##
-The msi differs from the NSIS exe installer in:
-- It allows installation to any directory. (TODO!)
-- It supports unattended installation.
-- It leaves configuration. You can remove configuration with `KEEP_CONFIG=0` option to msiexec.
-- It detects and upgrades an existing NSIS-installed Minion.
-
-Additional benefits:
+##Features##
+- Allows installation to any directory. __TODO__
+- Supports unattended ('silent') installation.
+- Uninstall leaves configuration. Optionally removes configuration with `msiexec KEEP_CONFIG=0`.
+- Upgrades an existing NSIS-installed Minion.
+- Logging into %TEMP%\MSI?????.LOG
 - A problem during the install causes the installation to be rolled back.
-- Built-in logging (/l option to msiexec).
+- Logging options (msiexec /l).
 
 
-Available properties:
+Available msiexec command line properties:
+- `INSTALLFOLDER`: Where to install the files. Default `c:\salt\`. __DO NOT CHANGE__
+- `MASTER_HOSTNAME`: The master hostname. Default `salt`.
+- `MINION_HOSTNAME`: The minion id. Default `%COMPUTERNAME%`.
+- `START_MINION_SERVICE`: Whether to start the salt-minion service after installation. Default `0` (false).
+- `KEEP_CONFIG`: keep configuratioin on uninstall. Default `1` (true). Only from command line.
 
-- `MASTER_HOSTNAME`: The master hostname. The default is `salt.
-- `MINION_HOSTNAME`: The minion id. The default is `%COMPUTERNAME%`.
-- `START_MINION_SERVICE`: Whether to start the salt-minion service after installation. The default is false.
-- `KEEP_CONFIG`: keep c:\salt\conf. Default is `1` (true). Only from command line.
-- `INSTALLFOLDER`: Where to install the files. Default is `c:\salt`. DO NOT CHANGE
-
-When keeping configuration on uninstall the administrator must remember its location.
+A kept configuration is reused on installation into its location.
 
 ###On unattended install ("silent install")###
 
