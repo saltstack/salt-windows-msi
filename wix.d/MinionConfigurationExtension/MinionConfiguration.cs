@@ -263,7 +263,7 @@ namespace MinionConfigurationExtension {
       log_config_folder_content(session, old_install_path);
       if (! (File.Exists(minion_pem(old_install_path))
         && File.Exists(minion_pup(old_install_path))
-        && File.Exists(minion_master_pup(old_install_path)))) {
+        && File.Exists(master_pup(old_install_path)))) {
         session.Log("There is no complete configuration at " + old_install_path);
         session.Log("re_use_NSIS_config_folder END PREMATURLY");
         return;
@@ -278,7 +278,7 @@ namespace MinionConfigurationExtension {
       log_config_folder_content(session, new_install_path);
       if (File.Exists(minion_pem(new_install_path))
         || File.Exists(minion_pup(new_install_path)) 
-        || File.Exists(minion_master_pup(new_install_path))) {
+        || File.Exists(master_pup(new_install_path))) {
         session.Log("There is a configuration at " + new_install_path);
         session.Log("No move");
         session.Log("re_use_NSIS_config_folder END PREMATURLY");
@@ -286,12 +286,16 @@ namespace MinionConfigurationExtension {
       }
       session.Log(old_install_path + "conf" + " now moving to " + new_install_path + "conf");
       // minion.pem permission do not allow to move it
-      // change permission
-      // move files or folder?
+      // change permission????????????
       session.Log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! move !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      if (false) 
-        File.Move(minion_pem(old_install_path), minion_pem(new_install_path));
-      
+      File.Move(minion_pem(old_install_path), minion_pem(new_install_path));
+      File.Move(minion_pup(old_install_path), minion_pup(new_install_path));
+      File.Move(master_pup(old_install_path), master_pup(new_install_path));
+
+      if ( Directory.Exists(minion_d_folder(old_install_path))
+      && ! Directory.Exists(minion_d_folder(new_install_path))) 
+        Directory.Move(minion_d_folder(old_install_path), minion_d_folder(new_install_path));
+
       session.Log("re_use_NSIS_config_folder END");
     }
 
@@ -300,7 +304,7 @@ namespace MinionConfigurationExtension {
     private static string pki_minion_folder(string config_folder) { return config_folder + @"conf\pki\minion"; }
     private static string minion_pem(string config_folder) { return config_folder + @"conf\pki\minion\minion.pem"; }
     private static string minion_pup(string config_folder) { return config_folder + @"conf\pki\minion\minion.pub"; }
-    private static string minion_master_pup(string config_folder) { return config_folder + @"conf\pki\minion\minion_master.pub"; }
+    private static string master_pup(string config_folder) { return config_folder + @"conf\pki\minion\minion_master.pub"; }
 
 
     private static bool log_config_folder_content(Session session, string potential_config_folder) {
@@ -328,8 +332,8 @@ namespace MinionConfigurationExtension {
       session.Log("minion_pub        = " + minion_pup(potential_config_folder));
       session.Log("minion_pub_exists = " + File.Exists(minion_pup(potential_config_folder)));
 
-      session.Log("minion_master_pub        = " + minion_master_pup(potential_config_folder));
-      session.Log("minion_master_pub_exists = " + File.Exists(minion_master_pup(potential_config_folder)));
+      session.Log("minion_master_pub        = " + master_pup(potential_config_folder));
+      session.Log("minion_master_pub_exists = " + File.Exists(master_pup(potential_config_folder)));
       return true;
     }
     /*
