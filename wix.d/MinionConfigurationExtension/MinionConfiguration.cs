@@ -66,14 +66,6 @@ namespace MinionConfigurationExtension {
       return ActionResult.Success;
     }
 
-    [CustomAction]
-    public static ActionResult HACKStopSaltOnUninstall(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin HACKStopSaltOnUninstall");
-      shellout(session, "sc stop salt-minion");
-      session.Log("MinionConfiguration.cs:: End HACKStopSaltOnUninstall");
-      return ActionResult.Success;
-    }
-    
 
     private static bool peel_NSIS(Session session) {
       /*
@@ -166,16 +158,16 @@ namespace MinionConfigurationExtension {
       session.Log(@"looking for NSIS configuration in c:\salt");
       re_use_NSIS_config_folder(session, @"c:\salt\", rootDir); // This is intentionally using the fixed NSIS installation path
 
-      return save_CustomActionDataKeyValue_to_config_file(session, "root_dir");
-    }
-    // todo refactor the two below 2 Set???? procedures into the above
-    [CustomAction]
-    public static ActionResult SetMaster(Session session) /****/ {
-      return save_CustomActionDataKeyValue_to_config_file(session, "master");
-    }
-    [CustomAction]
-    public static ActionResult SetMinionId(Session session) /**/ {
-      return save_CustomActionDataKeyValue_to_config_file(session, "id");
+      ActionResult result = ActionResult.Failure;
+      result = save_CustomActionDataKeyValue_to_config_file(session, "root_dir");
+
+      if (result == ActionResult.Success)
+        result = save_CustomActionDataKeyValue_to_config_file(session, "master");
+
+      if (result == ActionResult.Success)
+        result = save_CustomActionDataKeyValue_to_config_file(session, "id");
+
+      return result;
     }
 
     private static ActionResult save_CustomActionDataKeyValue_to_config_file(Session session, string SaltKey) {

@@ -6,20 +6,9 @@
 		    Catch: If the installation then fails and rolls back, peeling cannot be undone.
 	    -->
     <CustomAction Id="PrepareEvironmentBeforeInstallation"  BinaryKey='MinionConfigExt' DllEntry='PrepareEvironmentBeforeInstallation'   Execute='firstSequence'/>
-    <!--
-      the msi cannot delete C:\salt\var\log\salt\minion bewcause of saltrunning -minion service.
-      HACK stop the service HACK
-      This should not be necessary, and was not necessary for month. 
-      solved by ServiceControl stop=both ?
-      
-    <CustomAction Id="HACKStopSaltOnUninstall"              BinaryKey='MinionConfigExt' DllEntry='HACKStopSaltOnUninstall'               Execute='firstSequence'/>
-    -->
-    <CustomAction Id="IMCA_NukeConf"    BinaryKey='MinionConfigExt' DllEntry='NukeConf'                                   />
-    
-    <CustomAction Id="DECA_SetMaster"   BinaryKey='MinionConfigExt' DllEntry='SetMaster'   Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="DECA_SetMinionId" BinaryKey='MinionConfigExt' DllEntry='SetMinionId' Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="IMCA_NukeConf"    BinaryKey='MinionConfigExt' DllEntry='NukeConf'  />
     <CustomAction Id="DECA_SetRootDir"  BinaryKey='MinionConfigExt' DllEntry='SetRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="DECA_RegRootDir"  BinaryKey='MinionConfigExt' DllEntry='RegRootDir'  Execute='deferred' Return='check' Impersonate='no'/>
+
     <!--
          Deferred execution is necessary to change the configuration prior 
          to start the service, which is done during the install instead of running 'net start' at the end. 
@@ -34,14 +23,9 @@
          Actions are declared here and called (repeatedly) in Product.wxs.
          Actions must have C# Signature [CustomAction] public static ActionResult
     -->
-    <!-- 
-         The 3 Set* DECA_ get root_dir. Maybe a single CADH_ DECA_ pair could be enough??
-         Naming/terminology changes from msi to Salt.
-    -->
-    <CustomAction Id="CADH_SetMaster"   Property="DECA_SetMaster"   Value="master=[MASTER_HOSTNAME];root_dir=[INSTALLFOLDER]" />
-    <CustomAction Id="CADH_SetMinionId" Property="DECA_SetMinionId" Value="id=[MINION_HOSTNAME];root_dir=[INSTALLFOLDER]" />
-    <CustomAction Id="CADH_SetRootDir"  Property="DECA_SetRootDir"  Value="root_dir=[INSTALLFOLDER]" />
-    <CustomAction Id="CADH_RegRootDir"  Property="DECA_RegRootDir"  Value="root_dir=[INSTALLFOLDER]" />
+    <!--  Naming/terminology changes from msi to Salt. -->    
+    <CustomAction Id="CADH_SetRootDir"  Property="DECA_SetRootDir"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
+
 
     <!--could be nice to use later -->
     <CustomAction Id="PhysicalMemoryWarning" Script="vbscript"><![CDATA[
