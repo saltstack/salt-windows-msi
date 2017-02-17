@@ -14,6 +14,14 @@
       or (MsiNTProductType = 3 and  VersionNT >= 600)
     </Condition>
 
+    <!-- http://stackoverflow.com/questions/25411590/wix-launch-condition-or-custom-action-for-installed-application -->
+    <!-- https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/ -->
+    <Upgrade Id="9BE518E6-ECC6-35A9-88E4-87755C07200F"><UpgradeVersion Property="VC9_SP1_MFC_SEC_32" OnlyDetect="yes" Minimum="0.0.0.0"/></Upgrade>
+
+    <Condition Message="Installation requires Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (32bit) microsoft.com/download/details.aspx?id=26368">
+      1 or Installed or VC9_SP1_MFC_SEC_32
+    </Condition>
+
     <!-- Salt properties                                  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
