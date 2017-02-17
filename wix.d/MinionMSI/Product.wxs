@@ -7,6 +7,13 @@
     <!-- Windows Installer Version 4.0 = 400 -->
     <Package  InstallerVersion="400" Compressed="yes" InstallScope="perMachine"  Keywords="Infrastructure management" />
 
+    <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server -->
+    <Condition Message="Installation requires Windows 7, Windows Server 2008, or higher. (MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
+      Installed
+      or (MsiNTProductType = 1 and  VersionNT >= 601)
+      or (MsiNTProductType = 3 and  VersionNT >= 600)
+    </Condition>
+
     <!-- Salt properties                                  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
@@ -78,7 +85,6 @@
 
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
-      <!-- include from above and below. Why (so complicated) ?  -->
       <ComponentGroupRef Id="ProductComponents"     />
       <ComponentRef      Id="CleanupBinFolder"      />
       <ComponentRef      Id="CleanupVarFolder"      />
