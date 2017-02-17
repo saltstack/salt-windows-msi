@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" >
-  <Product Id="*" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" Language="1033" Version="$(var.InternalVersion)" 
-    Name="Salt Minion $(var.DisplayVersion)" Manufacturer="SaltStack, Inc.">
+  <Product Manufacturer="SaltStack, Inc." Name="Salt Minion $(var.DisplayVersion)" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
+    Id="*" Language="1033" Version="$(var.InternalVersion)">
 
     <!-- Windows Installer Version 4.0 = 400 -->
-    <Package  InstallerVersion="400" Compressed="yes" InstallScope="perMachine"  Keywords="Infrastructure management" />
+    <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="400" Compressed="yes"/>
 
     <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server -->
-    <Condition Message="Installation requires Windows 7, Windows Server 2008, or higher. (MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
+    <Condition Message="Installation requires Windows 7, Windows Server 2008, or higher. (found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
       Installed
-      or (MsiNTProductType = 1 and  VersionNT >= 601)
-      or (MsiNTProductType = 3 and  VersionNT >= 600)
+      or MsiNTProductType = 1 and  VersionNT >= 601
+      or MsiNTProductType = 3 and  VersionNT >= 600
     </Condition>
 
     <!-- http://stackoverflow.com/questions/25411590/wix-launch-condition-or-custom-action-for-installed-application -->
     <!-- https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/ -->
     <Upgrade Id="9BE518E6-ECC6-35A9-88E4-87755C07200F"><UpgradeVersion Property="VC9_SP1_MFC_SEC_32" OnlyDetect="yes" Minimum="0.0.0.0"/></Upgrade>
 
-    <Condition Message="Installation requires Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (32bit) microsoft.com/download/details.aspx?id=26368">
+    <Condition Message="Security advice: please consider installation of Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (32bit) microsoft.com/download/details.aspx?id=26368">
       1 or Installed or VC9_SP1_MFC_SEC_32
     </Condition>
 
