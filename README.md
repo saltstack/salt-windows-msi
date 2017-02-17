@@ -9,16 +9,16 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
   - (intentionally excluded due to its old age, see [Issue #18][issue18])
  
 ##Features##
-- Allows installation to any directory. __TODO__
-- Supports unattended ('silent') installation.
-- Uninstall leaves configuration. Optionally removes configuration with `msiexec KEEP_CONFIG=0`.
-- Upgrades an existing NSIS-installed Minion.
-- A problem during the install causes the installation to be rolled back.
-- Logging into %TEMP%\MSI?????.LOG
-- Logging options (msiexec /l).
+- Allows installation to any directory __TODO__
+- Supports unattended (silent) installation
+- Uninstall leaves configuration. Optionally removes configuration with `msiexec KEEP_CONFIG=0`
+- Upgrades an existing NSIS-installed Minion
+- A problem during the install causes the installation to be rolled back
+- Logging by default into %TEMP%\MSI?????.LOG
+- Logging options with `msiexec /l`
 
 
-Available msiexec command line properties:
+Minion-specfic `msiexec` properties:
 
   Property              |  Default        | Comment                                                    
  ---------------------- | --------------- | -----------------------------------------------------------
