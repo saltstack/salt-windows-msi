@@ -19,11 +19,15 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 
 
 Available msiexec command line properties:
-- `INSTALLFOLDER`: Where to install the files. Default `c:\salt\`. __DO NOT CHANGE__
-- `MASTER_HOSTNAME`: The master hostname. Default `salt`.
-- `MINION_HOSTNAME`: The minion id. Default `%COMPUTERNAME%`.
-- `START_MINION_SERVICE`: Whether to start the salt-minion service after installation. Default `0` (false).
-- `KEEP_CONFIG`: keep configuratioin on uninstall. Default `1` (true). Only from command line.
++------------------------+-----------------+-------------------------------------------------------------+
+|  Property              |  Default        | Comment                                                     |
++------------------------+-----------------+-------------------------------------------------------------+
+| `INSTALLFOLDER`        | `c:\salt\`      | Where to install the Minion  __DO NOT CHANGE__              |
+| `MASTER_HOSTNAME`      | `salt`          | The master hostname                                         | 
+| `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id                                               |  
+| `START_MINION_SERVICE` | `0` (false)     | Whether to start the salt-minion service after installation | 
+| `KEEP_CONFIG`          | `1` (true)      | keep configuratioin on uninstall  Only from command line    |
++------------------------+-----------------+-------------------------------------------------------------+
 
 A kept configuration is reused on installation into its location.
 
@@ -50,7 +54,7 @@ customized values for e.g. master hostname, minion id, installation path, using 
 ###Building###
 
 yclean.cmd and ybuild.cmd are shortcuts for msbuild.
-You CANNOT build the msi in Visual Studio.
+Visual Studio cannot build the msi.
 
 The build will produce:
  - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform).msi
@@ -132,26 +136,6 @@ The msi properties `DisplayVersion` and `InternalVersion` store these values.
 [Internally][version_py], version is a 8-tuple.
 
 
-##On directory structure##
-Files under INSTALLDIR are intended to be immutable in Windows.
-Mutable data, created and changed after installation, as log files or a private key, should not be stored under INSTALLDIR.
-Doing so makes install/uninstall complex.
-
-
-## Request for comment ##
-Currently, the minion id is in the config file.
-Proposal: name the private/public keys directly as the name of the file:
-```
-salt/conf/jim.pem
-salt/conf/master/joe.pub
-salt/conf/master/jane.pub
-```
-
-Allow master private key change:
-```
-salt/conf/master/joe.pub
-salt/conf/master/joe(2018-04-12--14-30).pub
-```
 
 ##Understanding imports##
 msbuild.proj imports msbuild.d\Minion.Common.targets

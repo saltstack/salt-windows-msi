@@ -18,7 +18,7 @@ namespace MinionConfigurationExtension {
 
 
     /*
-     * Must only be called when KEEP_CONFIG=0
+     * Must only be called on uninstall with KEEP_CONFIG=0
      * 
      * Recursivly remove the conf directory.
      * The MSI easily only removes files installed by the MSI.
@@ -29,7 +29,7 @@ namespace MinionConfigurationExtension {
     [CustomAction]
     public static ActionResult NukeConf(Session session) {
       session.Log("MinionConfiguration.cs:: Begin NukeConf");
-      String soon_conf = @"c:\salt\conf"; //TODO
+      String soon_conf = @"c:\salt\conf"; //TODO use root_dir
       String root_dir = ""; 
       try {
         root_dir = session["INSTALLFOLDER"];
