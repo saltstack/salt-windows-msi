@@ -16,11 +16,9 @@
 
     <!-- http://stackoverflow.com/questions/25411590/wix-launch-condition-or-custom-action-for-installed-application -->
     <!-- https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/ -->
+    <!-- VC9_SP1_MFC_SEC_32 := is-installed (Visual C++ 2008 SP1 MFC Security Update Redistributable Package (x86))  -->
     <Upgrade Id="9BE518E6-ECC6-35A9-88E4-87755C07200F"><UpgradeVersion Property="VC9_SP1_MFC_SEC_32" OnlyDetect="yes" Minimum="0.0.0.0"/></Upgrade>
-
-    <Condition Message="Security advice: please consider installation of Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (32bit) microsoft.com/download/details.aspx?id=26368">
-      1 or Installed or VC9_SP1_MFC_SEC_32
-    </Condition>
+    <Upgrade Id="5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4"><UpgradeVersion Property="VC9_SP1_MFC_SEC_64" OnlyDetect="yes" Minimum="0.0.0.0"/></Upgrade>
 
     <!-- Salt properties                                  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
@@ -39,6 +37,10 @@
 
     <InstallUISequence>
       <Custom Action="PhysicalMemoryWarning" Before="PrepareEvironmentBeforeInstallation" />
+      <!-- Warn if VC9_SP1_MFC_SEC_32 not installed       and (Installed or VC9_SP1_MFC_SEC_32)      -->
+      <Show Dialog="VC9_SP1_MFC_SEC_32WarningDlg" After="AppSearch">VC9_SP1_MFC_SEC_32</Show>
+      <Show Dialog="VC9_SP1_MFC_SEC_64WarningDlg" After="AppSearch">VC9_SP1_MFC_SEC_64</Show>
+      
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
       <!--
       <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
@@ -155,6 +157,39 @@
       </CreateFolder>
     </Component>
   </Fragment>
+  
+      <Fragment> <!-- Warning dialogs -->
+    <UI>
+      <Dialog Id="VC9_SP1_MFC_SEC_32WarningDlg" Width="440" Height="100" Title="Saltstack security warning (security update missing)" NoMinimize="yes">
+        <Control X="10"  Y="8" Width="430" Height="30" Type="Text"  Id="Text">
+          <Text>Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (32bit) is missing.
+          
+Please consult</Text>
+        </Control>
+        <Control X="10" Y="40" Width="430" Height="20"  Type="Hyperlink" Id="exampleHyperLink"> 
+          <Text><![CDATA[<a href="https://www.microsoft.com/download/details.aspx?id=26368">www.microsoft.com/download/details.aspx?id=26368</a>]]></Text> 
+        </Control>
+        <Control X="192" Y="75" Width="56" Height="17" Id="OK" Type="PushButton"  Default="yes"  Cancel="yes" Text="OK">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+      </Dialog>
+    </UI>
+    <UI>
+      <Dialog Id="VC9_SP1_MFC_SEC_64WarningDlg" Width="440" Height="100" Title="Saltstack security warning (security update missing)" NoMinimize="yes">
+        <Control X="10"  Y="8" Width="430" Height="30" Type="Text"  Id="Text">
+          <Text>Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (64bit) is missing.
+          
+Please consult</Text>
+        </Control>
+        <Control X="10" Y="40" Width="430" Height="20"  Type="Hyperlink" Id="exampleHyperLink"> 
+          <Text><![CDATA[<a href="https://www.microsoft.com/download/details.aspx?id=26368">www.microsoft.com/download/details.aspx?id=26368</a>]]></Text> 
+        </Control>
+        <Control X="192" Y="75" Width="56" Height="17" Id="OK" Type="PushButton"  Default="yes"  Cancel="yes" Text="OK">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+      </Dialog>
+    </UI>
+    </Fragment>
   
   <!-- From the "Default WiX Project Template" -->
   <Fragment>
