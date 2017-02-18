@@ -17,7 +17,7 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 - Logging options with `msiexec /l`
 
 
-Minion-specfic `msiexec` properties:
+Minion-specific msi-properties:
 
   Property              |  Default        | Comment                                                    
  ---------------------- | --------------- | -----------------------------------------------------------
@@ -25,7 +25,7 @@ Minion-specfic `msiexec` properties:
  `MASTER_HOSTNAME`      | `salt`          | The master hostname                                         
  `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id                                                
  `START_MINION_SERVICE` | `0` (_false_)   | Whether to start the salt-minion service after installation
- `KEEP_CONFIG`          | `1` (_true_)    | keep configuratioin on uninstall  Only from command line    
+ `KEEP_CONFIG`          | `1` (_true_)    | keep configuratioin on uninstall. Only from command line
 
 
 A kept configuration is reused on installation into its location.
