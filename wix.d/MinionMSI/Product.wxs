@@ -4,8 +4,8 @@
   <Product Manufacturer="SaltStack, Inc." Name="Salt Minion $(var.DisplayVersion)" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
     Id="*" Language="1033" Version="$(var.InternalVersion)">
 
-    <!-- Windows Installer Version 4.0 = 400 -->
-    <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="400" Compressed="yes"/>
+    <!-- Windows Installer Version 3.0 = 400 -->
+    <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
 
     <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server      -->
     <!--  VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx  -->

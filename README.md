@@ -5,7 +5,6 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 
 ##Requirements##
 - Windows 7, Windows Server 2008, or higher
-- [Windows Installer][WindowsInstaller] 4.0
 - VC++ 2008 Redistributable (see [Issue #18][issue18])
  
 ##Features##
@@ -146,6 +145,6 @@ msbuild.proj imports msbuild.d\Minion.Common.targets
 [MSBuild2015Id]: https://www.microsoft.com/en-in/download/details.aspx?id=48159
 [version_html]:https://docs.saltstack.com/en/develop/topics/releases/version_numbers.html
 [version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
-[WindowsInstaller]:https://en.wikipedia.org/wiki/Windows_Installer#Versions
+[WindowsInstaller4.5_link]:https://www.microsoft.com/en-us/download/details.aspx?id=8483
 [issue18]:https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
 
