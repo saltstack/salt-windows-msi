@@ -49,7 +49,9 @@
     <Error Condition="'$(InternalVersion)'==''" Text="InternalVersion must be set" />
 
     <Message Text="  ******************  MSBuildProjectDirectory = $(MSBuildProjectDirectory)"/>
-    <Message Text="  ******************            Configuration = $(Configuration)"/>
+    <Message Text="  ******************        InstallerPlatform = $(InstallerPlatform)"/>
+    <Message Text="  ******************    ProcessorArchitecture = $(ProcessorArchitecture)"/>
+    <Message Text="  ******************            Configuration = $(Configuration)"/>    
     <Message Text="  ******************           TargetPlatform = $(TargetPlatform)"/>
     <Message Text="  ******************           DisplayVersion = $(DisplayVersion)"/>
     <Message Text="  ******************          InternalVersion = $(InternalVersion)"/>

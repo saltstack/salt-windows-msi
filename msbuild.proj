@@ -12,15 +12,12 @@
 
   <ItemGroup>
     <!-- 
-    why does this file (msbuild.proj) references a (line oriented) Visual Studio Solution (wix.sln)? 
+    msbuild.proj 
+     1) compiles the Visual Studio Solution wix.sln, think of C#.
+     2) compiles and links WiX (via wix.sln).
     
     wix.sln references to wix\MinionMSI\MinionMSI.wixproj
-    Why then not receference from here (msbuild.proj) directly to MinionMSI.wixproj?
-    
-    Was the intention to enable Visual Studio to build the msi?
-      which does not work.
-      which  is not necessary.
-    Why then try?
+    The intention is to enable Visual Studio to build the msi (which does not work).
     -->
     <Wix Include="$(MSBuildProjectDirectory)\wix.sln" />
   </ItemGroup>
@@ -87,12 +84,14 @@ Current Defaults:
   <Target Name="wix">
     <Message Text="
     ****************** msbuild.proj   *********************
-    ******************   Configuration: $(Configuration)
-    ******************  TargetPlatform: $(TargetPlatform)
-    ******************         Version: $(Version)
-    ******************  DisplayVersion: $(DisplayVersion)
-    ****************** InternalVersion: $(InternalVersion)
-    ******************    BUILD_NUMBER: $(BUILD_NUMBER)
+    ******************      InstallerPlatform: $(InstallerPlatform)        
+    ******************  ProcessorArchitecture: $(ProcessorArchitecture)    
+    ******************          Configuration: $(Configuration)    
+    ******************         TargetPlatform: $(TargetPlatform)
+    ******************                Version: $(Version)
+    ******************         DisplayVersion: $(DisplayVersion)
+    ******************        InternalVersion: $(InternalVersion)
+    ******************           BUILD_NUMBER: $(BUILD_NUMBER)
   " />
 
     <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />
