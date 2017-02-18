@@ -7,7 +7,8 @@
     <!-- Windows Installer Version 4.0 = 400 -->
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="400" Compressed="yes"/>
 
-    <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server -->
+    <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server      -->
+    <!--  VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx  -->
     <Condition Message="Installation requires Windows 7, Windows Server 2008, or higher. (found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
       Installed
       or MsiNTProductType = 1 and  VersionNT >= 601
