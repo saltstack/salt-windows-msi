@@ -4,7 +4,7 @@
   <Product Manufacturer="SaltStack, Inc." Name="Salt Minion $(var.DisplayVersion)" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
     Id="*" Language="1033" Version="$(var.InternalVersion)">
 
-    <!-- Windows Installer Version 3.0 = 400 -->
+    <!-- Windows Installer Version 3.0 = 300 -->
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
 
     <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server      -->
@@ -38,7 +38,7 @@
 
     <InstallUISequence>
       <Custom Action="PhysicalMemoryWarning" Before="PrepareEvironmentBeforeInstallation" />
-      <!-- Warn if VC9_SP1_MFC_SEC_32 not installed       and (Installed or VC9_SP1_MFC_SEC_32)      -->
+      <!-- Warn if these packages are not installed            -->
       <Show Dialog="VC9_SP1_MFC_SEC_32WarningDlg" After="AppSearch">VC9_SP1_MFC_SEC_32</Show>
       <Show Dialog="VC9_SP1_MFC_SEC_64WarningDlg" After="AppSearch">VC9_SP1_MFC_SEC_64</Show>
       
