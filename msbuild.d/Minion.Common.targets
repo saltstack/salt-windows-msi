@@ -41,22 +41,19 @@
     Quirk: using hard coded path
     Maybe abandon to get the version from within msbuild, and give it to msbuild as a parameter, as saxonww did.
     -->
-    <Message Text="******************************************************************************   "/>
-    <Message Text="****************** msbuild.d/Minion.Common.targets ***************************   "/>
+    <Message Text="  ****************** msbuild.d/Minion.Common.targets ***************************   "/>
     <Exec Command="C:\Python27\python \git\salt\salt\version.py"     ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="DisplayVersion"  /></Exec>
     <Exec Command="C:\Python27\python \git\salt\salt\version.py msi" ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="InternalVersion" /></Exec>
 
     <Error Condition="'$(DisplayVersion)'==''"  Text="DisplayVersion must be set" />
     <Error Condition="'$(InternalVersion)'==''" Text="InternalVersion must be set" />
 
-    <Message Text="******************************************************************************   "/>
-    <Message Text="MSBuildProjectDirectory = $(MSBuildProjectDirectory)"/>
-    <Message Text="        Configuration   = $(Configuration)"/>
-    <Message Text="        TargetPlatform  = $(TargetPlatform)"/>
-    <Message Text="        DisplayVersion  = $(DisplayVersion)"/>
-    <Message Text="        InternalVersion = $(InternalVersion)"/>
-    <Message Text="        Version (???)   = $(Version)"/>
-    <Message Text="******************************************************************************   "/>
+    <Message Text="  ******************  MSBuildProjectDirectory = $(MSBuildProjectDirectory)"/>
+    <Message Text="  ******************            Configuration = $(Configuration)"/>
+    <Message Text="  ******************           TargetPlatform = $(TargetPlatform)"/>
+    <Message Text="  ******************           DisplayVersion = $(DisplayVersion)"/>
+    <Message Text="  ******************          InternalVersion = $(InternalVersion)"/>
+    <Message Text="  ******************                  Version = $(Version)"/>
 
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
