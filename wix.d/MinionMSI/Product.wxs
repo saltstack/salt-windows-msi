@@ -32,7 +32,7 @@
     <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // dont chose disk with the most free space -->
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
-    <Property Id="MsiLogging"               Value="v"                    />
+    <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSI?????.LOG  -->
     <!-- WiX properties                                                 -->
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
 
