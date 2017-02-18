@@ -51,6 +51,8 @@
 
     <Message Text="******************************************************************************   "/>
     <Message Text="MSBuildProjectDirectory = $(MSBuildProjectDirectory)"/>
+    <Message Text="        Configuration   = $(Configuration)"/>
+    <Message Text="        TargetPlatform  = $(TargetPlatform)"/>
     <Message Text="        DisplayVersion  = $(DisplayVersion)"/>
     <Message Text="        InternalVersion = $(InternalVersion)"/>
     <Message Text="        Version (???)   = $(Version)"/>
