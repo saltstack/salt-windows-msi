@@ -8,7 +8,7 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 - VC++ 2008 Redistributable (see [Issue #18][issue18])
  
 ##Features##
-- Allows installation to any directory __TODO__
+- Allows installation to any directory __TODO__ https://github.com/saltstack/salt/issues/39502
 - Supports unattended (silent) installation
 - Uninstall leaves configuration. Optionally removes configuration with `msiexec KEEP_CONFIG=0`
 - Upgrades an existing NSIS-installed Minion
