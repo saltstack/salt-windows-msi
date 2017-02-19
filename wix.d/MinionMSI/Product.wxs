@@ -15,12 +15,6 @@
       or MsiNTProductType = 3 and  VersionNT >= 600
     </Condition>
 
-    <!-- http://stackoverflow.com/questions/25411590/wix-launch-condition-or-custom-action-for-installed-application -->
-    <!-- https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/ -->
-    <!-- VC9_SP1_MFC_SEC_32 := is-installed (Visual C++ 2008 SP1 MFC Security Update Redistributable Package (x86))  -->
-    <Upgrade Id="9BE518E6-ECC6-35A9-88E4-87755C07200F"><UpgradeVersion Property="VC9_SP1_MFC_SEC_32" OnlyDetect="yes" Minimum="0.0.0.0"/></Upgrade>
-    <Upgrade Id="5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4"><UpgradeVersion Property="VC9_SP1_MFC_SEC_64" OnlyDetect="yes" Minimum="0.0.0.0"/></Upgrade>
-
     <!-- Salt properties                                  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
@@ -36,16 +30,24 @@
     <!-- WiX properties                                                 -->
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
 
+    <!-- 
+      NICE-TO-HAVE Warn if security packages are not installed.   https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
+      Does not work: the properties are never set.
+      GUID from      https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/
+    -->
+    <Upgrade Id="9BE518E6-ECC6-35A9-88E4-87755C07200F"><UpgradeVersion OnlyDetect="yes" Property="DETECTED_VC9_SP1_MFC_SEC_32" Minimum="0.0.0.0" IncludeMinimum='yes'/></Upgrade>
+    <Upgrade Id="5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4"><UpgradeVersion OnlyDetect="yes" Property="DETECTED_VC9_SP1_MFC_SEC_64" Minimum="0.0.0.0" IncludeMinimum='yes'/></Upgrade>
+
     <InstallUISequence>
       <Custom Action="PhysicalMemoryWarning" Before="PrepareEvironmentBeforeInstallation" />
-      <!-- Warn if these packages are not installed            -->
-      <Show Dialog="VC9_SP1_MFC_SEC_32WarningDlg" After="AppSearch">VC9_SP1_MFC_SEC_32</Show>
-      <Show Dialog="VC9_SP1_MFC_SEC_64WarningDlg" After="AppSearch">VC9_SP1_MFC_SEC_64</Show>
-      
       <Custom Action='PrepareEvironmentBeforeInstallation' Before='AppSearch'>NOT Installed</Custom>
       <!--
       <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
       -->
+      <!-- because the DETECTED_ properties are never set, I must override them -->
+      <LaunchConditions After="AppSearch" />
+      <Show Dialog="VC9_SP1_MFC_SEC_32WarningDlg" After="FindRelatedProducts">0 and not DETECTED_VC9_SP1_MFC_SEC_32</Show>
+      <Show Dialog="VC9_SP1_MFC_SEC_64WarningDlg" After="FindRelatedProducts">0 and not DETECTED_VC9_SP1_MFC_SEC_64</Show>
     </InstallUISequence>
 
     <InstallExecuteSequence>
