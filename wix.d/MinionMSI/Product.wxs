@@ -39,7 +39,7 @@
     <Upgrade Id="5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4"><UpgradeVersion OnlyDetect="yes" Property="DETECTED_VC9_SP1_MFC_SEC_64" Minimum="0.0.0.0" IncludeMinimum='yes'/></Upgrade>
 
     <InstallUISequence>
-      <Custom Action="PhysicalMemoryWarning" Before='AppSearch'>NOT Installed</Custom>
+      <Custom Action="IMCA_WarnLittleRAM" Before='AppSearch'>NOT Installed</Custom>
       <Custom Action='IMCA_PeelNSIS'         Before='AppSearch'>NOT Installed</Custom>
       <!--
       <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>

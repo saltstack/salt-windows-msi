@@ -27,10 +27,10 @@
     <CustomAction Id="CADH_WriteConfig"  Property="DECA_WriteConfig"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
 
 
-    <!--could be nice to use later -->
-    <CustomAction Id="PhysicalMemoryWarning" Script="vbscript"><![CDATA[
-  If session.Property("PhysicalMemory") < 100 Then
-    MsgBox("For running Salt Minion $(var.DisplayVersion), 100MB of physical memory are recommended.")
+    <!-- Warning when installing on a client with litte RAM -->
+    <CustomAction Id="IMCA_WarnLittleRAM" Script="vbscript"><![CDATA[
+  If session.Property("PhysicalMemory") < 125 Then
+    MsgBox("For running Salt Minion $(var.DisplayVersion), 125MB of physical memory are recommended.")
   End If
   ]]></CustomAction>
 
