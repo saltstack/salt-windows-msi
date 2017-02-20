@@ -4,7 +4,8 @@ Windows MSI installer build toolkit
 This project creates a Salt Minion msi installer using [WiX][WiXId].
 
 ##Requirements##
-- Windows 7, Windows Server 2008, or higher
+- Windows XP, Windows Server 2008, or higher
+- .Net 2.0, or higher
 - Windows Server 2008 requires the VC++ 2008 MFC Redistributable (see <a href=https://github.com/saltstack/salt-windows-msi/pull/12> PR #12</a>)
  
 ##Features##
