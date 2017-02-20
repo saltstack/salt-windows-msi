@@ -9,8 +9,20 @@
     ================================================================================
   -->
   <PropertyGroup>
+    <!-- mkr TargetPlatform does what?! -->
     <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
     <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>
+    <!-- mkr
+    An msi can only be for 32 or 64 bit.
+    What to call "32 or 64 bit" depends on the context.
+    There is Platform, TargetPlatform, InstallerPlatform and ProcessorArchitecture.
+    The msi is created as 32 or 64 bit by the candle -arch [x86|x64] parameter.
+    It seems that the InstallerPlatform property triggers the candle -arch parameter.
+    It seems silly that I must set TargetPlatform from InstallerPlatform.
+    -->
+    <InstallerPlatform Condition="'$(TargetPlatform)'=='win32'">x86</InstallerPlatform>
+    <InstallerPlatform Condition="'$(TargetPlatform)'=='amd64'">x64</InstallerPlatform>
+
     <BuildEnv Condition="'$(BuildEnv)'==''">$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..\salt\pkg\windows\buildenv'))</BuildEnv>
     <DefineConstants>$(DefineConstants);dist=$(BuildEnv);TargetPlatform=$(TargetPlatform)</DefineConstants>
     <BUILD_NUMBER Condition="'$(BUILD_NUMBER)'==''">0</BUILD_NUMBER>
@@ -32,8 +44,7 @@
   <Target Name="setVersionProperties">
 
     <!--  
-    ConsoleToMsBuild in Exec requires ToolsVersion="12.0" 
-    Microsoft Build Tools 2013 
+    ConsoleToMsBuild in Exec requires ToolsVersion="12.0" (Microsoft Build Tools 2013)
      
     Exec runs in MSBuildProjectDirectory
     This depends on the target, it is      C:\git\salt-windows-msi\wix\MinionMSI       or    C:\git\salt-windows-msi
@@ -49,6 +60,7 @@
     <Error Condition="'$(InternalVersion)'==''" Text="InternalVersion must be set" />
 
     <Message Text="  ******************  MSBuildProjectDirectory = $(MSBuildProjectDirectory)"/>
+    <Message Text="  ******************           TargetPlatform = $(TargetPlatform)"/>
     <Message Text="  ******************        InstallerPlatform = $(InstallerPlatform)"/>
     <Message Text="  ******************    ProcessorArchitecture = $(ProcessorArchitecture)"/>
     <Message Text="  ******************            Configuration = $(Configuration)"/>    
@@ -56,6 +68,15 @@
     <Message Text="  ******************           DisplayVersion = $(DisplayVersion)"/>
     <Message Text="  ******************          InternalVersion = $(InternalVersion)"/>
     <Message Text="  ******************                  Version = $(Version)"/>
+
+    <!-- This is to prevent insane combinations of TargetPlatform and InstallerPlatform -->
+    <!-- BEWARE This is not WiX, this is msbuild -->
+    <!-- BEWARE msbuild demands paranthesis for and and or -->
+    <!-- KEEP THE LINK TO THE MSBuild Conditions syntax  https://msdn.microsoft.com/en-us/library/7szfhaft.aspx -->
+
+    <Error Condition="!(('$(TargetPlatform)'=='win32' and '$(InstallerPlatform)'=='x86')
+                     or ('$(TargetPlatform)'=='amd64' and '$(InstallerPlatform)'=='x64'))"
+           Text="TargetPlatform $(TargetPlatform) and InstallerPlatform $(InstallerPlatform) do not match" />
 
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>

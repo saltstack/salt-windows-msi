@@ -39,5 +39,11 @@ call "%ProgramFiles(x86)%"\MSBuild\14.0\Bin\msbuild.exe msbuild.proj /nologo /t:
 
 dir                          wix.d\MinionMSI\bin\Release\*.msi
 
+if '%1'=='32' (
+  echo ****** WARNING *******       The 32bit installer is untested
+  echo   ****** WARNING *******     The 32bit installer is untested
+  echo    ****** WARNING *******    The 32bit installer is untested
+)
+
 
 :eof
