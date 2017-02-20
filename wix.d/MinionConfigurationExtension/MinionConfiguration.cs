@@ -27,8 +27,8 @@ namespace MinionConfigurationExtension {
      * 
     */
     [CustomAction]
-    public static ActionResult NukeConf(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin NukeConf");
+    public static ActionResult IMCA_NukeConf(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin IMCA_NukeConf");
       String soon_conf = @"c:\salt\conf"; //TODO use root_dir
       String root_dir = ""; 
       try {
@@ -36,12 +36,12 @@ namespace MinionConfigurationExtension {
       } catch (Exception ex) {
         just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex); 
       }
-      session.Log("NukeConf::  root_dir = " + root_dir);
+      session.Log("IMCA_NukeConf::  root_dir = " + root_dir);
       try {
-        session.Log("NukeConf:: going to try to Directory delete " + soon_conf);
+        session.Log("IMCA_NukeConf:: going to try to Directory delete " + soon_conf);
         Directory.Delete(soon_conf, true);
       } catch (Exception ex) {
-        just_ExceptionLog(@"NukeConf tried to delete " + soon_conf, session, ex);
+        just_ExceptionLog(@"IMCA_NukeConf tried to delete " + soon_conf, session, ex);
         //return ActionResult.Failure;
       }
 
@@ -53,21 +53,21 @@ namespace MinionConfigurationExtension {
     }
 
     [CustomAction]
-    public static ActionResult PrepareEvironmentBeforeInstallation(Session session) {
+    public static ActionResult IMCA_PeelNSIS(Session session) {
       /*
        * This CustomAction must be called "early". 
        * 
-       * Read the comments for PrepareEvironmentBeforeInstallation in wix/MinionMSI/Product.wxs
+       * More comments in wix.d/MinionMSI/Product.wxs.comments.txt
       */
-      session.Log("MinionConfiguration.cs:: Begin PrepareEvironmentBeforeInstallation");
-      if (!peel_NSIS(session)) return ActionResult.Failure;
+      session.Log("MinionConfiguration.cs:: Begin IMCA_PeelNSIS");
+      if (!peel_NSIS_rm_files(session)) return ActionResult.Failure;
       if (!read_SimpleSetting_into_Property(session)) return ActionResult.Failure;
-      session.Log("MinionConfiguration.cs:: End PrepareEvironmentBeforeInstallation");
+      session.Log("MinionConfiguration.cs:: End IMCA_PeelNSIS");
       return ActionResult.Success;
     }
 
 
-    private static bool peel_NSIS(Session session) {
+    private static bool peel_NSIS_rm_files(Session session) {
       /*
        * If NSIS is installed:
        *   remove salt-minion service, 
@@ -149,7 +149,7 @@ namespace MinionConfigurationExtension {
 
     // Must have this signature or cannot uninstall not even write to the log
     [CustomAction]
-    public static ActionResult SetRootDir(Session session) /***/ {
+    public static ActionResult DECA_WriteConfig(Session session) /***/ {
       string rootDir;
       try {
         rootDir = session.CustomActionData["root_dir"];

@@ -12,7 +12,7 @@
 
       <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SettingsCustomizationDlg" Order="1">NOT Installed</Publish>
 
-      <ProgressText Action="SetRootDir">Configuring minion root_dir setting</ProgressText>
+      <ProgressText Action="DECA_WriteConfig">Configuring minion</ProgressText>
     </UI>
   </Fragment>
 </Wix>
