@@ -28,7 +28,7 @@
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
     <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSI?????.LOG  -->
     <!-- WiX properties                                                 -->
-    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        />
+    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
 
     <!-- 
       NICE-TO-HAVE Warn if security packages are not installed.   https://github.com/markuskramerIgitt/salt-windows-msi/issues/18

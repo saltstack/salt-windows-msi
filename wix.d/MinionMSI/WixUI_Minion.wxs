@@ -5,6 +5,7 @@
 
       <UIRef Id="WixUI_InstallDir" />
 
+      <!-- the funny conditition could be validation msi style -->
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="SettingsCustomizationDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
 
       <Publish Dialog="SettingsCustomizationDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
