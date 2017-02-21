@@ -21,47 +21,51 @@ namespace MinionConfigurationExtension {
      * Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
      */
     [CustomAction]
-    public static ActionResult IMCA_UninstallKeepConfig0(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin IMCA_UninstallKeepConfig0");
+    public static ActionResult DECA_UninstallKeepConfig0(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig0");
       PurgeDir(session, @"bin");
       PurgeDir(session, @"conf");
       PurgeDir(session, @"var");
-      session.Log("MinionConfiguration.cs:: End IMCA_UninstallKeepConfig0");
+      session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig0");
       return ActionResult.Success;
     }
     [CustomAction]
-    public static ActionResult IMCA_UninstallKeepConfig1(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin IMCA_UninstallKeepConfig1");
+    public static ActionResult DECA_UninstallKeepConfig1(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig1");
       PurgeDir(session, @"bin");
       PurgeDir(session, @"var");
-      session.Log("MinionConfiguration.cs:: End IMCA_UninstallKeepConfig1");
+      session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig1");
       return ActionResult.Success;
     }
     [CustomAction]
-    public static ActionResult IMCA_Upgrade(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin IMCA_Upgrade");
+    public static ActionResult DECA_Upgrade(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin DECA_Upgrade");
       String soon_conf = @"c:\salt\bin"; //TODO use root_dir
       String root_dir = "";
       try {
-        root_dir = session["INSTALLFOLDER"];
+        root_dir = session.CustomActionData["root_dir"];
       } catch (Exception ex) {
         just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex);
       }
-      session.Log("IMCA_Upgrade::  root_dir = " + root_dir);
+      session.Log("DECA_Upgrade::  root_dir = " + root_dir);
       try {
-        session.Log("IMCA_Upgrade:: about to delete pyc from " + soon_conf);
-        // Only get files that end in *.pyc
-        string[] foundfiles = Directory.GetFiles(soon_conf, "*.pcy", SearchOption.AllDirectories);
-        session.Log("The number of pyc files is {0}.", foundfiles.Length);
-        foreach (string foundfile in foundfiles) {
-          session.Log("about to delete " + foundfile);
-          File.Delete(foundfile);
+        if (Directory.Exists(soon_conf)) {
+          session.Log("DECA_Upgrade:: about to delete pyc from " + soon_conf);
+          // Only get files that end in *.pyc
+          string[] foundfiles = Directory.GetFiles(soon_conf, "*.pcy", SearchOption.AllDirectories);
+          session.Log("The number of pyc files is {0}.", foundfiles.Length);
+          foreach (string foundfile in foundfiles) {
+            session.Log("about to delete " + foundfile);
+            File.Delete(foundfile);
+          }
+        } else {
+          session.Log("DECA_Upgrade:: no Directory " + soon_conf);
         }
       } catch (Exception ex) {
-        just_ExceptionLog(@"IMCA_Upgrade tried remove pyc " + soon_conf, session, ex);
+        just_ExceptionLog(@"DECA_Upgrade tried remove pyc " + soon_conf, session, ex);
       }
       
-      session.Log("MinionConfiguration.cs:: End IMCA_Upgrade");
+      session.Log("MinionConfiguration.cs:: End DECA_Upgrade");
       return ActionResult.Success;
     }
 
@@ -69,19 +73,23 @@ namespace MinionConfigurationExtension {
       String soon_conf = @"c:\salt\" + aDir; //TODO use root_dir
       String root_dir = "";
       try {
-        root_dir = session["INSTALLFOLDER"];
+        root_dir = session.CustomActionData["root_dir"];
       } catch (Exception ex) {
         just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex);
       }
       session.Log("PurgeDir::  root_dir = " + root_dir);
       try {
-        session.Log("PurgeDir:: about to Directory.delete " + soon_conf);
-        Directory.Delete(soon_conf, true);
+        if (Directory.Exists(soon_conf)) {
+          session.Log("PurgeDir:: about to Directory.delete " + soon_conf);
+          Directory.Delete(soon_conf, true);
+        } else {
+          session.Log("PurgeDir:: no Directory " + soon_conf);
+        }
       } catch (Exception ex) {
         just_ExceptionLog(@"PurgeDir tried to delete " + soon_conf, session, ex);
       }
 
-      // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied 
+      // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied . Read only!
       shellout(session, @"rmdir /s /q " + soon_conf);
     }
 

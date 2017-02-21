@@ -65,9 +65,12 @@
       Conditionally remove 'lifetime' data on uninstall or upgrade.
       -->
       <!-- http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf -->
-      <Custom Action='IMCA_UninstallKeepConfig0'   After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
-      <Custom Action='IMCA_UninstallKeepConfig1'   After='InstallFinalize'>(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      <Custom Action='IMCA_Upgrade'                After='InstallFinalize'>UPGRADINGPRODUCTCODE</Custom>
+      <Custom Action='CADH_UninstallKeepConfig0'   Before='DECA_UninstallKeepConfig0' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='DECA_UninstallKeepConfig0'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='CADH_UninstallKeepConfig1'   Before='DECA_UninstallKeepConfig1' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='DECA_UninstallKeepConfig1'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='CADH_Upgrade'                Before='DECA_Upgrade'              >Installed</Custom>
+      <Custom Action='DECA_Upgrade'                        After='RemoveFiles'        >Installed</Custom> <!--UPGRADINGPRODUCTCODE-->
     </InstallExecuteSequence>
 
     <!-- http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html -->
