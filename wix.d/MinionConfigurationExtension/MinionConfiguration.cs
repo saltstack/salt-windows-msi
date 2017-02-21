@@ -18,39 +18,73 @@ namespace MinionConfigurationExtension {
 
 
     /*
-     * Must only be called on uninstall with KEEP_CONFIG=0
-     * 
-     * Recursivly remove the conf directory.
-     * The MSI easily only removes files installed by the MSI.
-     * 
-     * This CustomAction must be immediate.
-     * 
-    */
+     * Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
+     */
     [CustomAction]
-    public static ActionResult IMCA_NukeConf(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin IMCA_NukeConf");
-      String soon_conf = @"c:\salt\conf"; //TODO use root_dir
-      String root_dir = ""; 
+    public static ActionResult IMCA_UninstallKeepConfig0(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin IMCA_UninstallKeepConfig0");
+      PurgeDir(session, @"bin");
+      PurgeDir(session, @"conf");
+      PurgeDir(session, @"var");
+      session.Log("MinionConfiguration.cs:: End IMCA_UninstallKeepConfig0");
+      return ActionResult.Success;
+    }
+    [CustomAction]
+    public static ActionResult IMCA_UninstallKeepConfig1(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin IMCA_UninstallKeepConfig1");
+      PurgeDir(session, @"bin");
+      PurgeDir(session, @"var");
+      session.Log("MinionConfiguration.cs:: End IMCA_UninstallKeepConfig1");
+      return ActionResult.Success;
+    }
+    [CustomAction]
+    public static ActionResult IMCA_Upgrade(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin IMCA_Upgrade");
+      String soon_conf = @"c:\salt\bin"; //TODO use root_dir
+      String root_dir = "";
       try {
         root_dir = session["INSTALLFOLDER"];
       } catch (Exception ex) {
-        just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex); 
+        just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex);
       }
-      session.Log("IMCA_NukeConf::  root_dir = " + root_dir);
+      session.Log("IMCA_Upgrade::  root_dir = " + root_dir);
       try {
-        session.Log("IMCA_NukeConf:: going to try to Directory delete " + soon_conf);
+        session.Log("IMCA_Upgrade:: about to delete pyc from " + soon_conf);
+        // Only get files that end in *.pyc
+        string[] foundfiles = Directory.GetFiles(soon_conf, "*.pcy", SearchOption.AllDirectories);
+        session.Log("The number of pyc files is {0}.", foundfiles.Length);
+        foreach (string foundfile in foundfiles) {
+          session.Log("about to delete " + foundfile);
+          File.Delete(foundfile);
+        }
+      } catch (Exception ex) {
+        just_ExceptionLog(@"IMCA_Upgrade tried remove pyc " + soon_conf, session, ex);
+      }
+      
+      session.Log("MinionConfiguration.cs:: End IMCA_Upgrade");
+      return ActionResult.Success;
+    }
+
+    private static void PurgeDir(Session session, string aDir) {
+      String soon_conf = @"c:\salt\" + aDir; //TODO use root_dir
+      String root_dir = "";
+      try {
+        root_dir = session["INSTALLFOLDER"];
+      } catch (Exception ex) {
+        just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex);
+      }
+      session.Log("PurgeDir::  root_dir = " + root_dir);
+      try {
+        session.Log("PurgeDir:: about to Directory.delete " + soon_conf);
         Directory.Delete(soon_conf, true);
       } catch (Exception ex) {
-        just_ExceptionLog(@"IMCA_NukeConf tried to delete " + soon_conf, session, ex);
-        //return ActionResult.Failure;
+        just_ExceptionLog(@"PurgeDir tried to delete " + soon_conf, session, ex);
       }
 
       // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied 
       shellout(session, @"rmdir /s /q " + soon_conf);
-
-      session.Log("MinionConfiguration.cs:: End NukeConf");
-      return ActionResult.Success;
     }
+
 
     [CustomAction]
     public static ActionResult IMCA_PeelNSIS(Session session) {
@@ -334,7 +368,7 @@ namespace MinionConfigurationExtension {
          * I need to move the old installation dir to the new installation dir.
          * 
      * When?
-     *  - After NukeConf
+     *  - After PurgeDir
      *  - After the user has given INSTALLDIR
      * 
          * How do I get the old installation dir previous_root_dir?
