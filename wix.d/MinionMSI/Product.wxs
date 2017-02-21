@@ -26,7 +26,7 @@
     <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // dont chose disk with the most free space -->
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
-    <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSI?????.LOG  -->
+    <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
     <!-- WiX properties                                                 -->
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
 
@@ -39,11 +39,9 @@
     <Upgrade Id="5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4"><UpgradeVersion OnlyDetect="yes" Property="DETECTED_VC9_SP1_MFC_SEC_64" Minimum="0.0.0.0" IncludeMinimum='yes'/></Upgrade>
 
     <InstallUISequence>
-      <Custom Action="IMCA_WarnLittleRAM" Before='AppSearch'>NOT Installed</Custom>
-      <Custom Action='IMCA_PeelNSIS'         Before='AppSearch'>NOT Installed</Custom>
-      <!--
-      <Custom Action='HACKStopSaltOnUninstall' Before='AppSearch'>REMOVE ~= "ALL"</Custom>
-      -->
+      <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>      
+      <Custom Action="IMCA_WarnLittleRAM"         After='CostFinalize'        >NOT Installed</Custom>      
+
       <!-- because the DETECTED_ properties are never set, I must override them -->
       <LaunchConditions After="AppSearch" />
       <Show Dialog="VC9_SP1_MFC_SEC_32WarningDlg" After="FindRelatedProducts">0 and not DETECTED_VC9_SP1_MFC_SEC_32</Show>
@@ -51,10 +49,14 @@
     </InstallUISequence>
 
     <InstallExecuteSequence>
-      <Custom Action='IMCA_PeelNSIS' Before='AppSearch'>NOT Installed</Custom>
-      
       <!-- Custom actions are forced into an execution order by the Before attribute. -->
-      <Custom Action='CADH_WriteConfig'  Before='DECA_WriteConfig' >NOT Installed</Custom> <Custom Action='DECA_WriteConfig'  Before='StartServices'>NOT Installed</Custom>
+      
+      <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'   >NOT Installed</Custom>
+      <!-- DECA_del_NSIS is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
+      <Custom Action='DECA_del_NSIS'              After='InstallInitialize'      >NOT Installed</Custom>
+
+      <Custom Action='CADH_WriteConfig'           Before='DECA_WriteConfig'      >NOT Installed</Custom> 
+      <Custom Action='DECA_WriteConfig'           Before='StartServices'         >NOT Installed</Custom>
       
       <!-- Conditionally start the service -->
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>

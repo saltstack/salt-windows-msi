@@ -87,21 +87,28 @@ namespace MinionConfigurationExtension {
 
 
     [CustomAction]
-    public static ActionResult IMCA_PeelNSIS(Session session) {
+    public static ActionResult IMCA_read_NSIS(Session session) {
       /*
        * This CustomAction must be called "early". 
        * 
        * More comments in wix.d/MinionMSI/Product.wxs.comments.txt
       */
-      session.Log("MinionConfiguration.cs:: Begin IMCA_PeelNSIS");
-      if (!peel_NSIS_rm_files(session)) return ActionResult.Failure;
+      session.Log("MinionConfiguration.cs:: Begin IMCA_read_NSIS");
       if (!read_SimpleSetting_into_Property(session)) return ActionResult.Failure;
-      session.Log("MinionConfiguration.cs:: End IMCA_PeelNSIS");
+      session.Log("MinionConfiguration.cs:: End IMCA_read_NSIS");
       return ActionResult.Success;
     }
 
+    // Leaves the Config
+    [CustomAction]
+    public static ActionResult DECA_del_NSIS(Session session)  {
+      session.Log("MinionConfiguration.cs:: Begin DECA_del_NSIS");
+      if (!delete_NSIS(session)) return ActionResult.Failure;
+      session.Log("MinionConfiguration.cs:: End DECA_del_NSIS");
+      return ActionResult.Success;
+    }
 
-    private static bool peel_NSIS_rm_files(Session session) {
+    private static bool delete_NSIS(Session session) {
       /*
        * If NSIS is installed:
        *   remove salt-minion service, 
@@ -111,7 +118,7 @@ namespace MinionConfigurationExtension {
        *   all fixed path are OK here.
        *   The msi is never peeled.
       */
-      session.Log("MinionConfiguration.cs:: Begin peel_NSIS");
+      session.Log("MinionConfiguration.cs:: Begin delete_NSIS_files");
       session.Log("Environment.Version = " + Environment.Version);
       if (IntPtr.Size == 8) {
         session.Log("probably 64 bit process");
@@ -126,26 +133,26 @@ namespace MinionConfigurationExtension {
       var SaltRegSubkey32 = reg.OpenSubKey(Salt_uninstall_regpath32);
       bool NSIS_is_installed64 = (SaltRegSubkey64 != null) && SaltRegSubkey64.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
       bool NSIS_is_installed32 = (SaltRegSubkey32 != null) && SaltRegSubkey32.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
-      session.Log("peel_NSIS:: NSIS_is_installed64 = " + NSIS_is_installed64);
-      session.Log("peel_NSIS:: NSIS_is_installed32 = " + NSIS_is_installed32);
+      session.Log("delete_NSIS_files:: NSIS_is_installed64 = " + NSIS_is_installed64);
+      session.Log("delete_NSIS_files:: NSIS_is_installed32 = " + NSIS_is_installed32);
       if (NSIS_is_installed64 || NSIS_is_installed32) {
-        session.Log("peel_NSIS:: Going to stop service salt-minion ...");
+        session.Log("delete_NSIS_files:: Going to stop service salt-minion ...");
         shellout(session, "sc stop salt-minion");
-        session.Log("peel_NSIS:: Going to delete service salt-minion ...");
+        session.Log("delete_NSIS_files:: Going to delete service salt-minion ...");
         shellout(session, "sc delete salt-minion");
 
-        session.Log("peel_NSIS:: Going to delete ARP registry64 entry for salt-minion ...");
+        session.Log("delete_NSIS_files:: Going to delete ARP registry64 entry for salt-minion ...");
         try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
-        session.Log("peel_NSIS:: Going to delete ARP registry32 entry for salt-minion ...");
+        session.Log("delete_NSIS_files:: Going to delete ARP registry32 entry for salt-minion ...");
         try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
 
-        session.Log("peel_NSIS:: Going to delete files ...");
+        session.Log("delete_NSIS_files:: Going to delete files ...");
         try { Directory.Delete(@"c:\salt\bin", true); }  catch (Exception ex) {just_ExceptionLog("", session, ex);}
         try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
         try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
         try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) { ;}
       }
-      session.Log("MinionConfiguration.cs:: End peel_NSIS");
+      session.Log("MinionConfiguration.cs:: End delete_NSIS_files");
       return true;
     }
 

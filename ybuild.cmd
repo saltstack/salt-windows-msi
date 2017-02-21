@@ -45,9 +45,5 @@ if '%1'=='32' (
   echo   ****** WARNING *******
 )
 
-echo ****** WARNING *******
-echo  ****** WARNING *******     The NSIS installation is removed immediately on start of the msi install
-echo   ****** WARNING *******
-
 
 :eof
