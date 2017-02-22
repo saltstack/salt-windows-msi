@@ -63,11 +63,15 @@
 
       <!-- 
       Remove 'lifetime' data on uninstall or upgrade.
-      On conditions:
+      On custom action conditions:
         http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf
-      upgrade condition:
+      On the upgrade custom action condition:
         UPGRADINGPRODUCTCODE | does not work
         Not Installed        | this installer is not installed
+        
+      On DECA_Upgrade and the CleanupVarFolder component
+        DECA_Upgrade removes bin/**/*.pyc files.  CleanupVarFolder does this already. 
+        TODO rethink this.
       -->
       <Custom Action='CADH_UninstallKeepConfig0'   Before='DECA_UninstallKeepConfig0' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
       <Custom Action='DECA_UninstallKeepConfig0'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
