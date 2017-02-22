@@ -118,7 +118,7 @@ If the new custom action requires its own dialog, these additional changes are r
 
 ##On versioning##
 msi version numbers must be smaller than 256, therefore `InternalVersion` is 16.11.3
-while `DisplayVersion` is [the usual][version_html] 2016.11.3.
+when `DisplayVersion` is [the usual][version_html] 2016.11.3.
 
 
 
