@@ -74,7 +74,8 @@ properties, and the current value of those properties:
   - DownloadVCRedist.targets: download the appropriate Visual C++ redistributable for the WiX Bundle build.
   - Minion.Common.targets: discover the correct distribution zip file, extract it and determine version.
 - wix.d/: WiX files:
-  - MinionConfigurationExtension/: A WiX Extension implementing custom actions for configuration manipulation.
+  - MinionConfigurationExtension/: C# code:
+    - MinionConfiguration.cs: C# code
   - MinionEXE/: (ORPHANED) This was the WiX bundle .exe project.
   - MinionMSI/: The WiX .msi project
     - dist-$(TargetPlatform).wxs: auto-generated list out of the distribution zip file.
@@ -84,9 +85,8 @@ properties, and the current value of those properties:
     - service.wxs: Windows Service description/control settings (using nssm.exe).
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion id properties.
     - WixUI_Minion.wxs: UI description.
-- wix.sln: Visual Studio solution file. 
-  - msbuild looks up the location of the wix.d directory, somehow using a GUID. 
-  - ...Difficult to understand.
+- wix.sln: Visual Studio solution file.
+
 
 
 
