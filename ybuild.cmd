@@ -31,10 +31,18 @@ if not %errorLevel%==0 (
   goto eof
 )
 
+:: msbuild
+set msbuildpath="%ProgramFiles(x86)%"\MSBuild\14.0\Bin
+dir %msbuildpath% >nul 2>&1
+if not %errorLevel%==0 (
+  echo FATAL Requires MSBuild 2015 from https://www.microsoft.com/en-in/download/details.aspx?id=48159
+  goto eof
+)
+
 
 :: decoy version values to understand the relationship between msbuild and WiX...
 @echo on
-call "%ProgramFiles(x86)%"\MSBuild\14.0\Bin\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%targetplatformvalue% /p:DisplayVersion=2020.1.1 /p:InternalVersion=20.1.1.100
+call %msbuildpath%\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%targetplatformvalue% /p:DisplayVersion=2020.1.1 /p:InternalVersion=20.1.1.100
 @echo off
 
 dir                          wix.d\MinionMSI\bin\Release\*.msi
