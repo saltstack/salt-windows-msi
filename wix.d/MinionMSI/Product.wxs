@@ -62,15 +62,19 @@
       <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
 
       <!-- 
-      Conditionally remove 'lifetime' data on uninstall or upgrade.
+      Remove 'lifetime' data on uninstall or upgrade.
+      On conditions:
+        http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf
+      upgrade condition:
+        UPGRADINGPRODUCTCODE | does not work
+        Not Installed        | this installer is not installed
       -->
-      <!-- http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf -->
       <Custom Action='CADH_UninstallKeepConfig0'   Before='DECA_UninstallKeepConfig0' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
       <Custom Action='DECA_UninstallKeepConfig0'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
       <Custom Action='CADH_UninstallKeepConfig1'   Before='DECA_UninstallKeepConfig1' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
       <Custom Action='DECA_UninstallKeepConfig1'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      <Custom Action='CADH_Upgrade'                Before='DECA_Upgrade'              >Installed</Custom>
-      <Custom Action='DECA_Upgrade'                        After='RemoveFiles'        >Installed</Custom> <!--UPGRADINGPRODUCTCODE-->
+      <Custom Action='CADH_Upgrade'                Before='DECA_Upgrade'              >NOT Installed</Custom>
+      <Custom Action='DECA_Upgrade'                        After='RemoveFiles'        >NOT Installed</Custom>
     </InstallExecuteSequence>
 
     <!-- http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html -->
