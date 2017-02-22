@@ -3,12 +3,9 @@ Windows MSI installer build toolkit
 
 This project creates a Salt Minion msi installer using [WiX][WiXId].
 
-##Requirements##
-- .Net 2.0, or higher
- 
 ##Features##
 - Change installation directory __BLOCKED BY__ <a href=https://github.com/saltstack/salt/issues/38430>issue #38430</a>
-- Uninstall leaves configuration. Optionally removes configuration with `msiexec KEEP_CONFIG=0`
+- Uninstall leaves configuration, remove with `msiexec /x KEEP_CONFIG=0`
 - Logging into %TEMP%\MSIxxxxx.LOG, options with `msiexec /l`
 - Upgrades NSIS installations
 
@@ -33,6 +30,9 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 > msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
 
+##Requirements##
+- .Net 2.0, or higher
+ 
 
 ##Build Requirement##
 
