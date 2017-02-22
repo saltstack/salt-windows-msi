@@ -4,9 +4,7 @@ Windows MSI installer build toolkit
 This project creates a Salt Minion msi installer using [WiX][WiXId].
 
 ##Requirements##
-- Windows XP, Windows Server 2008, or higher
 - .Net 2.0, or higher
-- Windows Server 2008 requires the VC++ 2008 MFC Redistributable (see <a href=https://github.com/saltstack/salt-windows-msi/pull/12> PR #12</a>)
  
 ##Features##
 - Change installation directory __BLOCKED BY__ <a href=https://github.com/saltstack/salt/issues/38430>issue #38430</a>
@@ -39,11 +37,11 @@ customized values for e.g. master hostname, minion id, installation path, using 
 ##Build Requirement##
 
 - Salt git clone in `c:\git\salt`, with a NSIS build (in `pkg\windows`)
-- This project git clone in `c:\git\salt-windows-msi`
+- This git clone in `c:\git\salt-windows-msi`
 - Python 2.7 in `c:\python27`
 - [WiX][WiXId] v3.10.
 - [MSBuild 2015][MSBuild2015Id]
-- .Net 4.5
+- .Net 2.0
 - (Probably not required: Visual Studio 2013 or 2015)
 
 
@@ -133,9 +131,6 @@ The msi properties `DisplayVersion` and `InternalVersion` store these values.
 [Internally][version_py], version is a 8-tuple.
 
 
-
-##Understanding imports##
-msbuild.proj imports msbuild.d\Minion.Common.targets
 
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
