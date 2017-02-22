@@ -69,23 +69,23 @@ properties, and the current value of those properties:
 
 ###Directory structure###
 
-- msbuild.d/: MSBuild files:
-  - BuildDistFragment.targets: find files, generate a WiX fragment from the extracted distribution.
-  - DownloadVCRedist.targets: download the appropriate Visual C++ redistributable for the WiX Bundle build.
-  - Minion.Common.targets: discover the correct distribution zip file, extract it and determine version.
-- wix.d/: WiX files:
-  - MinionConfigurationExtension/: C# code:
-    - MinionConfiguration.cs: C# code
-  - MinionEXE/: (ORPHANED) This was the WiX bundle .exe project.
-  - MinionMSI/: The WiX .msi project
-    - dist-$(TargetPlatform).wxs: auto-generated list out of the distribution zip file.
-    - MinionConfigurationExtensionCA.wxs: WiX code setting up the configuration manipulator custom actions.
-    - MinionMSI.wixproj: the main project file.
-    - Product.wxs: the main MSI description and event sequence.
-    - service.wxs: Windows Service description/control settings (using nssm.exe).
-    - SettingsCustomizationDlg.wxs: Dialog for the master/minion id properties.
+- msbuild.d/: build the installer:
+  - BuildDistFragment.targets: find files (from the extracted distribution?).
+  - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable.
+  - Minion.Common.targets: set version and platform parameters.
+- wix.d/: installer sources:
+  - MinionConfigurationExtension/: C# for custom actions:
+    - MinionConfiguration.cs
+  - MinionEXE/: (ORPHANED) create a bundle.
+  - MinionMSI/: create a msi:
+    - dist-$(TargetPlatform).wxs: found files (from the distribution zip file?).
+    - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
+    - MinionMSI.wixproj: msbuild boilerplate.
+    - Product.wxs: main file.
+    - service.wxs: Windows Service (using nssm.exe).
+    - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
     - WixUI_Minion.wxs: UI description.
-- wix.sln: Visual Studio solution file.
+- wix.sln: Visual Studio solution file, needed to build the installer.
 
 
 
