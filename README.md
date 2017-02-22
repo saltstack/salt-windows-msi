@@ -85,6 +85,7 @@ properties, and the current value of those properties:
     - service.wxs: Windows Service (using nssm.exe).
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
     - WixUI_Minion.wxs: UI description.
+- msbuild.proj: main msbuild file.
 - wix.sln: Visual Studio solution file, needed to build the installer.
 
 
