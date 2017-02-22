@@ -38,9 +38,9 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 ##Build Requirement##
 
-- Python 2.7 in `c:\python27`
 - Salt git clone in `c:\git\salt`, with a NSIS build (in `pkg\windows`)
 - This project git clone in `c:\git\salt-windows-msi`
+- Python 2.7 in `c:\python27`
 - [WiX][WiXId] v3.10.
 - [MSBuild 2015][MSBuild2015Id]
 - .Net 4.5
