@@ -9,13 +9,10 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 - Windows Server 2008 requires the VC++ 2008 MFC Redistributable (see <a href=https://github.com/saltstack/salt-windows-msi/pull/12> PR #12</a>)
  
 ##Features##
-- Allows installation to any directory __TODO__ (see <a href=https://github.com/saltstack/salt/issues/39502>issues #39502</a>)
-- Supports unattended (silent) installation
+- Change installation directory __BLOCKED BY__ <a href=https://github.com/saltstack/salt/issues/38430>issue #38430</a>
 - Uninstall leaves configuration. Optionally removes configuration with `msiexec KEEP_CONFIG=0`
-- Upgrades an existing NSIS-installed Minion
-- A problem during the install causes the installation to be rolled back
-- Logging by default into %TEMP%\MSI?????.LOG
-- Logging options with `msiexec /l`
+- Logging into %TEMP%\MSIxxxxx.LOG, options with `msiexec /l`
+- Upgrades NSIS installations
 
 
 Minion-specific msi-properties:
