@@ -80,7 +80,8 @@
 
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
-      <TargetName>Salt-Minion-$(DisplayVersion)-$(TargetPlatform)</TargetName>
+      <TargetName Condition="'$(TargetPlatform)'=='win32'">Salt-Minion-$(DisplayVersion)-32bit</TargetName>
+      <TargetName Condition="'$(TargetPlatform)'=='amd64'">Salt-Minion-$(DisplayVersion)-64bit</TargetName>
     </PropertyGroup>
   </Target>
 
