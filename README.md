@@ -41,17 +41,13 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - Python 2.7 in `c:\python27`
 - [WiX][WiXId] v3.10.
 - [MSBuild 2015][MSBuild2015Id]
-- .Net 2.0
-- (Probably not required: Visual Studio 2013 or 2015)
+- .Net 4.5 SDK
 
 
 ###Building###
 
-yclean.cmd and ybuild.cmd are shortcuts for msbuild.
-Visual Studio cannot build the msi.
+yclean.cmd, ybuild.cmd
 
-The build will produce:
- - $(StagingDir)/wix/Salt-Minion-$(DisplayVersion)-$(TargetPlatform).msi
 
 ###<a id="msbuild"></a>MSBuild###
 
@@ -121,14 +117,8 @@ If the new custom action requires its own dialog, these additional changes are r
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
 ##On versioning##
-The user sees a [3-tuple][version_html] version, e.g. `2016.11.3`.
-
-msi rules demand that numbers must be smaller than 256, therefore only the "short year" is used.
-e.g. `16.11.3.77`
-
-The msi properties `DisplayVersion` and `InternalVersion` store these values.
-
-[Internally][version_py], version is a 8-tuple.
+msi version numbers must be smaller than 256, therefore `InternalVersion` is 16.11.3
+while `DisplayVersion` is [the usual][version_html] 2016.11.3.
 
 
 
