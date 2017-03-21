@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <!--  
+		    To remove a previous NSIS installation but utilise its configuration (peelNSIS), this custom action must start 'early'.
+		    Catch: If the installation then fails and rolls back, peeling cannot be undone. 
+	    -->
+    <CustomAction Id="IMCA_read_NSIS"            BinaryKey='MinionConfigExt' DllEntry='IMCA_read_NSIS'             Execute='firstSequence'/>
+    <CustomAction Id="DECA_del_NSIS"             BinaryKey='MinionConfigExt' DllEntry='DECA_del_NSIS'              Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DECA_WriteConfig"          BinaryKey='MinionConfigExt' DllEntry='DECA_WriteConfig'           Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DECA_UninstallKeepConfig0" BinaryKey='MinionConfigExt' DllEntry='DECA_UninstallKeepConfig0'  Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DECA_UninstallKeepConfig1" BinaryKey='MinionConfigExt' DllEntry='DECA_UninstallKeepConfig1'  Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DECA_Upgrade"              BinaryKey='MinionConfigExt' DllEntry='DECA_Upgrade'               Execute='deferred' Return='check' Impersonate='no'/>
+    <!--
+         Deferred execution is necessary to change the configuration prior 
+         to start the service, which is done during the install instead of running 'net start' at the end. 
+         Running 'net start' would not produce any useful log information.
+
+         Immediate custom actions (IMCA_ ) can read/write msi Properties.
+         Deferred custom actions (DECA_) require properties to be passed as CustomActionData
+         via separate type 51 custom actions (CADH_): 
+           The 'Property=' attribute must be set to the name of the custom action receiving the data, and 
+           the 'Value=' attribute must be a list of key=[Property] pairs.
+
+         Actions are declared here and called (repeatedly) in Product.wxs.
+         Actions must have C# Signature [CustomAction] public static ActionResult
+    -->
+    <!--  Naming/terminology changes from msi to Salt. -->    
+    <CustomAction Id="CADH_WriteConfig"           Property="DECA_WriteConfig"           Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
+    <CustomAction Id="CADH_UninstallKeepConfig0"  Property="DECA_UninstallKeepConfig0"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
+    <CustomAction Id="CADH_UninstallKeepConfig1"  Property="DECA_UninstallKeepConfig1"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
+    <CustomAction Id="CADH_Upgrade"               Property="DECA_Upgrade"               Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
+    
+    <!-- Warning when installing on a client with litte RAM -->
+    <CustomAction Id="IMCA_WarnLittleRAM" Script="vbscript"><![CDATA[
+  If session.Property("PhysicalMemory") < 125 Then
+    MsgBox("For running Salt Minion $(var.DisplayVersion), 125MB of physical memory are recommended.")
+  End If
+  ]]></CustomAction>
+
+
+    <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
+  </Fragment>
+</Wix>

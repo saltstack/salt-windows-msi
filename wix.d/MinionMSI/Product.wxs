@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- see Product.wxs.comments.txt for more comments -->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" >
+  <Product Manufacturer="SaltStack, Inc." Name="Salt Minion $(var.DisplayVersion)" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
+    Id="*" Language="1033" Version="$(var.InternalVersion)">
+
+    <!-- Windows Installer Version 3.0 = 300 -->
+    <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
+
+    <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server      -->
+    <!--  VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx  -->
+    <Condition Message="Installation requires Windows XP, Windows Server 2008, or higher. (found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
+      Installed
+      or MsiNTProductType = 1 and  VersionNT >= 501
+      or MsiNTProductType = 3 and  VersionNT >= 600
+    </Condition>
+
+    <!-- Salt properties                                  -->
+    <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
+    <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
+    <Property Id="KEEP_CONFIG"              Value="1"                    />
+    <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
+    <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
+    <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"                                                />
+    <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"                           />
+    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // dont chose disk with the most free space -->
+    <Property Id="ARPPRODUCTICON"           Value="icon"                 />
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
+    <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
+    <!-- WiX properties                                                 -->
+    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
+
+    <!-- 
+      NICE-TO-HAVE Warn if security packages are not installed.   https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
+      Does not work: the properties are never set.
+      GUID from      https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/
+    -->
+    <Upgrade Id="9BE518E6-ECC6-35A9-88E4-87755C07200F"><UpgradeVersion OnlyDetect="yes" Property="DETECTED_VC9_SP1_MFC_SEC_32" Minimum="0.0.0.0" IncludeMinimum='yes'/></Upgrade>
+    <Upgrade Id="5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4"><UpgradeVersion OnlyDetect="yes" Property="DETECTED_VC9_SP1_MFC_SEC_64" Minimum="0.0.0.0" IncludeMinimum='yes'/></Upgrade>
+
+    <InstallUISequence>
+      <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>      
+      <Custom Action="IMCA_WarnLittleRAM"         After='CostFinalize'        >NOT Installed</Custom>      
+
+      <!-- because the DETECTED_ properties are never set, I must override them -->
+      <LaunchConditions After="AppSearch" />
+      <Show Dialog="VC9_SP1_MFC_SEC_32WarningDlg" After="FindRelatedProducts">0 and not DETECTED_VC9_SP1_MFC_SEC_32</Show>
+      <Show Dialog="VC9_SP1_MFC_SEC_64WarningDlg" After="FindRelatedProducts">0 and not DETECTED_VC9_SP1_MFC_SEC_64</Show>
+    </InstallUISequence>
+
+    <InstallExecuteSequence>
+      <!-- Custom actions are forced into an execution order by the Before attribute. -->
+      
+      <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'   >NOT Installed</Custom>
+      <!-- DECA_del_NSIS is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
+      <Custom Action='DECA_del_NSIS'              After='InstallInitialize'      >NOT Installed</Custom>
+
+      <Custom Action='CADH_WriteConfig'           Before='DECA_WriteConfig'      >NOT Installed</Custom> 
+      <Custom Action='DECA_WriteConfig'           Before='StartServices'         >NOT Installed</Custom>
+      
+      <!-- Conditionally start the service -->
+      <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
+
+      <!-- 
+      Remove 'lifetime' data on uninstall or upgrade.
+      On custom action conditions:
+        http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf
+      On the upgrade custom action condition:
+        UPGRADINGPRODUCTCODE | does not work
+        Not Installed        | this installer is not installed
+        
+      On DECA_Upgrade and the CleanupVarFolder component
+        DECA_Upgrade removes bin/**/*.pyc files.  CleanupVarFolder does this already. 
+        TODO rethink this.
+      -->
+      <Custom Action='CADH_UninstallKeepConfig0'   Before='DECA_UninstallKeepConfig0' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='DECA_UninstallKeepConfig0'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='CADH_UninstallKeepConfig1'   Before='DECA_UninstallKeepConfig1' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='DECA_UninstallKeepConfig1'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='CADH_Upgrade'                Before='DECA_Upgrade'              >NOT Installed</Custom>
+      <Custom Action='DECA_Upgrade'                        After='RemoveFiles'        >NOT Installed</Custom>
+    </InstallExecuteSequence>
+
+    <!-- http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html -->
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+
+    <!-- Delete a folder recursivly -->
+    <!-- Inspiration 1: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->
+    <!-- Inspiration 2: http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/   Simple Remember Pattern SRP-->
+    <!-- Learn: Condition with KEEP_CONFIG is useless on Components and on Features -->
+    <!-- SRP pattern 1/2 -->
+    <!--     SRP: the Property that we'll remember  -->
+    <Property Id="BINFOLDER">
+      <!--   SRP:  the registry search that will reload our Property on repair, upgrade and uninstall -->
+      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="raw"  Id="BINFOLDER_REGSEARCH" />
+    </Property>
+
+    <DirectoryRef Id="BINFOLDER">
+      <Component Id="CleanupBinFolder" Guid="*">
+        <!--   SRP: the registry key that remembers our DIR and RemoveFolderEx must read from registry. -->
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="string" Value="[BINFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="BINFOLDER" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- SRP pattern 2/2 -->
+    <Property Id="VARFOLDER">
+      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="raw"  Id="VARFOLDER_REGSEARCH" />
+    </Property>
+
+    <DirectoryRef Id="VARFOLDER">
+      <Component Id="CleanupVarFolder" Guid="*">
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="string" Value="[VARFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="VARFOLDER" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- wait for Microsoft_VC90_MFC_x86_x64.msm on repo.saltstack.com/windows/dependencies
+    Merge modules (*.msm) are msi 'library' databases that can be included ('merged') into 'main' msi databases.
+    This msi includes the Visual C++ 9 msm, to support Windows Server 2008.
+    -->
+    <!--
+    <DirectoryRef Id="TARGETDIR">
+      <Merge Id="MSM_VC90_MFC_64" SourceFile="c:\saltrepo_local_cache\64\Microsoft_VC90_MFC_x86_x64.msm" DiskId="1" Language="0"/>
+    </DirectoryRef>
+    -->
+
+    <Feature Id="ProductFeature" Title="Minion" Level="1">
+      <ComponentGroupRef Id="ProductComponents"     />
+      <ComponentRef      Id="CleanupBinFolder"      />
+      <ComponentRef      Id="CleanupVarFolder"      />
+      <!-- wait for Microsoft_VC90_MFC_x86_x64.msm on repo.saltstack.com/windows/dependencies
+      <Feature Id="VC90_MFC_x86_x64" Title="Visual C++ 2008 SP1 MFC Runtime, only for Windows Server 2008" AllowAdvertise="no" Display="hidden" Level="0">
+        <MergeRef Id="MSM_VC90_MFC_64"/>
+        <Condition Level="1">MsiNTProductType = 3 and  VersionNT >= 600</Condition>
+      </Feature>
+      -->
+    </Feature>
+
+    <Icon Id="icon" SourceFile="$(var.dist)\..\installer\salt.ico" />
+    <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
+
+    <!-- Dimensions of images must follow http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html  -->
+    <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
+    <WixVariable Id="WixUIDialogBmp" Value="imgLeft.jpg" />
+
+    <UIRef Id="WixUI_Minion" />                             <!-- // Include WixUI_Minion.wxs in this directory -->
+    
+    <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- // Do not create cab files -->
+    
+  </Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir"> <!-- // Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
+      <Directory Id="INSTALLFOLDER" Name="salt" >
+        <Directory Id="CONFFOLDER" Name="conf" />
+        <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->        
+        <Directory Id="BINFOLDER"  Name="bin" />
+        <Directory Id="VARFOLDER"  Name="var" />
+      </Directory>
+    </Directory>
+
+    <!-- populate properties witch localised WixQueryOsWellKnownSID http://wixtoolset.org/documentation/manual/v3/customactions/osinfo.html -->
+    <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
+
+    <Component Id="InstallfolderPermissions"  Directory="INSTALLFOLDER" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
+      <CreateFolder> <!-- // like mkdir, the folder will not be created if present. -->
+        <!--
+          Function win_verify_env()  in  salt/slt/utils/verify.py sets permissions on each start of the salt-minion services.
+          The installer must create the folder with the same permissions, so you keep sets of permissions in sync.
+
+          The Permission element(s) below replace any present permissions,
+          except NT AUTHORITY\SYSTEM:(OI)(CI)(F), which seems to be the basis.
+          Therefore, you don't need to specify User="[WIX_ACCOUNT_LOCALSYSTEM]"  GenericAll="yes"
+
+          Use icacls to test the result:
+            C:\>icacls salt
+            salt BUILTIN\Administrators:(OI)(CI)(F)
+                 NT AUTHORITY\SYSTEM:(OI)(CI)(F)
+            ~~ read ~~
+            (object inherit)(container inherit)(full access)
+
+            C:\>icacls salt\bin\include
+            salt\bin\include BUILTIN\Administrators:(I)(OI)(CI)(F)
+                             NT AUTHORITY\SYSTEM:(I)(OI)(CI)(F)
+                             w7h64\Markus:(I)(OI)(CI)(F)
+            ~~ read ~~
+            (permission inherited from parent container)(object inherit)(container inherit)(full access)
+
+          Maybe even the Administrator group full access is "basis", so there is no result of the instruction,
+          I leave it for clarity, and potential future use.
+          -->
+        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
+      </CreateFolder>
+    </Component>
+  </Fragment>
+  
+      <Fragment> <!-- Warning dialogs -->
+    <UI>
+      <Dialog Id="VC9_SP1_MFC_SEC_32WarningDlg" Width="440" Height="100" Title="Saltstack security warning (security update missing)" NoMinimize="yes">
+        <Control X="10"  Y="8" Width="430" Height="30" Type="Text"  Id="Text">
+          <Text>Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (32bit) is missing.
+          
+Please consult</Text>
+        </Control>
+        <Control X="10" Y="40" Width="430" Height="20"  Type="Hyperlink" Id="exampleHyperLink"> 
+          <Text><![CDATA[<a href="https://www.microsoft.com/download/details.aspx?id=26368">www.microsoft.com/download/details.aspx?id=26368</a>]]></Text> 
+        </Control>
+        <Control X="192" Y="75" Width="56" Height="17" Id="OK" Type="PushButton"  Default="yes"  Cancel="yes" Text="OK">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+      </Dialog>
+    </UI>
+    <UI>
+      <Dialog Id="VC9_SP1_MFC_SEC_64WarningDlg" Width="440" Height="100" Title="Saltstack security warning (security update missing)" NoMinimize="yes">
+        <Control X="10"  Y="8" Width="430" Height="30" Type="Text"  Id="Text">
+          <Text>Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (64bit) is missing.
+          
+Please consult</Text>
+        </Control>
+        <Control X="10" Y="40" Width="430" Height="20"  Type="Hyperlink" Id="exampleHyperLink"> 
+          <Text><![CDATA[<a href="https://www.microsoft.com/download/details.aspx?id=26368">www.microsoft.com/download/details.aspx?id=26368</a>]]></Text> 
+        </Control>
+        <Control X="192" Y="75" Width="56" Height="17" Id="OK" Type="PushButton"  Default="yes"  Cancel="yes" Text="OK">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+      </Dialog>
+    </UI>
+    </Fragment>
+  
+  <!-- From the "Default WiX Project Template" -->
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <ComponentGroupRef Id="dist"    />       <!-- // Include dist-amd64.wxs in this directory -->
+      <ComponentGroupRef Id="service" /> 
+      <!-- experimental, does not work. Also goto nssm.xsl and remove python.exe
+      <ComponentRef Id="servicePython" />
+      -->
+      <ComponentRef Id="InstallfolderPermissions" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>

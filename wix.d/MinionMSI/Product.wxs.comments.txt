@@ -81,7 +81,7 @@ LEARN dont write an ini file.
 
 		Attempt 2:
 		 Before='LaunchConditions' in 4 sequences.
-		 The custom action is named PrepareEvironmentBeforeInstallation
+		 The custom action is named IMCA_PeelNSIS
 		 From     http://stackoverflow.com/questions/11668875/execute-a-custom-action-before-product-condition
 		   The LaunchConditions action is scheduled to run in both InstallUISequence and InstallExecuteSequence.
 		   You must specify such a custom action in both sequences.
@@ -92,7 +92,7 @@ LEARN dont write an ini file.
 		 From  http://wixtoolset.org/documentation/manual/v3/xsd/wix/launchconditions.html
 		   Found two more parent sequences. I add all of them.
 
-		In a /l*v log file, PrepareEvironmentBeforeInstallation is around line 132, only after actions INSTALL and FindRelatedProducts.
+		In a /l*v log file, IMCA_PeelNSIS is around line 132, only after actions INSTALL and FindRelatedProducts.
 		I have the impression, this is early enough.
 
 		Attempt 3: FAIL
@@ -105,11 +105,11 @@ LEARN dont write an ini file.
 		 LaunchConditions seems only to terminate the installer.
      
      2016-11-29  mkr problem: 
-        Custom Action='PrepareEvironmentBeforeInstallation' Before='LaunchConditions' 
+        Custom Action='IMCA_PeelNSIS' Before='LaunchConditions' 
      log file sequence:
         Doing action: AppSearch
         AppSearch: Property: MASTER_HOSTNAME, Signature: IniFileSearchID1
-        Doing action: PrepareEvironmentBeforeInstallation
+        Doing action: IMCA_PeelNSIS
      so it is too late to write NSIS variables into an ini file, because the ini file is already read.
      Same with before AppSearch.
      Out of options.

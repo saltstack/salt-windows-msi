@@ -20,10 +20,6 @@
     <DefineConstants>Debug</DefineConstants>
     <WixVariables>
     </WixVariables>
-    <CompilerAdditionalOptions>
-    </CompilerAdditionalOptions>
-    <LinkerAdditionalOptions>
-    </LinkerAdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -37,6 +33,8 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+    <CompilerAdditionalOptions>-nologo</CompilerAdditionalOptions>
+    <LinkerAdditionalOptions>-nologo</LinkerAdditionalOptions>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="service.wxs" />
@@ -57,9 +55,6 @@
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\MinionConfigurationExtension\MinionConfigurationExtension.csproj">
       <Name>MinionConfigurationExtension</Name>
       <Project>{ba2a4d99-7701-4ac5-a43c-4dd456d158b9}</Project>
@@ -70,14 +65,14 @@
     </ProjectReference>
   </ItemGroup>
   <!-- Import our targets BEFORE the WiX ones so the dist fragment is picked up -->
-  <Import Project="..\..\common\targets\BuildDistFragment.targets" />
+  <Import Project="..\..\msbuild.d\BuildDistFragment.targets" />
   <Import Project="$(WixTargetsPath)" />
   <!--
-	To modify your build process, add your task inside one of the targets below and uncomment it.
-	Other similar extension points exist, see Wix.targets.
-	<Target Name="BeforeBuild">
-	</Target>
-	<Target Name="AfterBuild">
-	</Target>
-	-->
+  To modify your build process, add your task inside one of the targets below and uncomment it.
+  Other similar extension points exist, see Wix.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
 </Project>

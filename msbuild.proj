@@ -1,4 +1,4 @@
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="build">
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="build">
   <PropertyGroup>
     <Configuration  Condition="'$(Configuration)'==''">Release</Configuration>
     <TargetPlatform Condition="'$(TargetPlatform)'==''">amd64</TargetPlatform>
@@ -8,19 +8,16 @@
     <TimestampUrl>http://timestamp.verisign.com/scripts/timstamp.dll</TimestampUrl>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildProjectDirectory)\common\targets\Minion.Common.targets" />
+  <Import Project="$(MSBuildProjectDirectory)\msbuild.d\Minion.Common.targets" />
 
   <ItemGroup>
     <!-- 
-    why does this file (msbuild.proj) references a (line oriented) Visual Studio Solution (wix.sln)? 
+    msbuild.proj 
+     1) compiles the Visual Studio Solution wix.sln, think of C#.
+     2) compiles and links WiX (via wix.sln).
     
     wix.sln references to wix\MinionMSI\MinionMSI.wixproj
-    Why then not receference from here (msbuild.proj) directly to MinionMSI.wixproj?
-    
-		Was the intention to enable Visual Studio to build the msi?
-			which does not work.
-			which  is not necessary.
-		Why then try?
+    The intention is to enable Visual Studio to build the msi (which does not work).
     -->
     <Wix Include="$(MSBuildProjectDirectory)\wix.sln" />
   </ItemGroup>
@@ -81,20 +78,20 @@ Current Defaults:
 
   <!--
     ================================================================================
-       wix
-
-        Compile the wix.sln, creating an msi and .exe (bundled w/ the redist)
+        Compile the wix.sln, creating an msi
     ================================================================================
   -->
   <Target Name="wix">
     <Message Text="
-    *************************************************************
-    ************************ msbuild.proj   *********************
-    Version:              '$(Version)'
-    DisplayVersion:       '$(DisplayVersion)'
-    InternalVersion:      '$(InternalVersion)'
-    BUILD_NUMBER:         '$(BUILD_NUMBER)'	
-    *************************************************************
+    ****************** msbuild.proj   *********************
+    ******************      InstallerPlatform: $(InstallerPlatform)        
+    ******************  ProcessorArchitecture: $(ProcessorArchitecture)    
+    ******************          Configuration: $(Configuration)    
+    ******************         TargetPlatform: $(TargetPlatform)
+    ******************                Version: $(Version)
+    ******************         DisplayVersion: $(DisplayVersion)
+    ******************        InternalVersion: $(InternalVersion)
+    ******************           BUILD_NUMBER: $(BUILD_NUMBER)
   " />
 
     <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />
@@ -117,7 +114,7 @@ Current Defaults:
       <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionEXE\bin\$(Configuration)\Salt-Minion-*-Setup.exe">
         <OutputType>wix</OutputType>
       </Artifacts>
-			-->
+      -->
     </ItemGroup>
     <Message Text="Copying %(Artifacts.Identity) to $(StagingDir)\%(OutputType)" />
     <Copy Condition="'$(StagingDir)'!=''" SourceFiles="@(Artifacts)" DestinationFolder="$(StagingDir)\%(Artifacts.OutputType)" />

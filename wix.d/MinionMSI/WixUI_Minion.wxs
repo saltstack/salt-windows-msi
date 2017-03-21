@@ -5,6 +5,7 @@
 
       <UIRef Id="WixUI_InstallDir" />
 
+      <!-- the funny conditition could be validation msi style -->
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="SettingsCustomizationDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
 
       <Publish Dialog="SettingsCustomizationDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
@@ -12,9 +13,7 @@
 
       <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SettingsCustomizationDlg" Order="1">NOT Installed</Publish>
 
-      <ProgressText Action="SetRootDir">Configuring minion root_dir setting</ProgressText>
-      <ProgressText Action="SetMaster">Configuring minion master setting</ProgressText>
-      <ProgressText Action="SetMinionId">Configuring minion id setting</ProgressText>
+      <ProgressText Action="DECA_WriteConfig">Configuring minion</ProgressText>
     </UI>
   </Fragment>
 </Wix>
