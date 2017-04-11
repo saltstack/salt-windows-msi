@@ -1,21 +1,28 @@
  * * * * * * * * * * 
  * * * * * * * * * * 
- Discussion on Version 
+   merge module snippet
+   snippeted because visual c++ 2008 merge modules are out of date, using the dll instead.
  * * * * * * * * * * 
  * * * * * * * * * * 
-Salt 2016.11.1
- 1st----^  
- 2nd-------^
- 3rd---------^
- 
- Add-Remove-Programs shows:
-   Name:
-   Version: 
 
-Wix Properties	 
-  DisplayVersion
-  InternalVersion 
-  Version
+    <!-- 
+    Merge modules (*.msm) are msi 'library' databases that can be included ('merged') into a (single) msi databases.
+    -->
+    <DirectoryRef Id="TARGETDIR">
+      <Merge Id="MSM_+++" SourceFile="+++++.msm" DiskId="1" Language="0"/>
+    </DirectoryRef>
+ 
+ 
+    <!-- 
+      The merge module is only included ('level 1' 'feature') on Windows Server 2008
+    -->
+      <Feature Id="VC90_+++" Title="++++" AllowAdvertise="no" Display="hidden" Level="0">
+        <MergeRef Id="MSM_++++"/>
+        <Condition Level="1">MsiNTProductType = 3 and  VersionNT >= 600</Condition>
+      </Feature>
+
+ 
+
 
  * * * * * * * * * * 
  * * * * * * * * * * 
@@ -34,19 +41,6 @@ https://github.com/markuskramerIgitt/salt-windows-msi/issues/8
 	     Setting ROOTDRIVE to SystemDrive
 
 			 
-
- * * * * * * * * * * 
- * * * * * * * * * * 
-LEARN Custom actions must be deferred to read properties
- * * * * * * * * * * 
- * * * * * * * * * * 
-
-http://stackoverflow.com/questions/14471826/wix-custom-action-properties-why-doesnt-this-work
-You have the custom action "caUnregisterDriver" scheduled for immediate execution rather then deferred execution. 
-It won't have a CustomActionData property to deserialize into the collection.
-READ-ON http://www.installsite.org/pages/en/isnews/200108/index.htm
-
-
 
  * * * * * * * * * * 
  * * * * * * * * * * 
