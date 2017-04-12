@@ -38,8 +38,8 @@ customized values for e.g. master hostname, minion id, installation path, using 
 ## Build Requirement ##
 
 - Windows 64bit
-- Salt git clone in `c:/git/salt/`
-- This git clone in `c:/git/salt-windows-msi/`
+- Salt clone in `c:/git/salt/`
+- This clone in `c:/git/salt-windows-msi/`
 - Python 2.7 in `c:/python27/`
 - [WiX][WiXId] v3.10
 - [MSBuild 2015][MSBuild2015Id]
@@ -53,7 +53,7 @@ customized values for e.g. master hostname, minion id, installation path, using 
 cd c:\git\salt
 git checkout v2016.11.3
     # Apply https://github.com/saltstack/salt/pull/39274  (msi numbering scheme in version.py)
-git status must only show `modified: salt/version.py`
+    # git status must only show `modified: salt/version.py`
 cd c:\git\salt\pkg\windows
 build.bat
 cd c:\git\salt-windows-msi
