@@ -37,18 +37,25 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 ## Build Requirement ##
 
-- Salt git clone in `c:\git\salt`, with a NSIS build (in `pkg\windows`)
-- This git clone in `c:\git\salt-windows-msi`
-- Python 2.7 in `c:\python27`
-- [WiX][WiXId] v3.10.
+- Windows 64bit
+- Salt git clone in `c:/git/salt/`
+- This git clone in `c:/git/salt-windows-msi/`
+- Python 2.7 in `c:/python27/`
+- [WiX][WiXId] v3.10
 - [MSBuild 2015][MSBuild2015Id]
 - .Net 4.5 SDK
+- http://repo.saltstack.com//windows/dependencies/64/Microsoft_VC90_CRT_x86_x64.msm in `c:/saltrepo_local_cache/64/`
 
+### Build procedure ###
 
-### Building ###
-
-yclean.cmd, ybuild.cmd
-
+`cd c:\git\salt`
+`git checkout v2016.11.3` and apply https://github.com/saltstack/salt/pull/39274  (msi numbering scheme in version.py)
+`git status` must only show `modified: salt/version.py`
+`cd c:\git\salt\pkg\windows`
+`build.bat`
+`cd c:\git\salt-windows-msi`
+`yclean.cmd`
+`ybuild.cmd`  Expect 84 ICE03 warnings
 
 ### <a id="msbuild"></a>MSBuild ###
 
