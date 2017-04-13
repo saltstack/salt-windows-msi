@@ -1,12 +1,14 @@
 @echo off
 
 if '%1'=='' (
-  set targetplatformvalue=amd64
+  set salt_targetplatform=amd64
+  set salt_bitness=64
   goto :ok
 )
 
 if '%1'=='32' (
-  set targetplatformvalue=win32
+  set salt_targetplatform=win32
+  set salt_bitness=32
   goto :ok
 )
 
@@ -31,6 +33,15 @@ if not %errorLevel%==0 (
   goto eof
 )
 
+:: Detecting NSIS build...
+set saltpythonexe=..\salt\pkg\windows\buildenv\bin\python.exe
+dir %saltpythonexe% >nul 2>&1
+if not %errorLevel%==0 (
+  echo FATAL Missing %saltpythonexe%
+  echo       Have you build NSIS?  try  "cd ..\salt\pkg\windows"  and  "build.bat"
+  goto eof
+)
+
 :: msbuild
 set msbuildpath="%ProgramFiles(x86)%"\MSBuild\14.0\Bin
 dir %msbuildpath% >nul 2>&1
@@ -42,7 +53,7 @@ if not %errorLevel%==0 (
 
 :: decoy version values to understand the relationship between msbuild and WiX...
 @echo on
-call %msbuildpath%\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%targetplatformvalue% /p:DisplayVersion=2020.1.1 /p:InternalVersion=20.1.1.100
+call %msbuildpath%\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%salt_targetplatform% /p:DisplayVersion=2020.1.1 /p:InternalVersion=20.1.1.100
 @echo off
 
 dir                          wix.d\MinionMSI\bin\Release\*.msi

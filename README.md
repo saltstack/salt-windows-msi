@@ -3,7 +3,8 @@ Windows MSI installer build toolkit
 
 This project creates a Salt Minion msi installer using [WiX][WiXId].
 
-##Features##
+## Features ##
+
 - Change installation directory __BLOCKED BY__ <a href=https://github.com/saltstack/salt/issues/38430>issue #38430</a>
 - Uninstall leaves configuration, remove with `msiexec /x KEEP_CONFIG=0`
 - Logging into %TEMP%\MSIxxxxx.LOG, options with `msiexec /l`
@@ -23,33 +24,46 @@ Minion-specific msi-properties:
 
 A kept configuration is reused on installation into its location.
 
-###On unattended install ("silent install")###
+### On unattended install ("silent install") ###
 
 An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
 customized values for e.g. master hostname, minion id, installation path, using the following command line:
 
 > msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
 
-##Requirements##
+## Requirements ##
 - .Net 2.0, or higher
  
 
-##Build Requirement##
+## Build Requirement ##
 
-- Salt git clone in `c:\git\salt`, with a NSIS build (in `pkg\windows`)
-- This git clone in `c:\git\salt-windows-msi`
-- Python 2.7 in `c:\python27`
-- [WiX][WiXId] v3.10.
+- Windows 64bit
+- Salt clone in `c:/git/salt/`
+- This clone in `c:/git/salt-windows-msi/`
+- Python 2.7 in `c:/python27/`
+- [WiX][WiXId] v3.10
 - [MSBuild 2015][MSBuild2015Id]
 - .Net 4.5 SDK
+- http://repo.saltstack.com//windows/dependencies/64/Microsoft_VC90_CRT_x86_x64.msm in `c:/saltrepo_local_cache/64/`
+
+### Build procedure ###
 
 
-###Building###
+```
+cd c:\git\salt
+git checkout v2016.11.3
+    # Apply https://github.com/saltstack/salt/pull/39274  (msi numbering scheme in version.py)
+    # git status must only show `modified: salt/version.py`
+cd c:\git\salt\pkg\windows
+build.bat
+cd c:\git\salt-windows-msi
+yclean.cmd
+ybuild.cmd
+    # Expect 84 ICE03 warnings
 
-yclean.cmd, ybuild.cmd
+```
 
-
-###<a id="msbuild"></a>MSBuild###
+### <a id="msbuild"></a>MSBuild ###
 
 General command line:
 
@@ -61,7 +75,7 @@ properties, and the current value of those properties:
 > msbuild msbuild.proj /t:help
 
 
-###Directory structure###
+### Directory structure ###
 
 - msbuild.d/: build the installer:
   - BuildDistFragment.targets: find files (from the extracted distribution?).
@@ -85,7 +99,7 @@ properties, and the current value of those properties:
 
 
 
-###Extending###
+### Extending ###
 
 Additional configuration manipulations may be able to use the existing
 MinionConfigurationExtension project. Current manipulations read the
@@ -116,7 +130,7 @@ If the new custom action requires its own dialog, these additional changes are r
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
-##On versioning##
+## On versioning ##
 msi version numbers must be smaller than 256, therefore `InternalVersion` is 16.11.3
 when `DisplayVersion` is [the usual][version_html] 2016.11.3.
 
@@ -125,7 +139,7 @@ when `DisplayVersion` is [the usual][version_html] 2016.11.3.
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
-[MSBuild2015Id]: https://www.microsoft.com/en-in/download/details.aspx?id=48159
+[MSBuild2015Id]: https://www.microsoft.com/en-US/download/details.aspx?id=48159
 [version_html]:https://docs.saltstack.com/en/develop/topics/releases/version_numbers.html
 [version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
 [WindowsInstaller4.5_link]:https://www.microsoft.com/en-us/download/details.aspx?id=8483

@@ -31,21 +31,28 @@
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
 
     <!-- 
-      NICE-TO-HAVE Warn if security packages are not installed.   https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
-      Does not work: the properties are never set.
-      GUID from      https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/
+      NICE-TO-HAVE   Detect VCRedist
+      ProductCode (useless)  https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/
+      UpgradeCode            http://mdb-blog.blogspot.de/2010/11/bootstrapper-package-detect-vcredist.html
     -->
-    <Upgrade Id="9BE518E6-ECC6-35A9-88E4-87755C07200F"><UpgradeVersion OnlyDetect="yes" Property="DETECTED_VC9_SP1_MFC_SEC_32" Minimum="0.0.0.0" IncludeMinimum='yes'/></Upgrade>
-    <Upgrade Id="5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4"><UpgradeVersion OnlyDetect="yes" Property="DETECTED_VC9_SP1_MFC_SEC_64" Minimum="0.0.0.0" IncludeMinimum='yes'/></Upgrade>
-
+    <Upgrade Id="AA783A14-A7A3-3D33-95F0-9A351D530011"><UpgradeVersion Property="DETECTED_VCR_2008SP1_64" Minimum="0.0.0.0" OnlyDetect="yes"/></Upgrade>
+    <!-- 
+    DETECTED_VCR_2008SP1_64 == '{1F1C2DFC-2D24-3E06-BCB8-725134ADF989};{4B6C7001-C7D6-3710-913E-5BC23FCE91E6}' 
+    The property contains a list of ProductCodes that have the same UpgradeCode
+    So this is more complicated and more limited than show-software.exe u 2008
+    because I need to get the UpgradeCode (how?)
+    Microsoft Visual C++ 2008 Redistributable - x64 9.0.30729.4148  64      MsiExec.exe /X{4B6C7001-C7D6-3710-913E-5BC23FCE91E6}
+    Microsoft Visual C++ 2008 Redistributable       9.0.30729.4148  32      MsiExec.exe /X{1F1C2DFC-2D24-3E06-BCB8-725134ADF989}    
+    Microsoft Visual C++ 2008 Redistributable - x64 9.0.30729.6161  64      MsiExec.exe /X{5FCE6D76-F5DC-37AB-B2B8-22AB8CEDB1D4}
+    Microsoft Visual C++ 2008 Redistributable - x86 9.0.30729.6161  32      MsiExec.exe /X{9BE518E6-ECC6-35A9-88E4-87755C07200F}
+    -->
+    
+      
     <InstallUISequence>
       <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>      
       <Custom Action="IMCA_WarnLittleRAM"         After='CostFinalize'        >NOT Installed</Custom>      
 
-      <!-- because the DETECTED_ properties are never set, I must override them -->
-      <LaunchConditions After="AppSearch" />
-      <Show Dialog="VC9_SP1_MFC_SEC_32WarningDlg" After="FindRelatedProducts">0 and not DETECTED_VC9_SP1_MFC_SEC_32</Show>
-      <Show Dialog="VC9_SP1_MFC_SEC_64WarningDlg" After="FindRelatedProducts">0 and not DETECTED_VC9_SP1_MFC_SEC_64</Show>
+      <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
 
     <InstallExecuteSequence>
@@ -113,26 +120,22 @@
       </Component>
     </DirectoryRef>
 
-    <!-- wait for Microsoft_VC90_MFC_x86_x64.msm on repo.saltstack.com/windows/dependencies
-    Merge modules (*.msm) are msi 'library' databases that can be included ('merged') into 'main' msi databases.
-    This msi includes the Visual C++ 9 msm, to support Windows Server 2008.
-    -->
-    <!--
     <DirectoryRef Id="TARGETDIR">
-      <Merge Id="MSM_VC90_MFC_64" SourceFile="c:\saltrepo_local_cache\64\Microsoft_VC90_MFC_x86_x64.msm" DiskId="1" Language="0"/>
+      <!-- Python 2 requires Microsoft Visual C++ 2008 runtime (VC90_CRT)  -->
+      <!-- Python 3 requires Microsoft Visual C++ 2015 runtime (VC140_CRT)   https://blogs.msdn.microsoft.com/vcblog/2015/03/03/introducing-the-universal-crt/-->
+      <!-- On 64bit Windows, 64bit Python is used, so only the 64bit Runtime is needed.   -->
+      <!-- 
+         CON   msm:         ICE linter warnings, one 'you must reboot' message
+         PRO   local dll:   easy 
+      -->
+      <Merge Id="MSM_VC90_CRT_64" SourceFile="c:\saltrepo_local_cache\64\Microsoft_VC90_CRT_x86_x64.msm" DiskId="1" Language="0"/>
     </DirectoryRef>
-    -->
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents"     />
       <ComponentRef      Id="CleanupBinFolder"      />
       <ComponentRef      Id="CleanupVarFolder"      />
-      <!-- wait for Microsoft_VC90_MFC_x86_x64.msm on repo.saltstack.com/windows/dependencies
-      <Feature Id="VC90_MFC_x86_x64" Title="Visual C++ 2008 SP1 MFC Runtime, only for Windows Server 2008" AllowAdvertise="no" Display="hidden" Level="0">
-        <MergeRef Id="MSM_VC90_MFC_64"/>
-        <Condition Level="1">MsiNTProductType = 3 and  VersionNT >= 600</Condition>
-      </Feature>
-      -->
+      <Feature Id="VC90_CRT_x86_x64" Title="Visual Studio 2008 CRT 64bit" AllowAdvertise="no" Display="hidden" Level="1"><MergeRef Id="MSM_VC90_CRT_64"/></Feature>
     </Feature>
 
     <Icon Id="icon" SourceFile="$(var.dist)\..\installer\salt.ico" />
@@ -192,39 +195,6 @@
       </CreateFolder>
     </Component>
   </Fragment>
-  
-      <Fragment> <!-- Warning dialogs -->
-    <UI>
-      <Dialog Id="VC9_SP1_MFC_SEC_32WarningDlg" Width="440" Height="100" Title="Saltstack security warning (security update missing)" NoMinimize="yes">
-        <Control X="10"  Y="8" Width="430" Height="30" Type="Text"  Id="Text">
-          <Text>Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (32bit) is missing.
-          
-Please consult</Text>
-        </Control>
-        <Control X="10" Y="40" Width="430" Height="20"  Type="Hyperlink" Id="exampleHyperLink"> 
-          <Text><![CDATA[<a href="https://www.microsoft.com/download/details.aspx?id=26368">www.microsoft.com/download/details.aspx?id=26368</a>]]></Text> 
-        </Control>
-        <Control X="192" Y="75" Width="56" Height="17" Id="OK" Type="PushButton"  Default="yes"  Cancel="yes" Text="OK">
-          <Publish Event="EndDialog" Value="Return">1</Publish>
-        </Control>
-      </Dialog>
-    </UI>
-    <UI>
-      <Dialog Id="VC9_SP1_MFC_SEC_64WarningDlg" Width="440" Height="100" Title="Saltstack security warning (security update missing)" NoMinimize="yes">
-        <Control X="10"  Y="8" Width="430" Height="30" Type="Text"  Id="Text">
-          <Text>Microsoft Visual C++ 2008 Service Pack 1 Redistributable Package MFC Security Update (64bit) is missing.
-          
-Please consult</Text>
-        </Control>
-        <Control X="10" Y="40" Width="430" Height="20"  Type="Hyperlink" Id="exampleHyperLink"> 
-          <Text><![CDATA[<a href="https://www.microsoft.com/download/details.aspx?id=26368">www.microsoft.com/download/details.aspx?id=26368</a>]]></Text> 
-        </Control>
-        <Control X="192" Y="75" Width="56" Height="17" Id="OK" Type="PushButton"  Default="yes"  Cancel="yes" Text="OK">
-          <Publish Event="EndDialog" Value="Return">1</Publish>
-        </Control>
-      </Dialog>
-    </UI>
-    </Fragment>
   
   <!-- From the "Default WiX Project Template" -->
   <Fragment>
