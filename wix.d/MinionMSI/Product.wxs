@@ -34,7 +34,7 @@
       <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>      
       <Custom Action="IMCA_WarnLittleRAM"         After='CostFinalize'        >NOT Installed</Custom>      
 
-      <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear -->
+      <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
 
     <InstallExecuteSequence>
