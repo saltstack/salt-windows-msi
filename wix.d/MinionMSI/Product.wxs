@@ -103,6 +103,9 @@
     </DirectoryRef>
 
     <DirectoryRef Id="TARGETDIR">
+      <!-- Python 2 requires Microsoft Visual C++ 2008 runtime (VC90_CRT)  -->
+      <!-- Python 3 requires Microsoft Visual C++ 2015 runtime (VC140_CRT) -->
+      <!-- On 64bit Windows, 64bit Python is used, so only the 64bit Merge Module is needed.   -->
       <Merge Id="MSM_VC90_CRT_64" SourceFile="c:\saltrepo_local_cache\64\Microsoft_VC90_CRT_x86_x64.msm" DiskId="1" Language="0"/>
     </DirectoryRef>
 
