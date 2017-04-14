@@ -17,13 +17,13 @@
 
     <!-- Salt properties                                  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
-    <Property Id="MINION_HOSTNAME"          Value="$(env.COMPUTERNAME)"  />
+    <Property Id="MINION_HOSTNAME"          Value="kingbob"              /> <!-- $(env.COMPUTERNAME) is the name of the building machine. Must be set dynamically. Must not be empty.    -->
     <Property Id="KEEP_CONFIG"              Value="1"                    />
     <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
     <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"                                                />
     <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"                           />
-    <Property Id="ROOTDRIVE"                Value="$(env.SystemDrive)"   />   <!-- // dont chose disk with the most free space -->
+    <Property Id="ROOTDRIVE"                Value="C:"                   />   <!-- Will become a TODO once path not fixed c:\salt  -->
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
     <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
@@ -49,8 +49,9 @@
     
       
     <InstallUISequence>
-      <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>      
-      <Custom Action="IMCA_WarnLittleRAM"         After='CostFinalize'        >NOT Installed</Custom>      
+      <Custom Action="IMCA_SetMinionHostname"     Before='IMCA_read_NSIS'     >NOT Installed</Custom>
+      <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>
+      <Custom Action="IMCA_WarnLittleRAM"         After='CostFinalize'        >NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
