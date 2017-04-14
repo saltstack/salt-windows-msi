@@ -30,6 +30,15 @@
     <CustomAction Id="CADH_UninstallKeepConfig0"  Property="DECA_UninstallKeepConfig0"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
     <CustomAction Id="CADH_UninstallKeepConfig1"  Property="DECA_UninstallKeepConfig1"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
     <CustomAction Id="CADH_Upgrade"               Property="DECA_Upgrade"               Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
+
+
+    <!-- 2017-04-14 Markus
+    This is an immediate custom action declaration.
+    The custom action sets property MINION_HOSTNAME to Computername
+    You find the the condition whento call it in InstallUISequence in Product.wxs
+    -->    
+    <CustomAction Id="IMCA_SetMinionHostname" Property="MINION_HOSTNAME" Value="[ComputerName]"></CustomAction>
+
     
     <!-- Warning when installing on a client with litte RAM -->
     <CustomAction Id="IMCA_WarnLittleRAM" Script="vbscript"><![CDATA[
