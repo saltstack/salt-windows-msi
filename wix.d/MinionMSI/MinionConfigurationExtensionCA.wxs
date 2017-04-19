@@ -1,10 +1,19 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <Fragment>
     <!--  
 		    To remove a previous NSIS installation but utilise its configuration (peelNSIS), this custom action must start 'early'.
 		    Catch: If the installation then fails and rolls back, peeling cannot be undone. 
-	    -->
+    -->
+
+    <!--
+    Immediate custom action declarations ("IMCA_").
+    Immediate custom action IMCA_SetMinionHostname sets property MINION_HOSTNAME to Computername at install-time
+    You find the condition whento call it in InstallUISequence and InstallSequence in Product.wxs
+    IMCA_SetMinionHostname is scheduled Before IMCA_read_NSIS.
+    Because both can run in GUI and silent install, both must be qualified by 'firstSequence' (otherwise they would get called twice)
+    -->
+    <CustomAction Id="IMCA_SetMinionHostname" Property="MINION_HOSTNAME" Value="[ComputerName]"                    Execute='firstSequence'/>
     <CustomAction Id="IMCA_read_NSIS"            BinaryKey='MinionConfigExt' DllEntry='IMCA_read_NSIS'             Execute='firstSequence'/>
     <CustomAction Id="DECA_del_NSIS"             BinaryKey='MinionConfigExt' DllEntry='DECA_del_NSIS'              Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DECA_WriteConfig"          BinaryKey='MinionConfigExt' DllEntry='DECA_WriteConfig'           Execute='deferred' Return='check' Impersonate='no'/>
@@ -30,15 +39,6 @@
     <CustomAction Id="CADH_UninstallKeepConfig0"  Property="DECA_UninstallKeepConfig0"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
     <CustomAction Id="CADH_UninstallKeepConfig1"  Property="DECA_UninstallKeepConfig1"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
     <CustomAction Id="CADH_Upgrade"               Property="DECA_Upgrade"               Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
-
-
-    <!-- 2017-04-14 Markus
-    This is an immediate custom action declaration.
-    The custom action sets property MINION_HOSTNAME to Computername
-    You find the the condition whento call it in InstallUISequence in Product.wxs
-    -->    
-    <CustomAction Id="IMCA_SetMinionHostname" Property="MINION_HOSTNAME" Value="[ComputerName]"></CustomAction>
-
     
     <!-- Warning when installing on a client with litte RAM -->
     <CustomAction Id="IMCA_WarnLittleRAM" Script="vbscript"><![CDATA[
