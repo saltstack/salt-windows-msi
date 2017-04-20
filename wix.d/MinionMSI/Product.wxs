@@ -34,7 +34,7 @@
     <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"                                                />
     <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"                           />
-    <Property Id="ROOTDRIVE"                Value="C:"                   />   <!-- Will become a TODO once path not fixed c:\salt  -->
+    <Property Id="ROOTDRIVE"                Value="C:\"                  />   <!-- Will become a TODO once path not fixed c:\salt  -->
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
     <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
