@@ -7,12 +7,12 @@
         Id         | Product code GUID. A constant GUID is useful for a subsequent mst (transform).
   -->
   <Product
-      Manufacturer="SaltStack, Inc."
-      Name="Salt Minion $(var.DisplayVersion)"
-      UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
-      Id="*"
-      Language="1033"
-      Version="$(var.InternalVersion)">
+      Manufacturer = "SaltStack, Inc."
+      Name         = "Salt Minion $(var.DisplayVersion)"
+      UpgradeCode  = "{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
+      Id           = "*"
+      Language     = "1033"
+      Version      = "$(var.InternalVersion)">
 
     <!-- Windows Installer Version 3.0 = 300 -->
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
