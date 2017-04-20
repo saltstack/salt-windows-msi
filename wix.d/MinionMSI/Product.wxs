@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" >
+  <!--
+      Regarding product properties:
+        UpgradeCode| GUID defining the product across versions. E.g. a previous version is uninstalled during upgrade.
+        Id         | Product code GUID. A constant GUID is useful for a subsequent mst (transform).
+  -->
   <Product
       Manufacturer="SaltStack, Inc."
       Name="Salt Minion $(var.DisplayVersion)"
