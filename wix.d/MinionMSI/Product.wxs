@@ -4,7 +4,7 @@
   <!--
       Regarding product properties:
         UpgradeCode| GUID defining the product across versions. E.g. a previous version is uninstalled during upgrade.
-        Id         | Product code GUID. A static product code is necessary for msiexec /x and useful for a *.mst (transform).
+        Id         | Named "Product code". A static product code is necessary for msiexec /x and useful for a *.mst (transform).
   -->
   <Product
       Manufacturer = "SaltStack, Inc."
