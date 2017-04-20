@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" >
-  <Product Manufacturer="SaltStack, Inc." Name="Salt Minion $(var.DisplayVersion)" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
-    Id="*" Language="1033" Version="$(var.InternalVersion)">
+  <Product
+      Manufacturer="SaltStack, Inc."
+      Name="Salt Minion $(var.DisplayVersion)"
+      UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
+      Id="*"
+      Language="1033"
+      Version="$(var.InternalVersion)">
 
     <!-- Windows Installer Version 3.0 = 300 -->
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
