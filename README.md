@@ -133,10 +133,10 @@ If the new custom action requires its own dialog, these additional changes are r
 ## On versioning ##
 [Microsoft defines software versions][MSDN_ProductVersion] as `major.minor.build` with maximum values of 255.255.65535.
 
-This definition lacks the `micro` field used in Salt 2016.11.3 (or Python 3.6.2) and one has to make a decision for the micro version:
+This definition lacks the `micro` field used in Salt 2016.11.3 (or Python 3.6.2) and one has to make a decision for the micro field:
 
- 1) deviate from the Microsoft definition and use the third field as micro
- 2) stick with the Microsoft definition and discard the micro field.
+ 1) Deviate from the Microsoft definition and use the third field as micro
+ 2) Stick with the Microsoft definition and discard the micro field.
  
 I see no value in sticking with the Microsoft definition and chose 1.
 
