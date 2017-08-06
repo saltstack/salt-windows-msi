@@ -131,9 +131,18 @@ If the new custom action requires its own dialog, these additional changes are r
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
 ## On versioning ##
-msi version numbers must be smaller than 256, therefore `InternalVersion` is 16.11.3
-when `DisplayVersion` is [the usual][version_html] 2016.11.3.
+[Microsoft defines Versions][MSDN_ProductVersion] as `major.minor.build` with maximum values of 255.255.65535
 
+This definition lacks the very common `micro` field: `major.minor.micro` (e.g. Salt 2016.11.3 or Python 3.6.2) and one has to make a decision for the micor version:
+
+ 1) deviate from the Microsoft definition and use the third field as micro
+ 2) stick with the Microsoft definition and discard the micro field.
+ 
+I see no value in sticking with the Microsoft defintion and went with 1)
+
+msi version numbers must be smaller than 256, therefore I must use the short year (16 instead of 2016).
+
+In WiX terms: `InternalVersion` is 16.11.3 while `DisplayVersion` is [the usual][version_html] 2016.11.3.
 
 
 
@@ -144,4 +153,5 @@ when `DisplayVersion` is [the usual][version_html] 2016.11.3.
 [version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
 [WindowsInstaller4.5_link]:https://www.microsoft.com/en-us/download/details.aspx?id=8483
 [issue18]:https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
+[MSDN_ProductVersion]:https://msdn.microsoft.com/en-us/library/windows/desktop/aa370859
 
