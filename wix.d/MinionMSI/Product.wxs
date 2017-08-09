@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" >
-  <Product Manufacturer="SaltStack, Inc." Name="Salt Minion $(var.DisplayVersion)" UpgradeCode="{FC6FB3A2-65DE-41A9-AD91-D10A402BD641}" 
-    Id="*" Language="1033" Version="$(var.InternalVersion)">
+  <!--
+      Regarding product properties:
+        UpgradeCode| GUID defining the product across versions. E.g. a previous version is uninstalled during upgrade.
+        Id         | Named "Product code". A static product code is necessary for msiexec /x and useful for a *.mst (transform).
+  -->
+  <Product
+      Manufacturer = "SaltStack, Inc."
+      Name         = "Salt Minion $(var.DisplayVersion)"
+      Version      = "$(var.InternalVersion)"
+      UpgradeCode  = "FC6FB3A2-65DE-41A9-AD91-D10A402BD641" 
+      Id           = "28C82B6C-391A-4AA3-961E-2FFAD3D013C1"
+      Language     = "1033">
 
     <!-- Windows Installer Version 3.0 = 300 -->
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
@@ -20,11 +30,12 @@
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="kingbob"              /> <!-- $(env.COMPUTERNAME) is the name of the building machine. Must be set dynamically. Must not be empty.    -->
     <Property Id="KEEP_CONFIG"              Value="1"                    />
+    <Property Id="START_MINION_SERVICE"     Value="0"                    />
     <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
     <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"                                                />
     <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"                           />
-    <Property Id="ROOTDRIVE"                Value="C:"                   />   <!-- Will become a TODO once path not fixed c:\salt  -->
+    <Property Id="ROOTDRIVE"                Value="C:\"                  />   <!-- Will become a TODO once path not fixed c:\salt  -->
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
     <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
