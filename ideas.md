@@ -1,5 +1,5 @@
 
-##On directory structure##
+## On directory structure ##
 Files under INSTALLDIR are intended to be immutable in Windows.
 Mutable data, created and changed after installation, as log files or a private key, should not be stored under INSTALLDIR.
 Doing so makes install/uninstall complex.
