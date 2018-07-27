@@ -22,6 +22,7 @@
     <Condition Message="Installation requires Windows XP, Windows Server 2008, or higher. (found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
       Installed
       or MsiNTProductType = 1 and  VersionNT >= 501
+      or MsiNTProductType = 2 and  VersionNT >= 600
       or MsiNTProductType = 3 and  VersionNT >= 600
     </Condition>
 
