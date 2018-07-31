@@ -21,14 +21,14 @@ xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl">
 -->
 <!-- END remove component for python.exe from dist-amd64.wxs because it must be in service.wxs -->
 
-<!-- BEGIN remove component for nssm.exe from dist-amd64.wxs because it must be in service.wxs -->
-<!--key to detect nssm-->
-<xsl:key name="nssm" match="wix:Component[contains(wix:File/@Source, 'nssm.exe')]" use="@Id"/>
+<!-- BEGIN remove component for ssm.exe from dist-amd64.wxs because it must be in service.wxs -->
+<!--key to detect ssmexe-->
+<xsl:key name="ssmexe" match="wix:Component[contains(wix:File/@Source, 'ssm.exe')]" use="@Id"/>
 
-<!--Match and ignore nssm  -->
-<xsl:template match="wix:Component[key('nssm', @Id)]"/>
-<xsl:template match="wix:ComponentRef[key('nssm', @Id)]"/>
-<!-- END  remove component for nssm.exe from dist-amd64.wxs because it must be in service.wxs -->
+<!--Match and ignore ssmexe  -->
+<xsl:template match="wix:Component[key('ssmexe', @Id)]"/>
+<xsl:template match="wix:ComponentRef[key('ssmexe', @Id)]"/>
+<!-- END  remove component for ssm.exe from dist-amd64.wxs because it must be in service.wxs -->
 
 
 <!--key to detect conf/minion file -->

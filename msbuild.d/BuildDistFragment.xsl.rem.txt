@@ -19,9 +19,9 @@ This is unwanted behaviour.
 
 Approach 1: FAIL
   exclude the component
-  nssm.xsl does  that.
-  It filters out nssm.exe, so nssm.exe is not in salt-windows-msi\wix\MinionMSI\dist-amd64.wxs
-  nssm.exe is added manually in services.wxs.
+  BuildDistFragment.xsl does  that.
+  It filters out ssm.exe, so ssm.exe is not in salt-windows-msi\wix\MinionMSI\dist-amd64.wxs
+  ssm.exe is added manually in services.wxs.
   FAILURE (I think) because then conf would not be installed.  
   
 
@@ -33,4 +33,4 @@ http://stackoverflow.com/questions/11848780/use-ends-with-in-xslt-v1-0
 set attribute to a value while copying:
    http://stackoverflow.com/questions/1137078/xslt-do-not-match-certain-attributes/12919373#12919373
 
-	 
+

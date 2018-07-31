@@ -1,2 +1,2 @@
-C:\salt\nssm stop    salt-minion
-C:\salt\nssm remove  salt-minion confirm
+C:\salt\ssm stop    salt-minion
+C:\salt\ssm remove  salt-minion confirm
