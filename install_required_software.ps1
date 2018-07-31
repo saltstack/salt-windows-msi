@@ -1,16 +1,15 @@
 
 function VerifyOrDownload ($local_file, $URL, $SHA256) {
-  if (Test-Path $local_file) {
-    if ((Get-FileHash $local_file).Hash -eq $SHA256) {
-      Write-Host -ForegroundColor Green "Founded $local_file"
-    } else {
-      Write-Host  -ForegroundColor Red "$local_file   UNEXPECTED HASH   $((Get-FileHash $local_file).Hash)"
-      exit -2
-    }
-  } else {
+  if (-Not (Test-Path $local_file)) {
     "Downloading...  $URL"
     [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
     (New-Object System.Net.WebClient).DownloadFile($URL, $local_file)
+  }
+  if ((Get-FileHash $local_file).Hash -eq $SHA256) {
+    Write-Host -ForegroundColor Green "Founded $local_file"
+  } else {
+    Write-Host  -ForegroundColor Red "$local_file   UNEXPECTED HASH   $((Get-FileHash $local_file).Hash)"
+    exit -2
   }
 }
 
@@ -24,7 +23,7 @@ if(Test-Path -Path "c:/msi" ){
 #### Resources
 
 ### Merge module VC Runtime for Python 2.7
-$f = "c:/msi/Microsoft_VC90_CRT_x86_x64.msm"
+$f = "c:/saltrepo_local_cache/64/Microsoft_VC90_CRT_x86_x64.msm"
 $u = "https://repo.saltstack.com/windows/dependencies/64/Microsoft_VC90_CRT_x86_x64.msm"
 $h = "D5B4E8B100D2A9A6A756BB6D70DF67203E3B611F49866F84944607DC096E4AFE"
 VerifyOrDownload $f $u $h
