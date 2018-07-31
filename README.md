@@ -59,7 +59,6 @@ build.bat
 cd c:\git\salt-windows-msi
 yclean.cmd
 ybuild.cmd
-    # Expect 84 ICE03 warnings
 
 ```
 
