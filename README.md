@@ -90,7 +90,7 @@ properties, and the current value of those properties:
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
     - MinionMSI.wixproj: msbuild boilerplate.
     - Product.wxs: main file.
-    - service.wxs: Windows Service (using nssm.exe).
+    - service.wxs: Windows Service (using ssm.exe, the Salt Service Manager).
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
     - WixUI_Minion.wxs: UI description.
 - msbuild.proj: main msbuild file.
