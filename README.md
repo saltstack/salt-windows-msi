@@ -40,11 +40,8 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - Windows 64bit
 - Salt clone in `c:/git/salt/`
 - This clone in `c:/git/salt-windows-msi/`
-- Python 2.7 in `c:/python27/`
-- [WiX][WiXId] v3.10
-- [MSBuild 2015][MSBuild2015Id]
-- .Net 4.5 SDK
-- http://repo.saltstack.com//windows/dependencies/64/Microsoft_VC90_CRT_x86_x64.msm in `c:/saltrepo_local_cache/64/`
+- .Net 4.5 SDK (?why?)
+- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/msi/`
 
 ### Build procedure ###
 
@@ -55,6 +52,7 @@ git checkout v2016.11.3
     # Apply https://github.com/saltstack/salt/pull/39274  (msi numbering scheme in version.py)
     # git status must only show `modified: salt/version.py`
 cd c:\git\salt\pkg\windows
+install_required_software.cmd
 build.bat
 cd c:\git\salt-windows-msi
 yclean.cmd
