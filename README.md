@@ -52,9 +52,10 @@ git checkout v2016.11.3
     # Apply https://github.com/saltstack/salt/pull/39274  (msi numbering scheme in version.py)
     # git status must only show `modified: salt/version.py`
 cd c:\git\salt\pkg\windows
-install_required_software.cmd
 build.bat
+
 cd c:\git\salt-windows-msi
+install_required_software.cmd
 yclean.cmd
 ybuild.cmd
 
