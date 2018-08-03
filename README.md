@@ -40,11 +40,8 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - Windows 64bit
 - Salt clone in `c:/git/salt/`
 - This clone in `c:/git/salt-windows-msi/`
-- Python 2.7 in `c:/python27/`
-- [WiX][WiXId] v3.10
-- [MSBuild 2015][MSBuild2015Id]
-- .Net 4.5 SDK
-- http://repo.saltstack.com//windows/dependencies/64/Microsoft_VC90_CRT_x86_x64.msm in `c:/saltrepo_local_cache/64/`
+- .Net 4.5 SDK (?why?)
+- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/msi/`
 
 ### Build procedure ###
 
@@ -56,10 +53,11 @@ git checkout v2016.11.3
     # git status must only show `modified: salt/version.py`
 cd c:\git\salt\pkg\windows
 build.bat
+
 cd c:\git\salt-windows-msi
+install_required_software.cmd
 yclean.cmd
 ybuild.cmd
-    # Expect 84 ICE03 warnings
 
 ```
 
@@ -90,7 +88,7 @@ properties, and the current value of those properties:
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
     - MinionMSI.wixproj: msbuild boilerplate.
     - Product.wxs: main file.
-    - service.wxs: Windows Service (using nssm.exe).
+    - service.wxs: Windows Service (using ssm.exe, the Salt Service Manager).
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
     - WixUI_Minion.wxs: UI description.
 - msbuild.proj: main msbuild file.
@@ -130,21 +128,6 @@ If the new custom action requires its own dialog, these additional changes are r
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
-## On versioning ##
-[Microsoft defines software versions][MSDN_ProductVersion] as `major.minor.build` with maximum values of 255.255.65535.
-
-This definition lacks the `micro` field used in Salt 2016.11.3 (or Python 3.6.2) and one has to make a decision for the micro field:
-
- 1) Deviate from the Microsoft definition and use the third field as micro
- 2) Stick with the Microsoft definition and discard the micro field.
- 
-I see no value in sticking with the Microsoft definition and chose 1.
-
-Microsoft major version must be smaller than 256, therefore I use the short year (16 instead of 2016).
-
-In WiX terms: when `DisplayVersion` is [2016.11.3][SALT_versions], `InternalVersion` becomes 16.11.3.
-
-`InternalVersion` is displayed in the Version column of "Programs and Features" (formally "Add remove program") (appwiz.cpl)
 
 
 

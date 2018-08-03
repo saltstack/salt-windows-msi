@@ -1,2 +1,2 @@
-C:\salt\nssm stop    salt-minion
-C:\salt\nssm remove  salt-minion confirm
+C:\salt\bin\ssm stop    salt-minion
+C:\salt\bin\ssm remove  salt-minion confirm
