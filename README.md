@@ -41,17 +41,14 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - Salt clone in `c:/git/salt/`
 - This clone in `c:/git/salt-windows-msi/`
 - .Net 4.5 SDK (?why?)
-- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/msi/`
+- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/salt_msi_resources/`
 
 ### Build procedure ###
 
 
 ```
-cd c:\git\salt
-git checkout v2016.11.3
-    # Apply https://github.com/saltstack/salt/pull/39274  (msi numbering scheme in version.py)
-    # git status must only show `modified: salt/version.py`
 cd c:\git\salt\pkg\windows
+clean_env.bat
 build.bat
 
 cd c:\git\salt-windows-msi
