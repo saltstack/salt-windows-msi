@@ -12,37 +12,36 @@ function Verify ($local_file, $SHA256) {
     }
 }
 
+
 function VerifyOrDownload ($local_file, $URL, $SHA256) {
     if (-Not (Test-Path $local_file)) {
 	"Downloading...  $URL"
 	[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
 	(New-Object System.Net.WebClient).DownloadFile($URL, $local_file)
     }
-    if ((Get-FileHash $local_file).Hash -eq $SHA256) {
-	Write-Host -ForegroundColor Green "Found $local_file"
-    } else {
-	Write-Host  -ForegroundColor Red "$local_file   UNEXPECTED HASH   $((Get-FileHash $local_file).Hash)"
-	exit -2
-    }
+    Verify $local_file $SHA256
 }
 
-#### Path
-if (Test-Path -Path "c:/salt_msi_resources") {
-    Write-Host -ForegroundColor Green  "Found c:/salt_msi_resources"
-} else {
+
+#### Ensure path exists
+####
+if (-Not (Test-Path -Path "c:/salt_msi_resources")) {
     New-Item -ItemType directory -Path "c:/salt_msi_resources"
 }
 
-#### Resources
 
-## Merge module VC Runtime for Python 2.7
-## From Visual Studio 2008
+#### Ensure resources are present
+####
+
+## Python 2.7 requires VC++ Runtime merge module from Visual Studio 2008
 $f = "c:/salt_msi_resources/Microsoft_VC90_CRT_x86_x64.msm"
 $h = "D5B4E8B100D2A9A6A756BB6D70DF67203E3B611F49866F84944607DC096E4AFE"
 Verify $f $h
 
 
-#### Build environment
+
+#### Ensure resources are installed or build environment
+###
 
 ## Wix 3.11
 ## http://wixtoolset.org/releases/
@@ -59,6 +58,7 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E8
     
     Start-Process $wixInstaller -Wait -NoNewWindow
 }
+
 
 ## Build tools 2015
 ## https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159
