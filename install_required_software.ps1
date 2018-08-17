@@ -48,8 +48,12 @@ Verify $f $h
 if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E868-267F-47FB-86BC-D3D62305D7F4}") {
     Write-Host -ForegroundColor Green "Found Wix"
 } else {
-    "For WiX 3.11 on Windows 10: is .Net 3.5 enabled?"
-    Start-Process optionalfeatures -Wait -NoNewWindow 
+    $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
+    $dotnet3enabled = $dotnet3state -Eq "Enabled"
+    if (-Not ($dotnet3enabled)) {
+	"To use WiX 3.11 on Windows 10, you need to enable .Net Framework 3.5"
+	Start-Process optionalfeatures -Wait -NoNewWindow
+    }
     
     $wixInstaller = "c:/salt_msi_resources/wix311.exe"
     $u = "https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311.exe"
