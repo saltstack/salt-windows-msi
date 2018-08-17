@@ -25,9 +25,8 @@ function VerifyOrDownload ($local_file, $URL, $SHA256) {
 
 #### Ensure path exists
 ####
-if (-Not (Test-Path -Path "c:/salt_msi_resources")) {
-    New-Item -ItemType directory -Path "c:/salt_msi_resources"
-}
+$salt_msi_resources = "c:/salt_msi_resources"
+(Test-Path -Path $salt_msi_resources) -Or (New-Item -ItemType directory -Path $salt_msi_resources)
 
 
 #### Ensure resources are present
