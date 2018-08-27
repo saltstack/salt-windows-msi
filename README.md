@@ -40,14 +40,15 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - Windows 64bit
 - Salt clone in `c:/git/salt/`
 - This clone in `c:/git/salt-windows-msi/`
-- .Net 4.5 SDK (?why?)
+- .Net 4.5 SDK (Only Win7?)
 - Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/salt_msi_resources/`
+
 
 ### Build procedure ###
 
-
 ```
 cd c:\git\salt\pkg\windows
+git checkout v2018.3.2
 clean_env.bat
 build.bat
 
