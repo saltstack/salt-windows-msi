@@ -75,7 +75,7 @@ properties, and the current value of those properties:
 
 - msbuild.d/: build the installer:
   - BuildDistFragment.targets: find files (from the extracted distribution?).
-  - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable.
+  - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable for bundle.
   - Minion.Common.targets: set version and platform parameters.
 - wix.d/: installer sources:
   - MinionConfigurationExtension/: C# for custom actions:
