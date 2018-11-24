@@ -10,7 +10,6 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 - Logging into %TEMP%\MSIxxxxx.LOG, options with `msiexec /l`
 - Upgrades NSIS installations
 
-
 Minion-specific msi-properties:
 
   Property              |  Default        | Comment                                                    
