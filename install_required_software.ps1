@@ -13,7 +13,7 @@ function Verify ($local_file, $SHA256) {
 }
 
 
-function VerifyOrDownload ($local_file, $URL, $SHA256) {
+function OptionallyDownloadAndVerify ($local_file, $URL, $SHA256) {
     if (-Not (Test-Path $local_file)) {
 	"Downloading...  $URL"
 	[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
@@ -40,13 +40,12 @@ Verify $f $h
 
 
 
-#### Ensure resources are installed or build environment
+#### Ensure resources are installed or get them
 ###
 
 ## Wix 3.11
-## http://wixtoolset.org/releases/
 if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E868-267F-47FB-86BC-D3D62305D7F4}") {
-    Write-Host -ForegroundColor Green "Found Wix"
+    Write-Host -ForegroundColor Green "Wix is installed"
 } else {
     $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
     $dotnet3enabled = $dotnet3state -Eq "Enabled"
@@ -58,21 +57,22 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E8
     $wixInstaller = "c:/salt_msi_resources/wix311.exe"
     $u = "https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311.exe"
     $h = "7CAECC9FFDCDECA09E211AA20C8DD2153DA12A1647F8B077836B858C7B4CA265"
-    VerifyOrDownload $WixInstaller $u $h
+    OptionallyDownloadAndVerify $WixInstaller $u $h
     
     Start-Process $wixInstaller -Wait -NoNewWindow
 }
 
 
 ## Build tools 2015
-## https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159
 if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") {
-    Write-Host -ForegroundColor Green "Found Build Tools"
+    Write-Host -ForegroundColor Green "Build Tools are installed"
 } else {
     $BuildToolsInstaller = "c:/salt_msi_resources/BuildTools_Full.exe"
     $u = "https://download.microsoft.com/download/E/E/D/EEDF18A8-4AED-4CE0-BEBE-70A83094FC5A/BuildTools_Full.exe"
     $h = "92CFB3DE1721066FF5A93F14A224CC26F839969706248B8B52371A8C40A9445B"
-    VerifyOrDownload $BuildToolsInstaller $u $h
-    
+    OptionallyDownloadAndVerify $BuildToolsInstaller $u $h
+    Write-Host -ForegroundColor Yellow "------------------------------------"
+    Write-Host -ForegroundColor Yellow "-- Please install the Build Tools --"
+    Write-Host -ForegroundColor Yellow "------------------------------------"
     Start-Process $BuildToolsInstaller -Wait -NoNewWindow
 }

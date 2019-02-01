@@ -30,7 +30,7 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 > msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
 
-## Requirements ##
+## Requirements for the installation ##
 - .Net 2.0, or higher
  
 
@@ -42,6 +42,10 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - .Net 4.5 SDK (Only Win7?)
 - Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/salt_msi_resources/`
 
+## Resources automatically downloaded and installed, if necessarry ##
+
+- [Wix 3.11](http://wixtoolset.org/releases/)
+- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)
 
 ### Build procedure ###
 
