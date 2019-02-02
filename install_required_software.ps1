@@ -63,8 +63,12 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E8
 }
 
 
-## Build tools 2015
-if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") {
+## Build tools 2015  
+#  Account for Build tools 2015 bugfix upgrade 
+#  14.0.23107    from link     {8C918E5B-E238-401F-9F6E-4FB84B024CA2}   Appear in appwiz.cpl
+#  14.0.25420    from where?   {79750C81-714E-45F2-B5DE-42DEF00687B8}   Don't appear in appwiz.cpl
+if ((Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") -or  
+    (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{79750C81-714E-45F2-B5DE-42DEF00687B8}")) {
     Write-Host -ForegroundColor Green "Build Tools are installed"
 } else {
     $BuildToolsInstaller = "c:/salt_msi_resources/BuildTools_Full.exe"
