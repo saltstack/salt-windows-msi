@@ -40,14 +40,6 @@
     <CustomAction Id="CADH_UninstallKeepConfig1"  Property="DECA_UninstallKeepConfig1"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
     <CustomAction Id="CADH_Upgrade"               Property="DECA_Upgrade"               Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
     
-    <!-- Warning when installing on a client with litte RAM -->
-    <CustomAction Id="IMCA_WarnLittleRAM" Script="vbscript"><![CDATA[
-  If session.Property("PhysicalMemory") < 125 Then
-    MsgBox("For running Salt Minion $(var.DisplayVersion), 125MB of physical memory are recommended.")
-  End If
-  ]]></CustomAction>
-
-
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>
 </Wix>

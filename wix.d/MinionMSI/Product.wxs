@@ -18,14 +18,21 @@
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
 
     <!--
-      MsiNTProductType:  1=Workstation  2=Domain controller  3=Server
-      VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx
+      Block Installation Based on OS Properties
+      http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/block_install_on_os.html
+      Properties:
+       - MsiNTProductType:  1=Workstation  2=Domain controller  3=Server
+       - VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx
+       - PhysicalMemory     https://docs.microsoft.com/de-de/windows/desktop/Msi/physicalmemory
     -->
-    <Condition Message="Installation requires Windows XP, Windows Server 2008, or higher. (found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
-      Installed
-      or MsiNTProductType = 1 and  VersionNT >= 501
-      or MsiNTProductType = 2 and  VersionNT >= 600
-      or MsiNTProductType = 3 and  VersionNT >= 600
+    <Condition Message="Installation requires Windows XP/Server 2008 and 125 MB RAM. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT], PhysicalMemory [PhysicalMemory]">
+      <![CDATA[
+      Installed 
+      or (PhysicalMemory > 125) 
+      and ((MsiNTProductType = 1) and  (VersionNT >= 501)
+      or   (MsiNTProductType = 2) and  (VersionNT >= 600)
+      or   (MsiNTProductType = 3) and  (VersionNT >= 600))
+      ]]>
     </Condition>
 
     <!-- Salt properties  -->
@@ -66,7 +73,6 @@
     <InstallUISequence>
       <Custom Action="IMCA_SetMinionHostname"     Before='IMCA_read_NSIS'     >NOT Installed</Custom>
       <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>
-      <Custom Action="IMCA_WarnLittleRAM"         After='CostFinalize'        >NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
