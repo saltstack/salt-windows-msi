@@ -17,8 +17,10 @@
     <!-- Windows Installer Version 3.0 = 300 -->
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
 
-    <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server      -->
-    <!--  VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx  -->
+    <!--
+      MsiNTProductType:  1=Workstation  2=Domain controller  3=Server
+      VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx
+    -->
     <Condition Message="Installation requires Windows XP, Windows Server 2008, or higher. (found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
       Installed
       or MsiNTProductType = 1 and  VersionNT >= 501
@@ -26,7 +28,7 @@
       or MsiNTProductType = 3 and  VersionNT >= 600
     </Condition>
 
-    <!-- Salt properties                                  -->
+    <!-- Salt properties  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="kingbob"              /> <!-- $(env.COMPUTERNAME) is the name of the building machine. Must be set dynamically. Must not be empty.    -->
     <Property Id="KEEP_CONFIG"              Value="1"                    />
@@ -42,7 +44,7 @@
     <!-- WiX properties                                                 -->
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
 
-    <!-- 
+    <!--
       NICE-TO-HAVE   Detect VCRedist
       ProductCode (useless)  https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/
       UpgradeCode            http://mdb-blog.blogspot.de/2010/11/bootstrapper-package-detect-vcredist.html
