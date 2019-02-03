@@ -59,6 +59,10 @@ build.cmd
 clean.cmd
 ```
 
+### WiX
+
+[Wix-Setup-Samples](https://github.com/deepak-rathi/Wix-Setup-Samples)
+
 ### MSBuild
 
 General command line:
