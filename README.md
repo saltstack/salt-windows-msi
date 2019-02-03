@@ -1,40 +1,38 @@
-Windows MSI installer build toolkit
-================
+# Windows MSI installer build toolkit
 
 This project creates a Salt Minion msi installer using [WiX][WiXId].
 
-## Features ##
+## Features
 
-- Change installation directory __BLOCKED BY__ <a href=https://github.com/saltstack/salt/issues/38430>issue #38430</a>
+- Change installation directory __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
 - Uninstall leaves configuration, remove with `msiexec /x KEEP_CONFIG=0`
 - Logging into %TEMP%\MSIxxxxx.LOG, options with `msiexec /l`
 - Upgrades NSIS installations
 
 Minion-specific msi-properties:
 
-  Property              |  Default        | Comment                                                    
- ---------------------- | --------------- | -----------------------------------------------------------
- `INSTALLFOLDER`        | `c:\salt\`      | Where to install the Minion  __DO NOT CHANGE__             
- `MASTER_HOSTNAME`      | `salt`          | The master hostname                                         
- `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id                                                
+  Property              |  Default        | Commen
+ ---------------------- | --------------- | ------
+ `INSTALLFOLDER`        | `c:\salt\`      | Where to install the Minion  __DO NOT CHANGE__
+ `MASTER_HOSTNAME`      | `salt`          | The master hostname
+ `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id
  `START_MINION_SERVICE` | `0` (_false_)   | Whether to start the salt-minion service after installation
  `KEEP_CONFIG`          | `1` (_true_)    | keep configuratioin on uninstall. Only from command line
 
-
 A kept configuration is reused on installation into its location.
 
-### On unattended install ("silent install") ###
+### On unattended install ("silent install")
 
 An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
 customized values for e.g. master hostname, minion id, installation path, using the following command line:
 
-> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
+> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE
 
-## Requirements for the installation ##
+## Requirements for the installation
+
 - .Net 2.0, or higher
- 
 
-## Build Requirement ##
+## Build Requirement
 
 - Windows 64bit
 - Salt clone in `c:/git/salt/`
@@ -42,16 +40,16 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - .Net 4.5 SDK (Only Win7?)
 - Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/salt_msi_resources/`
 
-## Resources automatically downloaded and installed, if necessarry ##
+## Resources automatically downloaded and installed, if necessarry
 
 - [Wix 3.11](http://wixtoolset.org/releases/)
 - [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)
 
-### Build procedure ###
+### Build procedure
 
-```
+```bash
 cd c:\git\salt\pkg\windows
-git checkout v2018.3.2
+git checkout v2018.3.3
 clean_env.bat
 build.bat
 
@@ -62,7 +60,7 @@ ybuild.cmd
 
 ```
 
-### <a id="msbuild"></a>MSBuild ###
+### MSBuild
 
 General command line:
 
@@ -73,8 +71,7 @@ properties, and the current value of those properties:
 
 > msbuild msbuild.proj /t:help
 
-
-### Directory structure ###
+### Directory structure
 
 - msbuild.d/: build the installer:
   - BuildDistFragment.targets: find files (from the extracted distribution?).
@@ -95,10 +92,19 @@ properties, and the current value of those properties:
 - msbuild.proj: main msbuild file.
 - wix.sln: Visual Studio solution file, needed to build the installer.
 
+### Naming conventions
 
+### For WiX
 
+Prefix  | Example                 | Meaning
+------- | ----------------------- | -------
+`IMCA_` | `IMCA_NukeConf`         | Immediate custom action
+`DECA_` | `DECA_SetMaster`        | Deferred custom action
+`CADH_` | `CADH_SetMaster`        | Custom action data helper for DECA_
+`COMP_` | `COMP_NukeBin`          | Component
+`DIR_`  | `DIR_conf`              | Directory
 
-### Extending ###
+### Extending
 
 Additional configuration manipulations may be able to use the existing
 MinionConfigurationExtension project. Current manipulations read the
@@ -125,12 +131,9 @@ are required:
 If the new custom action requires its own dialog, these additional changes are required:
 
 - The new dialog file.
-- WixUI_Minion.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs. 
+- WixUI_Minion.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs.
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
-
-
-
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
@@ -140,4 +143,3 @@ If the new custom action requires its own dialog, these additional changes are r
 [WindowsInstaller4.5_link]:https://www.microsoft.com/en-us/download/details.aspx?id=8483
 [issue18]:https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
 [MSDN_ProductVersion]:https://msdn.microsoft.com/en-us/library/windows/desktop/aa370859
-
