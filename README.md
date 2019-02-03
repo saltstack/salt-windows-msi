@@ -11,7 +11,7 @@ This project creates a Salt Minion msi installer using [WiX][WiXId].
 
 Minion-specific msi-properties:
 
-  Property              |  Default        | Commen
+  Property              |  Default        | Comment
  ---------------------- | --------------- | ------
  `INSTALLFOLDER`        | `c:\salt\`      | Where to install the Minion  __DO NOT CHANGE__
  `MASTER_HOSTNAME`      | `salt`          | The master hostname
@@ -47,17 +47,16 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 ### Build procedure
 
-```bash
+```cmd
 cd c:\git\salt\pkg\windows
 git checkout v2018.3.3
 clean_env.bat
 build.bat
 
 cd c:\git\salt-windows-msi
-install_required_software.cmd
-yclean.cmd
-ybuild.cmd
-
+build_env.cmd
+build.cmd
+clean.cmd
 ```
 
 ### MSBuild
