@@ -2,7 +2,7 @@
 C:\git\salt-windows-msi>build.cmd
 
 C:\git\salt-windows-msi>call "C:\Program Files (x86)"\MSBuild\14.0\Bin\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=amd64 /p:Platform=amd64 /p:DisplayVersion=2020.1.1 /p:InternalVersion=20.1.1.100
-Build started 03.02.2019 22:08:17.
+Build started 03.02.2019 22:22:02.
 Project "C:\git\salt-windows-msi\msbuild.proj" on node 1 (wix target(s)).
 wix:
 
@@ -78,7 +78,7 @@ DistContent:
 BuildDistFragments:
   C:\Program Files (x86)\WiX Toolset v3.11\bin\Heat.exe dir C:\git\salt\pkg\windows\buildenv -cg dist -dr INSTALLFOLDER -ke -srd -var var.dist -nologo -sw5150 -gg -nologo -sw5150 -t C:\git\salt-windows-msi\msbuild.d\BuildDistFragment.xsl -out dist-amd64.wxs
 Compile:
-  C:\Program Files (x86)\WiX Toolset v3.11\bin\candle.exe -ddist=C:\git\salt\pkg\windows\buildenv -dTargetPlatform=amd64 -dDisplayVersion=2018.3.3 -dInternalVersion=18.3.3.0 -d"DevEnvDir=*Undefined if not building from within Visual Studio*" -dSolutionDir=C:\git\salt-windows-msi\ -dSolutionExt=.sln -dSolutionFileName=wix.sln -dSolutionName=wix -dSolutionPath=C:\git\salt-windows-msi\wix.sln -dConfiguration=Release -dOutDir=bin\Release\ -dPlatform=x64 -dProjectDir=C:\git\salt-windows-msi\wix.d\MinionMSI\ -dProjectExt=.wixproj -dProjectFileName=MinionMSI.wixproj -dProjectName=MinionMSI -dProjectPath=C:\git\salt-windows-msi\wix.d\MinionMSI\MinionMSI.wixproj -dTargetDir=C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\ -dTargetExt=.msi -dTargetFileName=Salt-Minion-Setup.msi -dTargetName=Salt-Minion-Setup -dTargetPath=C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\Salt-Minion-Setup.msi -dMinionConfigurationExtension.Configuration=Release -d"MinionConfigurationExtension.FullConfiguration=Release|x86" -dMinionConfigurationExtension.Platform=x86 -dMinionConfigurationExtension.ProjectDir=C:\git\salt-windows-msi\wix.d\MinionConfigurationExtension\ -dMinionConfigurationExtension.ProjectExt=.csproj -dMinionConfigurationExtension.ProjectFileName=MinionConfigurationExtension.csproj -dMinionConfigurationExtension.ProjectName=MinionConfigurationExtension -dMinionConfigurationExtension.ProjectPath=C:\git\salt-windows-msi\wix.d\MinionConfigurationExtension\MinionConfigurationExtension.csproj -dMinionConfigurationExtension.TargetDir=C:\git\salt-windows-msi\wix.d\MinionConfigurationExtension\bin\Release\ -dMinionConfigurationExtension.TargetExt=.dll -dMinionConfigurationExtension.TargetFileName=MinionConfigurationExtension.dll -dMinionConfigurationExtension.TargetName=MinionConfigurationExtension -dMinionConfigurationExtension.TargetPath=C:\git\salt-windows-msi\wix.d\MinionConfigurationExtension\bin\Release\MinionConfigurationExtension.dll -out obj\Release\ -arch x64 -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixUtilExtension.dll" -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixUIExtension.dll" -nologo service.wxs servicePython.wxs SettingsCustomizationDlg.wxs MinionConfigurationExtensionCA.wxs Product.wxs WixUI_Minion.wxs dist-amd64.wxs
+  C:\Program Files (x86)\WiX Toolset v3.11\bin\candle.exe -ddist=C:\git\salt\pkg\windows\buildenv -dTargetPlatform=amd64 -dDisplayVersion=2018.3.3 -dInternalVersion=18.3.3.0 -d"DevEnvDir=*Undefined if not building from within Visual Studio*" -dSolutionDir=C:\git\salt-windows-msi\ -dSolutionExt=.sln -dSolutionFileName=wix.sln -dSolutionName=wix -dSolutionPath=C:\git\salt-windows-msi\wix.sln -dConfiguration=Release -dOutDir=bin\Release\ -dPlatform=x64 -dProjectDir=C:\git\salt-windows-msi\wix.d\MinionMSI\ -dProjectExt=.wixproj -dProjectFileName=MinionMSI.wixproj -dProjectName=MinionMSI -dProjectPath=C:\git\salt-windows-msi\wix.d\MinionMSI\MinionMSI.wixproj -dTargetDir=C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\ -dTargetExt=.msi -dTargetFileName=Salt-Minion-Setup.msi -dTargetName=Salt-Minion-Setup -dTargetPath=C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\Salt-Minion-Setup.msi -dMinionConfigurationExtension.Configuration=Release -d"MinionConfigurationExtension.FullConfiguration=Release|x86" -dMinionConfigurationExtension.Platform=x86 -dMinionConfigurationExtension.ProjectDir=C:\git\salt-windows-msi\wix.d\MinionConfigurationExtension\ -dMinionConfigurationExtension.ProjectExt=.csproj -dMinionConfigurationExtension.ProjectFileName=MinionConfigurationExtension.csproj -dMinionConfigurationExtension.ProjectName=MinionConfigurationExtension -dMinionConfigurationExtension.ProjectPath=C:\git\salt-windows-msi\wix.d\MinionConfigurationExtension\MinionConfigurationExtension.csproj -dMinionConfigurationExtension.TargetDir=C:\git\salt-windows-msi\wix.d\MinionConfigurationExtension\bin\Release\ -dMinionConfigurationExtension.TargetExt=.dll -dMinionConfigurationExtension.TargetFileName=MinionConfigurationExtension.dll -dMinionConfigurationExtension.TargetName=MinionConfigurationExtension -dMinionConfigurationExtension.TargetPath=C:\git\salt-windows-msi\wix.d\MinionConfigurationExtension\bin\Release\MinionConfigurationExtension.dll -out obj\Release\ -arch x64 -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixUtilExtension.dll" -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixUIExtension.dll" -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixNetFxExtension.dll" -nologo service.wxs servicePython.wxs SettingsCustomizationDlg.wxs MinionConfigurationExtensionCA.wxs Product.wxs WixUI_Minion.wxs dist-amd64.wxs
   service.wxs
 C:\git\salt-windows-msi\wix.d\MinionMSI\service.wxs(9): warning CNDL1150: ServiceConfig functionality is documented in the Windows Installer SDK to "not [work] as expected." Consider replacing ServiceConfig with the WixUtilExtension ServiceConfig element. [C:\git\salt-windows-msi\wix.d\MinionMSI\MinionMSI.wixproj]
   servicePython.wxs
@@ -89,7 +89,7 @@ C:\git\salt-windows-msi\wix.d\MinionMSI\servicePython.wxs(9): warning CNDL1150: 
   WixUI_Minion.wxs
   dist-amd64.wxs
 Link:
-  C:\Program Files (x86)\WiX Toolset v3.11\bin\Light.exe -out C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\Salt-Minion-2018.3.3-64bit.msi -pdbout C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\Salt-Minion-Setup.wixpdb -cultures:null -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixUtilExtension.dll" -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixUIExtension.dll" -sice:ICE03 -contentsfile obj\Release\MinionMSI.wixproj.BindContentsFileListnull.txt -outputsfile obj\Release\MinionMSI.wixproj.BindOutputsFileListnull.txt -builtoutputsfile obj\Release\MinionMSI.wixproj.BindBuiltOutputsFileListnull.txt -wixprojectfile C:\git\salt-windows-msi\wix.d\MinionMSI\MinionMSI.wixproj -nologo obj\Release\service.wixobj obj\Release\servicePython.wixobj obj\Release\SettingsCustomizationDlg.wixobj obj\Release\MinionConfigurationExtensionCA.wixobj obj\Release\Product.wixobj obj\Release\WixUI_Minion.wixobj obj\Release\dist-amd64.wixobj
+  C:\Program Files (x86)\WiX Toolset v3.11\bin\Light.exe -out C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\Salt-Minion-2018.3.3-64bit.msi -pdbout C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\Salt-Minion-Setup.wixpdb -cultures:null -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixUtilExtension.dll" -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixUIExtension.dll" -ext "C:\Program Files (x86)\WiX Toolset v3.11\bin\\WixNetFxExtension.dll" -sice:ICE03 -contentsfile obj\Release\MinionMSI.wixproj.BindContentsFileListnull.txt -outputsfile obj\Release\MinionMSI.wixproj.BindOutputsFileListnull.txt -builtoutputsfile obj\Release\MinionMSI.wixproj.BindBuiltOutputsFileListnull.txt -wixprojectfile C:\git\salt-windows-msi\wix.d\MinionMSI\MinionMSI.wixproj -nologo obj\Release\service.wixobj obj\Release\servicePython.wixobj obj\Release\SettingsCustomizationDlg.wixobj obj\Release\MinionConfigurationExtensionCA.wixobj obj\Release\Product.wixobj obj\Release\WixUI_Minion.wixobj obj\Release\dist-amd64.wixobj
   MinionMSI -> C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release\Salt-Minion-2018.3.3-64bit.msi
 Done Building Project "C:\git\salt-windows-msi\wix.d\MinionMSI\MinionMSI.wixproj" (default targets).
 
@@ -110,13 +110,13 @@ Build succeeded.
     2 Warning(s)
     0 Error(s)
 
-Time Elapsed 00:01:43.12
+Time Elapsed 00:01:44.95
  Volume in drive C is Windows
  Volume Serial Number is B0D0-5FA2
 
  Directory of C:\git\salt-windows-msi\wix.d\MinionMSI\bin\Release
 
-03.02.2019  22:09        31.166.464 Salt-Minion-2018.3.3-64bit.msi
+03.02.2019  22:23        31.166.464 Salt-Minion-2018.3.3-64bit.msi
                1 File(s)     31.166.464 bytes
-               0 Dir(s)  78.331.080.704 bytes free
+               0 Dir(s)  78.328.643.584 bytes free
 C:\git\salt-windows-msi>
