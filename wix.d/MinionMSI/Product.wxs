@@ -39,13 +39,17 @@
     Find the how-to here:       
     http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/block_install_on_os.html       
     -->
-    <Condition Message="Installation requires Windows 7/Server 2012 and 125 MB RAM. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT], PhysicalMemory [PhysicalMemory]">
+    <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
       <![CDATA[
       Installed 
-      or (PhysicalMemory > 125) 
-      and ((MsiNTProductType = 1) and  (VersionNT >= 601)
-      or   (MsiNTProductType = 2) and  (VersionNT >= 602)
-      or   (MsiNTProductType = 3) and  (VersionNT >= 602))
+      or  (MsiNTProductType = 1) and  (VersionNT >= 601)
+      or  (MsiNTProductType = 2) and  (VersionNT >= 602)
+      or  (MsiNTProductType = 3) and  (VersionNT >= 602)
+      ]]>
+    </Condition>
+    <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">
+      <![CDATA[
+      Installed or (PhysicalMemory > 125)
       ]]>
     </Condition>
 
