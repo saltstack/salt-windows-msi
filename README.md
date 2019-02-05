@@ -45,19 +45,32 @@ customized values for e.g. master hostname, minion id, installation path, using 
 - [Wix 3.11](http://wixtoolset.org/releases/)
 - [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)
 
-### Build procedure
+### Build the exe installer
 
-```cmd
-cd c:\git\salt\pkg\windows
-git checkout v2018.3.3
-clean_env.bat
-build.bat
+Prepare
 
-cd c:\git\salt-windows-msi
-build_env.cmd
-build.cmd
-clean.cmd
-```
+    cd c:\git\salt\pkg\windows
+    git checkout v2018.3.3
+    clean_env.bat
+    git checkout .
+    git clean -fd
+
+until `git status` returns
+
+    HEAD detached at v2018.3.3
+    nothing to commit, working tree clean
+
+then
+
+    build.bat
+
+### Build the msi installer
+
+Build the exe installer first.
+
+    cd c:\git\salt-windows-msi
+    build_env.cmd
+    build.cmd
 
 ### WiX
 
