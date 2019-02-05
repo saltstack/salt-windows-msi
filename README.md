@@ -28,22 +28,27 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 > msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE
 
-## Requirements for the installation
+## Target client requirements
 
-- .Net 2.0, or higher
+The target client is where the installer is deployed.
 
-## Build Requirement
+- Windows 7 (workstation) or Server 2012 (domain controller), or higher.
+- .Net 2.0, or higher. A WiX msi installer cannot do without.
+- 125 MB RAM
+
+## Build client requirements
+
+The build client is where the installer is created.
 
 - Windows 64bit
 - Salt clone in `c:/git/salt/`
 - This clone in `c:/git/salt-windows-msi/`
-- .Net 4.5 SDK (Only Win7?)
+- .Net 3.5 SDK (for WiX)
 - Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/salt_msi_resources/`
+- [Wix 3.11](http://wixtoolset.org/releases/)<sup>*</sup>
+- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>*</sup>
 
-## Resources automatically downloaded and installed, if necessarry
-
-- [Wix 3.11](http://wixtoolset.org/releases/)
-- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)
+<sup>*</sup> downloaded and installed if necessarry by `build_env.cmd`.
 
 ### Build the exe installer
 

@@ -191,3 +191,4 @@ wix/**/*.msi
 wix/MinionMSI/dist-*
 .nuget/nuget.exe
 dist*
+README.html
