@@ -44,11 +44,16 @@ The build client is where the installer is created.
 - Salt clone in `c:/git/salt/`
 - This clone in `c:/git/salt-windows-msi/`
 - .Net 3.5 SDK (for WiX)
-- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/salt_msi_resources/`
+- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 SP2 in `c:/salt_msi_resources/`
 - [Wix 3.11](http://wixtoolset.org/releases/)<sup>*</sup>
 - [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>*</sup>
 
 <sup>*</sup> downloaded and installed if necessarry by `build_env.cmd`.
+
+[Python/CRT](https://wiki.python.org/moin/WindowsCompilers)
+
+- Python 2.7 = VC CRT 9.0 = VS 2008  
+- Python 3.6 = VC CRT 14.0 = VS 2017
 
 ### Build the exe installer
 

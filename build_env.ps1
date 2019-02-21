@@ -1,23 +1,23 @@
 
 function Verify ($local_file, $SHA256) {
     if (-Not (Test-Path $local_file)) {
-	Write-Host  -ForegroundColor Red "$local_file   MISSING"
-	exit -2
+        Write-Host  -ForegroundColor Red "$local_file   MISSING"
+        exit -2
     }
     if ((Get-FileHash $local_file).Hash -eq $SHA256) {
-	Write-Host -ForegroundColor Green "Found $local_file"
-    } else {
-	Write-Host  -ForegroundColor Red "$local_file   UNEXPECTED HASH   $((Get-FileHash $local_file).Hash)"
-	exit -2
+        Write-Host -ForegroundColor Green "Found $local_file"
+        } else {
+        Write-Host  -ForegroundColor Red "$local_file   UNEXPECTED HASH   $((Get-FileHash $local_file).Hash)"
+        exit -2
     }
 }
 
 
 function OptionallyDownloadAndVerify ($local_file, $URL, $SHA256) {
     if (-Not (Test-Path $local_file)) {
-	"Downloading...  $URL"
-	[Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
-	(New-Object System.Net.WebClient).DownloadFile($URL, $local_file)
+        "Downloading...  $URL"
+        [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
+        (New-Object System.Net.WebClient).DownloadFile($URL, $local_file)
     }
     Verify $local_file $SHA256
 }
@@ -27,15 +27,15 @@ function OptionallyDownloadAndVerify ($local_file, $URL, $SHA256) {
 ####
 $salt_msi_resources = "c:/salt_msi_resources"
 # mkdir must be guarded, and I don't want to send the result of is-dir to console
-$ingnore_bool = (Test-Path -Path $salt_msi_resources) -Or (New-Item -ItemType directory -Path $salt_msi_resources)
+$ignore_bool = (Test-Path -Path $salt_msi_resources) -Or (New-Item -ItemType directory -Path $salt_msi_resources)
 
 
 #### Ensure resources are present
 ####
 
-## Python 2.7 requires VC++ Runtime merge module from Visual Studio 2008
+## VC++ Runtime merge module from Visual Studio 2008 SP2. Required by Python 2.7 
 $f = "c:/salt_msi_resources/Microsoft_VC90_CRT_x86_x64.msm"
-$h = "D5B4E8B100D2A9A6A756BB6D70DF67203E3B611F49866F84944607DC096E4AFE"
+$h = "A3CE9F8B524E8EEE31CD0487DEAD3A89BFA9721D660FDCE6AC56B59819E17917"
 Verify $f $h
 
 
@@ -50,8 +50,8 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E8
     $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
     $dotnet3enabled = $dotnet3state -Eq "Enabled"
     if (-Not ($dotnet3enabled)) {
-	"To use WiX 3.11 on Windows 10, you need to enable .Net Framework 3.5"
-	Start-Process optionalfeatures -Wait -NoNewWindow
+        "To use WiX 3.11 on Windows 10, you need to enable .Net Framework 3.5"
+        Start-Process optionalfeatures -Wait -NoNewWindow
     }
     
     $wixInstaller = "c:/salt_msi_resources/wix311.exe"
