@@ -3,6 +3,7 @@
 
 find-optional-modules/*.txt
 find-optional-modules/*.pyc
+find-optional-modules/_*.cmd
 
 # User-specific files
 *.suo
