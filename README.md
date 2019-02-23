@@ -112,7 +112,12 @@ properties, and the current value of those properties:
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
     - MinionMSI.wixproj: msbuild boilerplate.
     - Product.wxs: main file.
-    - service.wxs: Windows Service (using ssm.exe, the Salt Service Manager).
+    - service.wxs: salt-minion Windows Service (using ssm.exe, the Salt Service Manager).
+    - servicePython.wxs: (EXPERIMENTAL) salt-minion Windows Service
+      - requires to restore salt/util/saltminionservice.py DELETED WHEN?
+        - https://github.com/saltstack/salt/blob/2014.7/salt/utils/saltminionservice.py
+        - https://github.com/saltstack/salt/blob/2015.5/salt/utils/saltminionservice.py
+        - https://github.com/saltstack/salt/blob/2016.3/salt/utils/saltminionservice.py
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
     - WixUI_Minion.wxs: UI description.
 - msbuild.proj: main msbuild file.
