@@ -163,6 +163,10 @@ If the new custom action requires its own dialog, these additional changes are r
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
+### Other
+
+Disutils contain bin/Lib/distutils/command/bdist_msi.py, which probably does not work.
+
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
 [MSBuild2015Id]: https://www.microsoft.com/en-US/download/details.aspx?id=48159
