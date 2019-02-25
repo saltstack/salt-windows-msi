@@ -83,5 +83,4 @@ desc_module('VMware ESXi Hosts', ['bin/Lib/site-packages/salt/states/esxi.py'], 
 desc_module('Grafana Dashboards', ['bin/Lib/site-packages/salt/states/grafana*.*'], strip=True)
 desc_module('Manage JBoss 7 Application Server via CLI interface', ['bin/Lib/site-packages/salt/states/jboss7.py'], strip=True)
 desc_module('Junos devices', ['bin/Lib/site-packages/salt/states/junos.py'], strip=True)
-
-
+desc_module('Naive CGI-savvy HTTP Server', ['bin/Lib/CGIHTTPServer.py'], strip=True)
