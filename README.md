@@ -1,7 +1,8 @@
 # Windows MSI installer build toolkit
 
 This project creates a Salt Minion msi installer using [WiX][WiX_link].
-The focus is on unattended install.
+
+The focus is on 64bit, unattended install.
 
 ## Features
 
@@ -33,15 +34,16 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 The target client is where the installer is deployed.
 
+- 64bit
 - Windows 7 (workstation) or Server 2012 (domain controller), or higher.
-- .Net 2.0, or higher. A WiX msi installer cannot do without.
+- .Net 2.0 or higher, for the WiX msi installer.
 - 125 MB RAM
 
 ## Build client requirements
 
 The build client is where the installer is created.
 
-- Windows 64bit
+- 64bit
 - Salt clone in `c:/git/salt/`
 - This clone in `c:/git/salt-windows-msi/`
 - .Net 3.5 SDK (for WiX)
@@ -77,10 +79,6 @@ Build the exe installer first.
     cd c:\git\salt-windows-msi
     build_env.cmd
     build.cmd
-
-### WiX
-
-[Wix-Setup-Samples](https://github.com/deepak-rathi/Wix-Setup-Samples)
 
 ### MSBuild
 
@@ -160,6 +158,8 @@ If the new custom action requires its own dialog, these additional changes are r
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
 ### Other Notes
+
+[Wix-Setup-Samples](https://github.com/deepak-rathi/Wix-Setup-Samples)
 
 [Which Python version uses which MS VC CRT version](https://wiki.python.org/moin/WindowsCompilers)
 
