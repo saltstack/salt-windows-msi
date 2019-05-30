@@ -1,7 +1,7 @@
 # Windows MSI installer build toolkit
 
-This project creates a Salt Minion msi installer using [WiX][WiXId].
-The focus on unattended install.
+This project creates a Salt Minion msi installer using [WiX][WiX_link].
+The focus is on unattended install.
 
 ## Features
 
@@ -18,7 +18,7 @@ Minion-specific msi-properties:
  `MASTER_HOSTNAME`      | `salt`          | The master hostname
  `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id
  `START_MINION_SERVICE` | `0` (_false_)   | Whether to start the salt-minion service after installation
- `KEEP_CONFIG`          | `1` (_true_)    | keep configuratioin on uninstall. Only from command line
+ `KEEP_CONFIG`          | `1` (_true_)    | keep configuration on uninstall. Only from command line
 
 A kept configuration is reused on installation into its location.
 
@@ -49,7 +49,7 @@ The build client is where the installer is created.
 - [Wix 3.11](http://wixtoolset.org/releases/)<sup>*</sup>
 - [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>*</sup>
 
-<sup>*</sup> downloaded and installed if necessarry by `build_env.cmd`.
+<sup>*</sup> downloaded and installed if necessary by `build_env.cmd`.
 
 ### Build the exe installer
 
@@ -166,13 +166,12 @@ If the new custom action requires its own dialog, these additional changes are r
 - Python 2.7 = VC CRT 9.0 = VS 2008  
 - Python 3.6 = VC CRT 14.0 = VS 2017
 
-Distutils contains bin/Lib/distutils/command/bdist_msi.py, which probably wont work.
+Distutils contains bin/Lib/distutils/command/bdist_msi.py, which probably does not work.
 
-[WiXId]: http://wixtoolset.org "WiX Homepage"
-[MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
-[MSBuild2015Id]: https://www.microsoft.com/en-US/download/details.aspx?id=48159
-[SALT_versions]:https://docs.saltstack.com/en/develop/topics/releases/version_numbers.html
-[version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
+[WiX_link]: http://wixtoolset.org
+[MSBuild_link]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx
+[MSBuild2015_link]: https://www.microsoft.com/en-US/download/details.aspx?id=48159
+[SALT_versions_link]:https://docs.saltstack.com/en/develop/topics/releases/version_numbers.html
+[salt_versions_py_link]: https://github.com/saltstack/salt/blob/develop/salt/version.py
 [WindowsInstaller4.5_link]:https://www.microsoft.com/en-us/download/details.aspx?id=8483
-[issue18]:https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
-[MSDN_ProductVersion]:https://msdn.microsoft.com/en-us/library/windows/desktop/aa370859
+[MSDN_ProductVersion_link]:https://msdn.microsoft.com/en-us/library/windows/desktop/aa370859
