@@ -1,6 +1,7 @@
 # Windows MSI installer build toolkit
 
 This project creates a Salt Minion msi installer using [WiX][WiXId].
+The focus on unattended install.
 
 ## Features
 
@@ -50,24 +51,19 @@ The build client is where the installer is created.
 
 <sup>*</sup> downloaded and installed if necessarry by `build_env.cmd`.
 
-[Python/CRT](https://wiki.python.org/moin/WindowsCompilers)
-
-- Python 2.7 = VC CRT 9.0 = VS 2008  
-- Python 3.6 = VC CRT 14.0 = VS 2017
-
 ### Build the exe installer
 
 Prepare
 
     cd c:\git\salt\pkg\windows
-    git checkout v2018.3.3
+    git checkout v2018.3.4
     clean_env.bat
     git checkout .
     git clean -fd
 
 until `git status` returns
 
-    HEAD detached at v2018.3.3
+    HEAD detached at v2018.3.4
     nothing to commit, working tree clean
 
 then
@@ -163,9 +159,14 @@ If the new custom action requires its own dialog, these additional changes are r
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
-### Other
+### Other Notes
 
-Disutils contain bin/Lib/distutils/command/bdist_msi.py, which probably does not work.
+[Which Python version uses which MS VC CRT version](https://wiki.python.org/moin/WindowsCompilers)
+
+- Python 2.7 = VC CRT 9.0 = VS 2008  
+- Python 3.6 = VC CRT 14.0 = VS 2017
+
+Distutils contains bin/Lib/distutils/command/bdist_msi.py, which probably wont work.
 
 [WiXId]: http://wixtoolset.org "WiX Homepage"
 [MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
