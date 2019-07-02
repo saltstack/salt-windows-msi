@@ -29,7 +29,7 @@
              Example: public static ActionResult IMCA_read_NSIS(Session session)
              Session is a kind of dictionary/hash of msi properties
                   Example: session["MASTER_HOSTNAME"] = value;
-
+                  Warning: WiX does not check if the property exists. The installer will only break at install time.
 
          "Deferred custom actions" (DECA_) require properties to be passed as Session.CustomActionData
          via separate type 51 "custom actions data helper" (CADH_):
@@ -37,6 +37,7 @@
            the 'Value=' attribute must be a list of key=[Property] pairs.
                Example: public static ActionResult DECA_WriteConfig(Session session)
                Example: rootDir = session.CustomActionData["root_dir"]
+               Warning: WiX does not check if the key exists. The installer will only break at install time.
 
          Actions are declared here and called (repeatedly) in Product.wxs.
          Actions must have C# Signature [CustomAction] public static ActionResult
