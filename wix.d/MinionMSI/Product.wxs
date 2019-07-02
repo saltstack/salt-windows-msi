@@ -31,13 +31,12 @@
     <PropertyRef Id="WIX_IS_NETFRAMEWORK_45_OR_LATER_INSTALLED"/>
 
     <!--
-      Block Installation Based on OS Properties
+      Block installation based on OS properties
       Properties:
        - MsiNTProductType:  1=Workstation  2=Domain controller  3=Server
        - VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx
        - PhysicalMemory     https://docs.microsoft.com/de-de/windows/desktop/Msi/physicalmemory
-    Find the how-to here:       
-    http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/block_install_on_os.html       
+      From the how-to http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/block_install_on_os.html
     -->
     <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
       <![CDATA[
