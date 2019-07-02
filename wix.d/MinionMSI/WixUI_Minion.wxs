@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!-- This fragment is included by Product.wxs -->
   <Fragment>
     <UI Id="WixUI_Minion">
 

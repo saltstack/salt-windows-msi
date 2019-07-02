@@ -105,12 +105,12 @@ properties, and the current value of those properties:
     - dist-$(TargetPlatform).wxs: found files (from the distribution zip file?).
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
     - MinionMSI.wixproj: msbuild boilerplate.
-    - Product.wxs: main file.
+    - Product.wxs: main file, that e.g. includes the UI description.
     - service.wxs: salt-minion Windows Service using ssm.exe, the Salt Service Manager.
     - servicePython.wxs: (EXPERIMENTAL) salt-minion Windows Service
       - requires [saltminionservice](https://github.com/saltstack/salt/blob/167cdb344732a6b85e6421115dd21956b71ba25a/salt/utils/saltminionservice.py) or [winservice](https://github.com/saltstack/salt/blob/3fb24929c6ebc3bfbe2a06554367f8b7ea980f5e/salt/utils/winservice.py) [Removed](https://github.com/saltstack/salt/commit/8c01aacd9b4d6be2e8cf991e3309e2a378737ea0)
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
-    - WixUI_Minion.wxs: UI description.
+    - WixUI_Minion.wxs: UI description, that includes the dialog.
 - msbuild.proj: main msbuild file.
 - wix.sln: Visual Studio solution file, needed to build the installer.
 

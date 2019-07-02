@@ -43,9 +43,9 @@ Verify $f $h
 #### Ensure resources are installed or get them
 ###
 
-## Wix 3.11
+## Wix 3.11.1 robmen released this on Dec 31, 2017    see https://wixtoolset.org/releases/
 if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E868-267F-47FB-86BC-D3D62305D7F4}") {
-    Write-Host -ForegroundColor Green "Wix is installed"
+    Write-Host -ForegroundColor Green "Wix 3.11.1 is installed"
 } else {
     $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
     $dotnet3enabled = $dotnet3state -Eq "Enabled"
