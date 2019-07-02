@@ -25,11 +25,18 @@
          to start the service, which is done during the install instead of running 'net start' at the end. 
          Running 'net start' would not produce any useful log information.
 
-         Immediate custom actions (IMCA_ ) can read/write msi Properties.
-         Deferred custom actions (DECA_) require properties to be passed as CustomActionData
-         via separate type 51 custom actions (CADH_): 
-           The 'Property=' attribute must be set to the name of the custom action receiving the data, and 
+         "Immediate custom actions" (IMCA_) can get and set msi Properties using the "Session".
+             Example: public static ActionResult IMCA_read_NSIS(Session session)
+             Session is a kind of dictionary/hash of msi properties
+                  Example: session["MASTER_HOSTNAME"] = value;
+
+
+         "Deferred custom actions" (DECA_) require properties to be passed as Session.CustomActionData
+         via separate type 51 "custom actions data helper" (CADH_):
+           The 'Property=' attribute must be set to the name of the "deferred custom action" (DECA_) receiving the data, and
            the 'Value=' attribute must be a list of key=[Property] pairs.
+               Example: public static ActionResult DECA_WriteConfig(Session session)
+               Example: rootDir = session.CustomActionData["root_dir"]
 
          Actions are declared here and called (repeatedly) in Product.wxs.
          Actions must have C# Signature [CustomAction] public static ActionResult
@@ -39,7 +46,8 @@
     <CustomAction Id="CADH_UninstallKeepConfig0"  Property="DECA_UninstallKeepConfig0"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
     <CustomAction Id="CADH_UninstallKeepConfig1"  Property="DECA_UninstallKeepConfig1"  Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
     <CustomAction Id="CADH_Upgrade"               Property="DECA_Upgrade"               Value="root_dir=[INSTALLFOLDER];master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME]" />
-    
+    <!-- DECA_UninstallKeepConfig* probably dont need  master=[MASTER_HOSTNAME];id=[MINION_HOSTNAME] -->
+
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>
 </Wix>

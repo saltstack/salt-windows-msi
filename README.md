@@ -7,8 +7,8 @@ The focus is on 64bit, unattended install.
 ## Features
 
 - Change installation directory __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
-- Uninstall leaves configuration, remove with `msiexec /x KEEP_CONFIG=0`
-- Logging into %TEMP%\MSIxxxxx.LOG, options with `msiexec /l`
+- Uninstall leaves configuration by default, optionally removes configuration with `msiexec /x KEEP_CONFIG=0`
+- Creates a very verbose log file, by default named %TEMP%\MSIxxxxx.LOG, where xxxxx are 5 random lowercase letters and numbers. The name of the log can be specified with `msiexec /log example.log`
 - Upgrades NSIS installations
 
 Minion-specific msi-properties:
