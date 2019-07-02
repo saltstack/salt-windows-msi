@@ -15,7 +15,7 @@
     <!-- mkr
     An msi can only be for 32 or 64 bit.
     What to call "32 or 64 bit" depends on the context.
-    There is Platform, TargetPlatform, InstallerPlatform and ProcessorArchitecture.
+    There is Platform, TargetPlatform and InstallerPlatform. We ignore ProcessorArchitecture, which is unset.
     The msi is created as 32 or 64 bit by the candle -arch [x86|x64] parameter.
     It seems that the InstallerPlatform property triggers the candle -arch parameter.
     It seems silly that I must set TargetPlatform from InstallerPlatform.
@@ -62,7 +62,6 @@
     <Message Text="  ******************  MSBuildProjectDirectory = $(MSBuildProjectDirectory)"/>
     <Message Text="  ******************           TargetPlatform = $(TargetPlatform)"/>
     <Message Text="  ******************        InstallerPlatform = $(InstallerPlatform)"/>
-    <Message Text="  ******************    ProcessorArchitecture = $(ProcessorArchitecture)"/>
     <Message Text="  ******************            Configuration = $(Configuration)"/>    
     <Message Text="  ******************           TargetPlatform = $(TargetPlatform)"/>
     <Message Text="  ******************           DisplayVersion = $(DisplayVersion)"/>
