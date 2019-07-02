@@ -25,8 +25,7 @@
     Make the .NET Framework Version available as Property.
     The NET Framework Versions are properties of the WixNetFxExtension.
     To make any of these properties available here, you need to reference them first.
-    Find the how-to here:
-    http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/check_for_dotnet.html
+    From the how-to http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/check_for_dotnet.html
     -->
     <PropertyRef Id="WIX_IS_NETFRAMEWORK_45_OR_LATER_INSTALLED"/>
 
@@ -55,6 +54,7 @@
     <!-- Salt properties  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="kingbob"              /> <!-- $(env.COMPUTERNAME) is the name of the building machine. Must be set dynamically. Must not be empty.    -->
+    <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  /> <!-- Can be changed by user to point to another location -->
     <Property Id="KEEP_CONFIG"              Value="1"                    />
     <Property Id="START_MINION_SERVICE"     Value="0"                    />
     <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
