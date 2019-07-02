@@ -1,3 +1,6 @@
+###
+###  Downloads software to c:\salt_msi_resources
+###
 
 function Verify ($local_file, $SHA256) {
     if (-Not (Test-Path $local_file)) {
