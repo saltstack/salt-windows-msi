@@ -34,7 +34,7 @@
       Properties:
        - MsiNTProductType:  1=Workstation  2=Domain controller  3=Server
        - VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx
-       - PhysicalMemory     https://docs.microsoft.com/de-de/windows/desktop/Msi/physicalmemory
+       - PhysicalMemory     https://docs.microsoft.com/en-us/windows/desktop/Msi/physicalmemory
       From the how-to http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/block_install_on_os.html
     -->
     <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
@@ -109,13 +109,15 @@
 
       <!-- 
       Remove 'lifetime' data on uninstall or upgrade.
+      Lifetime data is mainly *.pyc files.
+
       On custom action conditions:
         http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf
       On the upgrade custom action condition:
         UPGRADINGPRODUCTCODE | does not work
         Not Installed        | this installer is not installed
         
-      On DECA_Upgrade and the CleanupVarFolder component
+      On DECA_Upgrade and the CleanupVarFolder component:
         DECA_Upgrade removes bin/**/*.pyc files.  CleanupVarFolder does this already. 
         TODO rethink this.
       -->
