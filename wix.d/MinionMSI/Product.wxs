@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- see Product.wxs.comments.txt for more comments -->
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" >
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" 
+    xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" 
+    xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
+>
   <!--
       Regarding product properties:
         UpgradeCode| GUID defining the product across versions. E.g. a previous version is uninstalled during upgrade.
@@ -17,18 +20,41 @@
     <!-- Windows Installer Version 3.0 = 300 -->
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
 
-    <!--  MsiNTProductType:  1 Workstation  2 Domain controller  3 Server      -->
-    <!--  VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx  -->
-    <Condition Message="Installation requires Windows XP, Windows Server 2008, or higher. (found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT])">
-      Installed
-      or MsiNTProductType = 1 and  VersionNT >= 501
-      or MsiNTProductType = 2 and  VersionNT >= 600
-      or MsiNTProductType = 3 and  VersionNT >= 600
+    <!--
+    Prepare to check for .NET Framework Versions 
+    Make the .NET Framework Version available as Property.
+    The NET Framework Versions are properties of the WixNetFxExtension.
+    To make any of these properties available here, you need to reference them first.
+    From the how-to http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/check_for_dotnet.html
+    -->
+    <PropertyRef Id="WIX_IS_NETFRAMEWORK_45_OR_LATER_INSTALLED"/>
+
+    <!--
+      Block installation based on OS properties
+      Properties:
+       - MsiNTProductType:  1=Workstation  2=Domain controller  3=Server
+       - VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx
+       - PhysicalMemory     https://docs.microsoft.com/en-us/windows/desktop/Msi/physicalmemory
+      From the how-to http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/block_install_on_os.html
+    -->
+    <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
+      <![CDATA[
+      Installed 
+      or  (MsiNTProductType = 1) and  (VersionNT >= 601)
+      or  (MsiNTProductType = 2) and  (VersionNT >= 602)
+      or  (MsiNTProductType = 3) and  (VersionNT >= 602)
+      ]]>
+    </Condition>
+    <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">
+      <![CDATA[
+      Installed or (PhysicalMemory > 125)
+      ]]>
     </Condition>
 
-    <!-- Salt properties                                  -->
+    <!-- Salt properties  -->
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="kingbob"              /> <!-- $(env.COMPUTERNAME) is the name of the building machine. Must be set dynamically. Must not be empty.    -->
+    <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  /> <!-- Can be changed by user to point to another location -->
     <Property Id="KEEP_CONFIG"              Value="1"                    />
     <Property Id="START_MINION_SERVICE"     Value="0"                    />
     <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
@@ -42,7 +68,7 @@
     <!-- WiX properties                                                 -->
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
 
-    <!-- 
+    <!--
       NICE-TO-HAVE   Detect VCRedist
       ProductCode (useless)  https://blogs.msdn.microsoft.com/astebner/2009/01/29/mailbag-how-to-detect-the-presence-of-the-visual-c-9-0-runtime-redistributable-package/
       UpgradeCode            http://mdb-blog.blogspot.de/2010/11/bootstrapper-package-detect-vcredist.html
@@ -64,7 +90,6 @@
     <InstallUISequence>
       <Custom Action="IMCA_SetMinionHostname"     Before='IMCA_read_NSIS'     >NOT Installed</Custom>
       <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>
-      <Custom Action="IMCA_WarnLittleRAM"         After='CostFinalize'        >NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
@@ -84,13 +109,15 @@
 
       <!-- 
       Remove 'lifetime' data on uninstall or upgrade.
+      Lifetime data is mainly *.pyc files.
+
       On custom action conditions:
         http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf
       On the upgrade custom action condition:
         UPGRADINGPRODUCTCODE | does not work
         Not Installed        | this installer is not installed
         
-      On DECA_Upgrade and the CleanupVarFolder component
+      On DECA_Upgrade and the CleanupVarFolder component:
         DECA_Upgrade removes bin/**/*.pyc files.  CleanupVarFolder does this already. 
         TODO rethink this.
       -->
@@ -142,7 +169,7 @@
          CON   msm:         ICE linter warnings, one 'you must reboot' message
          PRO   local dll:   easy 
       -->
-      <Merge Id="MSM_VC90_CRT_64" SourceFile="c:\msi\Microsoft_VC90_CRT_x86_x64.msm" DiskId="1" Language="0"/>
+      <Merge Id="MSM_VC90_CRT_64" SourceFile="c:\salt_msi_resources\Microsoft_VC90_CRT_x86_x64.msm" DiskId="1" Language="0"/>
     </DirectoryRef>
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">

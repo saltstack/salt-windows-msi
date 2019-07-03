@@ -167,31 +167,29 @@ namespace MinionConfigurationExtension {
 
     private static bool read_SimpleSetting_into_Property(Session session) {
       /*
-       * Read simple keys from c:/salt/conf/config into WiX properties.
-       * Is there anybody getting  session.Message(InstallMessage.Progress, new Record(2, 1)) ?
+       * Read simple keys from MINION_CONFIGFILE into WiX properties.
        */
-      session.Log("read_SimpleSetting_into_Parameters Begin");
-      string configFileFullpath = "c:\\salt\\conf\\minion"; // TODO
-      bool configExists = File.Exists(configFileFullpath);
+      string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
+      session.Log("IMCA_read_NSIS MINION_CONFIGFILE " + MINION_CONFIGFILE);
+      bool configExists = File.Exists(MINION_CONFIGFILE);
+      session.Log("IMCA_read_NSIS MINION_CONFIGFILE exists " + configExists);
       if (!configExists) { return true; }
-      session.Message(InstallMessage.Progress, new Record(2, 1));
-      string[] configText = File.ReadAllLines(configFileFullpath);
+      session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
+      string[] configLines = File.ReadAllLines(MINION_CONFIGFILE);
       try {
         Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
-        foreach (string line in configText) {
+        foreach (string line in configLines) {
           if (r.IsMatch(line)) {
             Match m = r.Match(line);
             string key = m.Groups[1].ToString();
             string value = m.Groups[2].ToString();
-            session.Log("read_SimpleSetting_into_Property key " + key);
-            session.Log("read_SimpleSetting_into_Property val " + value);
+            session.Log("IMCA_read_NSIS " + key + " " + value);
             if (key == "master") /**/ { session["MASTER_HOSTNAME"] = value; }
             if (key == "id") /******/ { session["MINION_HOSTNAME"] = value; }
           }
         }
       } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
       session.Message(InstallMessage.Progress, new Record(2, 1));
-      session.Log("read_SimpleSetting_into_Parameters End");
       return true;
     }
 
@@ -247,30 +245,30 @@ namespace MinionConfigurationExtension {
        *    a:b  
        * Only replace the first match, blank out all others
        */
-      string configFileFullPath = getConfigFileLocation(session);
-      string[] configText = File.ReadAllLines(configFileFullPath);
+      string MINION_CONFIGFILE = getConfigFileLocation(session);
+      string[] configLines = File.ReadAllLines(MINION_CONFIGFILE);
       session.Message(InstallMessage.Progress, new Record(2, 1));
-      session.Log("replace_pattern_in_config_file..config file    {0}", configFileFullPath);
+      session.Log("replace_pattern_in_config_file..config file    {0}", MINION_CONFIGFILE);
       session.Message(InstallMessage.Progress, new Record(2, 1));
       try {
         bool never_found_the_pattern = true;
-        for (int i = 0; i < configText.Length; i++) {
-          if (Regex.IsMatch(configText[i], pattern)) {
+        for (int i = 0; i < configLines.Length; i++) {
+          if (Regex.IsMatch(configLines[i], pattern)) {
             if (never_found_the_pattern) {
               never_found_the_pattern = false;
               session.Log("replace_pattern_in_config_file..pattern        {0}", pattern);
-              session.Log("replace_pattern_in_config_file..matched  line  {0}", configText[i]);
+              session.Log("replace_pattern_in_config_file..matched  line  {0}", configLines[i]);
               session.Log("replace_pattern_in_config_file..replaced line  {0}", replacement);
-              configText[i] = replacement + "\n";
+              configLines[i] = replacement + "\n";
             } else {
-              configText[i] = "\n";  // only assign the the config variable once
+              configLines[i] = "\n";  // only assign the the config variable once
             }
           }
         }
       } catch (Exception ex) { just_ExceptionLog("Looping Regexp", session, ex); return ActionResult.Failure; }
       session.Message(InstallMessage.Progress, new Record(2, 1));
       try {
-        File.WriteAllLines(configFileFullPath, configText);
+        File.WriteAllLines(MINION_CONFIGFILE, configLines);
       } catch (Exception ex) { just_ExceptionLog("Writing to file", session, ex); return ActionResult.Failure; }
       return ActionResult.Success;
     }

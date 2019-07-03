@@ -1,67 +1,86 @@
-Windows MSI installer build toolkit
-================
+# Windows MSI installer build toolkit
 
-This project creates a Salt Minion msi installer using [WiX][WiXId].
+This project creates a Salt Minion msi installer using [WiX][WiX_link].
 
-## Features ##
+The focus is on 64bit, unattended install.
 
-- Change installation directory __BLOCKED BY__ <a href=https://github.com/saltstack/salt/issues/38430>issue #38430</a>
-- Uninstall leaves configuration, remove with `msiexec /x KEEP_CONFIG=0`
-- Logging into %TEMP%\MSIxxxxx.LOG, options with `msiexec /l`
+## Features
+
+- Change installation directory __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
+- Uninstall leaves configuration by default, optionally removes configuration with `msiexec /x KEEP_CONFIG=0`
+- Creates a very verbose log file, by default named %TEMP%\MSIxxxxx.LOG, where xxxxx are 5 random lowercase letters and numbers. The name of the log can be specified with `msiexec /log example.log`
 - Upgrades NSIS installations
-
 
 Minion-specific msi-properties:
 
-  Property              |  Default        | Comment                                                    
- ---------------------- | --------------- | -----------------------------------------------------------
- `INSTALLFOLDER`        | `c:\salt\`      | Where to install the Minion  __DO NOT CHANGE__             
- `MASTER_HOSTNAME`      | `salt`          | The master hostname                                         
- `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id                                                
+  Property              |  Default        | Comment
+ ---------------------- | --------------- | ------
+ `INSTALLFOLDER`        | `c:\salt\`      | Where to install the Minion  __DO NOT CHANGE__
+ `MASTER_HOSTNAME`      | `salt`          | The master hostname
+ `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id
  `START_MINION_SERVICE` | `0` (_false_)   | Whether to start the salt-minion service after installation
- `KEEP_CONFIG`          | `1` (_true_)    | keep configuratioin on uninstall. Only from command line
-
+ `KEEP_CONFIG`          | `1` (_true_)    | keep configuration on uninstall. Only from command line
 
 A kept configuration is reused on installation into its location.
 
-### On unattended install ("silent install") ###
+### On unattended install ("silent install")
 
 An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
 customized values for e.g. master hostname, minion id, installation path, using the following command line:
 
-> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE 
+> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE
 
-## Requirements ##
-- .Net 2.0, or higher
- 
+## Target client requirements
 
-## Build Requirement ##
+The target client is where the installer is deployed.
 
-- Windows 64bit
+- 64bit
+- Windows 7 (workstation) or Server 2012 (domain controller), or higher.
+- .Net 2.0 or higher, for the WiX msi installer.
+- 125 MB RAM
+
+## Build client requirements
+
+The build client is where the installer is created.
+
+- 64bit
 - Salt clone in `c:/git/salt/`
 - This clone in `c:/git/salt-windows-msi/`
-- .Net 4.5 SDK (?why?)
-- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 in `c:/msi/`
+- .Net 3.5 SDK (for WiX)
+- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 SP2 in `c:/salt_msi_resources/`
+- [Wix 3.11](http://wixtoolset.org/releases/)<sup>*</sup>
+- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>*</sup>
 
-### Build procedure ###
+<sup>*</sup> downloaded and installed if necessary by `build_env.cmd`.
 
+### Build the exe installer
 
-```
-cd c:\git\salt
-git checkout v2016.11.3
-    # Apply https://github.com/saltstack/salt/pull/39274  (msi numbering scheme in version.py)
-    # git status must only show `modified: salt/version.py`
-cd c:\git\salt\pkg\windows
-build.bat
+Prepare
 
-cd c:\git\salt-windows-msi
-install_required_software.cmd
-yclean.cmd
-ybuild.cmd
+    cd c:\git\salt\pkg\windows
+    git checkout v2018.3.4
+    clean_env.bat
+    git checkout .
+    git clean -fd
 
-```
+until `git status` returns
 
-### <a id="msbuild"></a>MSBuild ###
+    HEAD detached at v2018.3.4
+    nothing to commit, working tree clean
+
+then
+
+    build.bat
+
+### Build the msi installer
+
+Build the exe installer first.
+
+    cd c:\git\salt-windows-msi
+    build_env.cmd
+    build.cmd
+
+### MSBuild
 
 General command line:
 
@@ -72,12 +91,11 @@ properties, and the current value of those properties:
 
 > msbuild msbuild.proj /t:help
 
-
-### Directory structure ###
+### Directory structure
 
 - msbuild.d/: build the installer:
   - BuildDistFragment.targets: find files (from the extracted distribution?).
-  - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable.
+  - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable for bundle.
   - Minion.Common.targets: set version and platform parameters.
 - wix.d/: installer sources:
   - MinionConfigurationExtension/: C# for custom actions:
@@ -87,17 +105,28 @@ properties, and the current value of those properties:
     - dist-$(TargetPlatform).wxs: found files (from the distribution zip file?).
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
     - MinionMSI.wixproj: msbuild boilerplate.
-    - Product.wxs: main file.
-    - service.wxs: Windows Service (using ssm.exe, the Salt Service Manager).
+    - Product.wxs: main file, that e.g. includes the UI description.
+    - service.wxs: salt-minion Windows Service using ssm.exe, the Salt Service Manager.
+    - servicePython.wxs: (EXPERIMENTAL) salt-minion Windows Service
+      - requires [saltminionservice](https://github.com/saltstack/salt/blob/167cdb344732a6b85e6421115dd21956b71ba25a/salt/utils/saltminionservice.py) or [winservice](https://github.com/saltstack/salt/blob/3fb24929c6ebc3bfbe2a06554367f8b7ea980f5e/salt/utils/winservice.py) [Removed](https://github.com/saltstack/salt/commit/8c01aacd9b4d6be2e8cf991e3309e2a378737ea0)
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
-    - WixUI_Minion.wxs: UI description.
+    - WixUI_Minion.wxs: UI description, that includes the dialog.
 - msbuild.proj: main msbuild file.
 - wix.sln: Visual Studio solution file, needed to build the installer.
 
+### Naming conventions
 
+### For WiX
 
+Prefix  | Example                 | Meaning
+------- | ----------------------- | -------
+`IMCA_` | `IMCA_NukeConf`         | Immediate custom action
+`DECA_` | `DECA_SetMaster`        | Deferred custom action
+`CADH_` | `CADH_SetMaster`        | Custom action data helper for DECA_
+`COMP_` | `COMP_NukeBin`          | Component
+`DIR_`  | `DIR_conf`              | Directory
 
-### Extending ###
+### Extending
 
 Additional configuration manipulations may be able to use the existing
 MinionConfigurationExtension project. Current manipulations read the
@@ -124,19 +153,25 @@ are required:
 If the new custom action requires its own dialog, these additional changes are required:
 
 - The new dialog file.
-- WixUI_Minion.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs. 
+- WixUI_Minion.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs.
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
+### Other Notes
 
+[Wix-Setup-Samples](https://github.com/deepak-rathi/Wix-Setup-Samples)
 
+[Which Python version uses which MS VC CRT version](https://wiki.python.org/moin/WindowsCompilers)
 
-[WiXId]: http://wixtoolset.org "WiX Homepage"
-[MSBuildId]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx "MSBuild Reference"
-[MSBuild2015Id]: https://www.microsoft.com/en-US/download/details.aspx?id=48159
-[SALT_versions]:https://docs.saltstack.com/en/develop/topics/releases/version_numbers.html
-[version_py]: https://github.com/saltstack/salt/blob/develop/salt/version.py
+- Python 2.7 = VC CRT 9.0 = VS 2008  
+- Python 3.6 = VC CRT 14.0 = VS 2017
+
+Distutils contains bin/Lib/distutils/command/bdist_msi.py, which probably does not work.
+
+[WiX_link]: http://wixtoolset.org
+[MSBuild_link]: http://msdn.microsoft.com/en-us/library/0k6kkbsd(v=vs.120).aspx
+[MSBuild2015_link]: https://www.microsoft.com/en-US/download/details.aspx?id=48159
+[SALT_versions_link]:https://docs.saltstack.com/en/develop/topics/releases/version_numbers.html
+[salt_versions_py_link]: https://github.com/saltstack/salt/blob/develop/salt/version.py
 [WindowsInstaller4.5_link]:https://www.microsoft.com/en-us/download/details.aspx?id=8483
-[issue18]:https://github.com/markuskramerIgitt/salt-windows-msi/issues/18
-[MSDN_ProductVersion]:https://msdn.microsoft.com/en-us/library/windows/desktop/aa370859
-
+[MSDN_ProductVersion_link]:https://msdn.microsoft.com/en-us/library/windows/desktop/aa370859
