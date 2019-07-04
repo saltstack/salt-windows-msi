@@ -246,7 +246,11 @@
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <ComponentGroupRef Id="dist"    />       <!-- // Include dist-amd64.wxs in this directory -->
       <ComponentGroupRef Id="service" /> 
-      <!-- experimental, does not work. Also goto BuildDistFragment.xsl and remove python.exe
+      <!-- experimental, does not (yet) work.
+           Intended to replace nssm (ssm) with the Windows method of starting a service.
+           Maybe, nssm (ssm) cannot be replaced, because it indefineiy starts the salt-minion python exe over and over again,
+           whereas the Windows method only starts an exe only a limited time and then stops.
+           Also goto BuildDistFragment.xsl and remove python.exe
       <ComponentRef Id="servicePython" />
       -->
       <ComponentRef Id="InstallfolderPermissions" />
