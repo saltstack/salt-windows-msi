@@ -5,9 +5,14 @@
     xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
 >
   <!--
-      Regarding product properties:
-        UpgradeCode| GUID defining the product across versions. E.g. a previous version is uninstalled during upgrade.
-        Id         | Named "Product code". A static product code is necessary for msiexec /x and useful for a *.mst (transform).
+      Regarding Product XML tag attributes:
+        UpgradeCode:
+          GUID defining the product across versions. E.g. a previous version is uninstalled during upgrade.
+          In other words:
+          For update (or upgrade), Windows Installer relies on the UpgradeCode attribute of the Product tag.
+          Keep the same UpgradeCode GUID as long as you want the products to be upgraded by the installer.
+        Id:
+          Named "Product code". A static product code is necessary for msiexec /x and useful for a *.mst (transform).
   -->
   <Product
       Manufacturer = "SaltStack, Inc."
