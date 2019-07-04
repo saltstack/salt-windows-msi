@@ -175,9 +175,9 @@
     </DirectoryRef>
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
-      <ComponentGroupRef Id="ProductComponents"     />
-      <ComponentRef      Id="CleanupBinFolder"      />
-      <ComponentRef      Id="CleanupVarFolder"      />
+      <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef      Id="CleanupBinFolder" />
+      <ComponentRef      Id="CleanupVarFolder" />
       <Feature Id="VC90_CRT_x86_x64" Title="Visual C++ 9 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
         <MergeRef Id="MSM_VC90_CRT_64"/>
       </Feature>
