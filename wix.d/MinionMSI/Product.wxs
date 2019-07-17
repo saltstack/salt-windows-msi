@@ -6,13 +6,21 @@
 >
   <!--
       Regarding Product XML tag attributes:
+        See https://wixtoolset.org/documentation/manual/v3/xsd/wix/product.html
         UpgradeCode:
           GUID defining the product across versions. E.g. a previous version is uninstalled during upgrade.
           In other words:
           For update (or upgrade), Windows Installer relies on the UpgradeCode attribute of the Product tag.
           Keep the same UpgradeCode GUID as long as you want the products to be upgraded by the installer.
         Id:
-          Named "Product code". A static product code is necessary for msiexec /x and useful for a *.mst (transform).
+          Named "Product code". A static? product code is necessary for msiexec /x and useful for a *.mst (transform).
+          From https://docs.microsoft.com/en-us/windows/win32/msi/product-codes
+                 The product code is a GUID that is the principal identification of an application or product
+          From https://docs.microsoft.com/en-us/windows/win32/msi/productcode
+             This ID must vary for different versions and languages.
+          From https://docs.microsoft.com/en-us/windows/win32/msi/changing-the-product-code
+             The product code must be changed if any of the following are true for the update:
+               - The name of the .msi file has been changed.
   -->
   <Product
       Manufacturer = "SaltStack, Inc."
