@@ -59,7 +59,6 @@ Prepare
 
     cd c:\git\salt\pkg\windows
     git checkout v2018.3.4
-    clean_env.bat
     git checkout .
     git clean -fd
 
@@ -69,7 +68,8 @@ until `git status` returns
     nothing to commit, working tree clean
 
 then
-
+    
+    clean_env.bat
     build.bat
 
 ### Build the msi installer
