@@ -2,7 +2,6 @@
 <!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" 
     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension" 
-    xmlns:netfx="http://schemas.microsoft.com/wix/NetFxExtension"
 >
   <!--
       The Product attributes:
@@ -38,15 +37,6 @@
 
     <!-- Windows Installer Version 3.0 = 300 -->
     <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
-
-    <!--
-    Prepare to check for .NET Framework Versions 
-    Make the .NET Framework Version available as Property.
-    The NET Framework Versions are properties of the WixNetFxExtension.
-    To make any of these properties available here, you need to reference them first.
-    From the how-to http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/check_for_dotnet.html
-    -->
-    <PropertyRef Id="WIX_IS_NETFRAMEWORK_45_OR_LATER_INSTALLED"/>
 
     <!--
       Block installation based on OS properties
