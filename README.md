@@ -30,6 +30,11 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 > msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE
 
+Example:
+
+> msiexec /i Salt-Minion-2018.3.4-64bit.msi /qb! MASTER_HOSTNAME=salt100
+
+
 ## Target client requirements
 
 The target client is where the installer is deployed.
