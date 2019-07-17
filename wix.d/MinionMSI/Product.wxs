@@ -74,7 +74,12 @@
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
     <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
-    <!-- WiX properties                                                 -->
+    <!-- WiX properties
+      WIXUI_INSTALLDIR
+        From https://wixtoolset.org//documentation/manual/v3/wixui/dialog_reference/wixui_installdir.html
+          Selecting a user interface
+       http://www.dizzymonkeydesign.com/blog/misc/adding-and-customizing-dlgs-in-wix-3/
+     -->
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
 
 
@@ -113,6 +118,11 @@
       On DECA_Upgrade and the CleanupVarFolder component:
         DECA_Upgrade removes bin/**/*.pyc files.  CleanupVarFolder does this already. 
         TODO rethink this.
+
+
+      From  https://docs.microsoft.com/en-us/windows/win32/msi/property-reference
+        Installed
+          The Installed property is set only if the product is installed per-machine or for the current user
       -->
       <Custom Action='CADH_UninstallKeepConfig0'   Before='DECA_UninstallKeepConfig0' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
       <Custom Action='DECA_UninstallKeepConfig0'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
