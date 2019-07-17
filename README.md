@@ -40,9 +40,7 @@ Example:
 The target client is where the installer is deployed.
 
 - 64bit
-- Windows 7 (workstation) or Server 2012 (domain controller), or higher.
-- .Net 2.0 or higher, for the WiX msi installer.
-- 125 MB RAM
+- Windows 7 (workstation), Server 2012 (domain controller), or higher.
 
 ## Build client requirements
 
