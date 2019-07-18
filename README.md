@@ -13,26 +13,36 @@ The focus is on 64bit, unattended install.
 
 Minion-specific msi-properties:
 
-  Property              |  Default        | Comment
- ---------------------- | --------------- | ------
- `INSTALLFOLDER`        | `c:\salt\`      | Where to install the Minion  __DO NOT CHANGE__
- `MASTER_HOSTNAME`      | `salt`          | The master hostname
- `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id
- `START_MINION_SERVICE` | `0` (_false_)   | Whether to start the salt-minion service after installation
- `KEEP_CONFIG`          | `1` (_true_)    | keep configuration on uninstall. Only from command line
+  Property              |  Default                | Comment
+ ---------------------- | ----------------------- | ------
+ `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
+ `MASTER_HOSTNAME`      | `salt`                  | The master hostname
+ `MINION_HOSTNAME`      | `%COMPUTERNAME%`        | The minion id
+ `START_MINION_SERVICE` | `0` (_false_)           | Whether to start the salt-minion service after installation
+ `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file       __DO NOT CHANGE (yet)__
+ `KEEP_CONFIG`          | `1` (_true_)            | keep configuration on uninstall. Only from command line
 
-A kept configuration is reused on installation into its location.
+Kept configuration is reused on installation into its location.
+Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf), in that order.
+
+ If the master from the MSI property (`MASTER_HOSTNAME`) differs from the kept configuration:
+
+- We regard the MSI property as more recent.
+- That means the minion is about to get a new master.
+- That means the new master public key is not necessarily the same as the old master public key.
+- Ideally, the new master public key is conveyed somehow.
+- Until then, we delete the local master public key.
 
 ### On unattended install ("silent install")
 
 An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
-customized values for e.g. master hostname, minion id, installation path, using the following command line:
+customized values for e.g. master hostname, minion id, installation path, using the following generic command:
 
 > msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE
 
-Example:
+Concreate example:
 
-> msiexec /i Salt-Minion-2018.3.4-64bit.msi /qb! MASTER_HOSTNAME=salt100
+> msiexec /i Salt-Minion-2018.3.4-64bit.msi /qb! MASTER_HOSTNAME=salt2
 
 
 ## Target client requirements

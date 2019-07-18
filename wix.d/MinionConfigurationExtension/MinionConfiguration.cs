@@ -102,13 +102,56 @@ namespace MinionConfigurationExtension {
        * More comments in wix.d/MinionMSI/Product.wxs.comments.txt
       */
       session.Log("MinionConfiguration.cs:: Begin IMCA_read_NSIS");
-      if (!read_SimpleSetting_into_Property(session)) return ActionResult.Failure;
+      if (!read_master_and_id_from_all_local_config_files(session)) return ActionResult.Failure;
       session.Log("MinionConfiguration.cs:: End IMCA_read_NSIS");
       return ActionResult.Success;
     }
 
-    // Leaves the Config
-    [CustomAction]
+		private static bool read_master_and_id_from_all_local_config_files(Session session) {
+			String master_from_local_config = "";
+			String id_from_local_config = "";
+
+			// Read master and id from MINION_CONFIGFILE  
+			string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
+			read_master_and_id_from_file(session, MINION_CONFIGFILE, ref master_from_local_config, ref id_from_local_config);
+
+			// Read master and id from all *.conf files in minion.d directory.
+			// ASSUMPTION minion and minion.d are in the same folder.
+			string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+			var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+			foreach (var conf_file in conf_files) {
+				// skip _schedule.conf
+				if (conf_file.EndsWith("_schedule.conf")) { continue; }
+				read_master_and_id_from_file(session, conf_file, ref master_from_local_config, ref id_from_local_config);
+			}
+			session.Log("...from all files master=" + master_from_local_config);
+			session.Log("...from all files     id=" + id_from_local_config);
+			// Compare master and id with MSI properties
+			session.Log("...MSI property    master=" + session["MASTER_HOSTNAME"]);
+			session.Log("...MSI property        id=" + session["MINION_HOSTNAME"]);
+
+			// If the master from all local config files differs from the master MSI property:
+			//   We regard the MSI property as more recent.
+			//   That means the minion is about to get a new master
+			//   That means the new master public key is not necessarily the same as the old master public key.
+			//   Ideally, the new master public key is conveyed somehow.
+			//   Until then, we delete the local master public key.
+			bool master_changed = master_from_local_config != session["MASTER_HOSTNAME"];
+			session.Log("...master changed " + master_changed);
+			var master_public_key_filename = @"C:\salt\conf\pki\minion\minion_master.pub";  // TODO more flexible later
+			bool mastre_public_key_exists = File.Exists(master_public_key_filename);
+			session.Log("...master public key exists " + mastre_public_key_exists);
+			if (master_changed && mastre_public_key_exists) {
+				File.Delete(master_public_key_filename);   // TODO try..catch
+				session.Log("...master public key deleted");
+			}
+			return true;
+		}
+
+
+
+		// Leaves the Config
+		[CustomAction]
     public static ActionResult DECA_del_NSIS(Session session)  {
       session.Log("MinionConfiguration.cs:: Begin DECA_del_NSIS");
       if (!delete_NSIS(session)) return ActionResult.Failure;
@@ -165,17 +208,13 @@ namespace MinionConfigurationExtension {
     }
 
 
-    private static bool read_SimpleSetting_into_Property(Session session) {
-      /*
-       * Read simple keys from MINION_CONFIGFILE into WiX properties.
-       */
-      string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
-      session.Log("IMCA_read_NSIS MINION_CONFIGFILE " + MINION_CONFIGFILE);
-      bool configExists = File.Exists(MINION_CONFIGFILE);
-      session.Log("IMCA_read_NSIS MINION_CONFIGFILE exists " + configExists);
-      if (!configExists) { return true; }
+    private static void read_master_and_id_from_file(Session session, String configfile, ref String master2, ref String id2) {
+			session.Log("...file " + configfile);
+      bool configExists = File.Exists(configfile);
+      session.Log("...exists " + configExists);
+      if (!configExists) { return; }
       session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
-      string[] configLines = File.ReadAllLines(MINION_CONFIGFILE);
+      string[] configLines = File.ReadAllLines(configfile);
       try {
         Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
         foreach (string line in configLines) {
@@ -183,14 +222,22 @@ namespace MinionConfigurationExtension {
             Match m = r.Match(line);
             string key = m.Groups[1].ToString();
             string value = m.Groups[2].ToString();
-            session.Log("IMCA_read_NSIS " + key + " " + value);
-            if (key == "master") /**/ { session["MASTER_HOSTNAME"] = value; }
-            if (key == "id") /******/ { session["MINION_HOSTNAME"] = value; }
+            //session.Log("...ANY KEY " + key + " " + value);
+            if (key == "master") {
+							master2 = value;
+							session.Log("...read master " + master2);
+						}
+            if (key == "id") {
+							id2 = value;
+							session.Log("...read id " + id2);
+						}
           }
         }
-      } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
+      } catch (Exception ex) { 
+         just_ExceptionLog("Looping Regexp", session, ex); 
+      }
       session.Message(InstallMessage.Progress, new Record(2, 1));
-      return true;
+			return;
     }
 
 
