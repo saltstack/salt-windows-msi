@@ -24,6 +24,7 @@ Minion-specific msi-properties:
  `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
 Kept configuration is reused on installation into its location.
+
 Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`), in that order.
 
 You can set a new master with the MSI property `MASTER_HOSTNAME`. This will overrule the master in the kept configuraition.
