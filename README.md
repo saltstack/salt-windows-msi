@@ -15,13 +15,13 @@ Minion-specific msi-properties:
 
   Property              |  Default                | Comment
  ---------------------- | ----------------------- | ------
- `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
  `MASTER_HOSTNAME`      | `salt`                  | The master hostname
  `MASTER_KEY`           |                         | The master public key. See below.
  `MINION_HOSTNAME`      | `%COMPUTERNAME%`        | The minion id
  `START_MINION_SERVICE` | `0` (_false_)           | Whether to start the salt-minion service after installation
- `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file       __DO NOT CHANGE (yet)__
  `KEEP_CONFIG`          | `1` (_true_)            | keep configuration on uninstall. Only from command line
+ `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file       __DO NOT CHANGE (yet)__
+ `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
 Kept configuration is reused on installation into its location.
 Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`), in that order.
