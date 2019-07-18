@@ -60,15 +60,17 @@ The target client is where the installer is deployed.
 
 The build client is where the installer is created.
 
-- 64bit
-- Salt clone in `c:/git/salt/`
-- This clone in `c:/git/salt-windows-msi/`
-- .Net 3.5 SDK (for WiX)
-- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 SP2 in `c:/salt_msi_resources/`
-- [Wix 3.11](http://wixtoolset.org/releases/)<sup>*</sup>
-- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>*</sup>
+- 64bit Windows 10
+- Salt clone in `c:\git\salt\`
+- This clone in `c:\git\salt-windows-msi\`
+- .Net 3.5 SDK (for WiX)<sup>*</sup>
+- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 SP2 in `c:\salt_msi_resources\`
+- [Wix 3.11](http://wixtoolset.org/releases/)<sup>**</sup>
+- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>**</sup>
 
-<sup>*</sup> downloaded and installed if necessary by `build_env.cmd`.
+<sup>*</sup> `build_env.cmd` will open `optionalfeatures` if necessary.
+<sup>**</sup> downloaded and installed by `build_env.cmd` if necessary.
+
 
 ### Build the exe installer
 
