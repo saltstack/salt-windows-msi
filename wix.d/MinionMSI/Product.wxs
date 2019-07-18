@@ -64,6 +64,7 @@
     <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
     <Property Id="MINION_HOSTNAME"          Value="kingbob"              /> <!-- $(env.COMPUTERNAME) is the name of the building machine. Must be set dynamically. Must not be empty.    -->
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  /> <!-- Can be changed by user to point to another location -->
+    <Property Id="CONFIG_TYPE"              Value="Existing"             /> <!-- or Custom or Default    WIP  -->
     <Property Id="KEEP_CONFIG"              Value="1"                    />
     <Property Id="START_MINION_SERVICE"     Value="0"                    />
     <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
