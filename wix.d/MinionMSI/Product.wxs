@@ -61,7 +61,7 @@
     </Condition>
 
     <!-- Salt properties  -->
-    <Property Id="MASTER_HOSTNAME"          Value="salt"                 />
+    <Property Id="MASTER_HOSTNAME"          Value="#"                    /> <!-- # is our convention for "unset"  -->
     <Property Id="MINION_HOSTNAME"          Value="kingbob"              /> <!-- $(env.COMPUTERNAME) is the name of the building machine. Must be set dynamically. Must not be empty.    -->
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  /> <!-- Can be changed by user to point to another location -->
     <Property Id="CONFIG_TYPE"              Value="Existing"             /> <!-- or Custom or Default    WIP  -->

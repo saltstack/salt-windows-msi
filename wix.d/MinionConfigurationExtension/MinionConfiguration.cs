@@ -124,11 +124,13 @@ namespace MinionConfigurationExtension {
 				if (conf_file.EndsWith("_schedule.conf")) { continue; }
 				read_master_and_id_from_file(session, conf_file, ref master_from_local_config, ref id_from_local_config);
 			}
-			session.Log("...from all files master=" + master_from_local_config);
-			session.Log("...from all files     id=" + id_from_local_config);
 			// Compare master and id with MSI properties
-			session.Log("...MSI property    master=" + session["MASTER_HOSTNAME"]);
-			session.Log("...MSI property        id=" + session["MINION_HOSTNAME"]);
+			session.Log("...MSI property  id    =" + session["MINION_HOSTNAME"]);
+			session.Log("...kept config   id    =" + id_from_local_config);
+			session.Log("...MSI property  master=" + session["MASTER_HOSTNAME"]);
+			session.Log("...kept config   master=" + master_from_local_config);
+
+
 
 			// If the master from all local config files differs from the master MSI property:
 			//   We regard the MSI property as more recent.
@@ -136,14 +138,27 @@ namespace MinionConfigurationExtension {
 			//   That means the new master public key is not necessarily the same as the old master public key.
 			//   Ideally, the new master public key is conveyed somehow.
 			//   Until then, we delete the local master public key.
-			bool master_changed = master_from_local_config != session["MASTER_HOSTNAME"];
-			session.Log("...master changed " + master_changed);
-			var master_public_key_filename = @"C:\salt\conf\pki\minion\minion_master.pub";  // TODO more flexible later
-			bool mastre_public_key_exists = File.Exists(master_public_key_filename);
-			session.Log("...master public key exists " + mastre_public_key_exists);
-			if (master_changed && mastre_public_key_exists) {
-				File.Delete(master_public_key_filename);   // TODO try..catch
-				session.Log("...master public key deleted");
+			if (session["MASTER_HOSTNAME"] == "#") {
+				// The msi has no master_hostname  (# is our convention for "unset")
+				// Let's use the kept config, or "salt"
+				if (master_from_local_config != "") {
+					session.Log("...using kept config master because msi property unset");
+					session["MASTER_HOSTNAME"] = master_from_local_config;
+				} else {
+					session.Log("...neither msi property nor kept config for master. Setting MASTER_HOSTNAME");
+					session["MASTER_HOSTNAME"] = "salt";
+				}
+
+			} else {
+				bool master_changed = master_from_local_config != session["MASTER_HOSTNAME"];
+				session.Log("...master changed " + master_changed);
+				var master_public_key_filename = @"C:\salt\conf\pki\minion\minion_master.pub";  // TODO more flexible later
+				bool mastre_public_key_exists = File.Exists(master_public_key_filename);
+				session.Log("...master public key exists " + mastre_public_key_exists);
+				if (master_changed && mastre_public_key_exists) {
+					File.Delete(master_public_key_filename);   // TODO try..catch
+					session.Log("...master public key deleted");
+				}
 			}
 			return true;
 		}
@@ -209,9 +224,9 @@ namespace MinionConfigurationExtension {
 
 
     private static void read_master_and_id_from_file(Session session, String configfile, ref String master2, ref String id2) {
-			session.Log("...file " + configfile);
+			session.Log("...kept config file " + configfile);
       bool configExists = File.Exists(configfile);
-      session.Log("...exists " + configExists);
+      session.Log("......exists " + configExists);
       if (!configExists) { return; }
       session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
       string[] configLines = File.ReadAllLines(configfile);
@@ -225,11 +240,11 @@ namespace MinionConfigurationExtension {
             //session.Log("...ANY KEY " + key + " " + value);
             if (key == "master") {
 							master2 = value;
-							session.Log("...read master " + master2);
+							session.Log("......master " + master2);
 						}
             if (key == "id") {
 							id2 = value;
-							session.Log("...read id " + id2);
+							session.Log("......id " + id2);
 						}
           }
         }
