@@ -17,21 +17,25 @@ Minion-specific msi-properties:
  ---------------------- | ----------------------- | ------
  `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
  `MASTER_HOSTNAME`      | `salt`                  | The master hostname
+ `MASTER_KEY`           |                         | The master public key. See below.
  `MINION_HOSTNAME`      | `%COMPUTERNAME%`        | The minion id
  `START_MINION_SERVICE` | `0` (_false_)           | Whether to start the salt-minion service after installation
  `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file       __DO NOT CHANGE (yet)__
  `KEEP_CONFIG`          | `1` (_true_)            | keep configuration on uninstall. Only from command line
 
 Kept configuration is reused on installation into its location.
-Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf), in that order.
+Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`), in that order.
 
- If the master from the MSI property (`MASTER_HOSTNAME`) differs from the kept configuration:
+You can set a new master with the MSI property `MASTER_HOSTNAME`. This will overrule the master in the kept configuraition.
 
-- We regard the MSI property as more recent.
-- That means the minion is about to get a new master.
-- That means the new master public key is not necessarily the same as the old master public key.
-- Ideally, the new master public key is conveyed somehow.
-- Until then, we delete the local master public key.
+You can set a new master public key, with or without changing the master, but you must shorten and convert the public key it into one line:
+
+- Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
+  - They will be recreated by the installer.
+- Replace linebreaks with the two characters `\n`.
+  - This is safe because the public key is base64 encoded, which does not contain the character `\`.
+- Set the msi property `MASTER_KEY`.
+- If your public key is 458 byte long, the one-line key should be 404 bytes long.
 
 ### On unattended install ("silent install")
 

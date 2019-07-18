@@ -132,12 +132,6 @@ namespace MinionConfigurationExtension {
 
 
 
-			// If the master from all local config files differs from the master MSI property:
-			//   We regard the MSI property as more recent.
-			//   That means the minion is about to get a new master
-			//   That means the new master public key is not necessarily the same as the old master public key.
-			//   Ideally, the new master public key is conveyed somehow.
-			//   Until then, we delete the local master public key.
 			if (session["MASTER_HOSTNAME"] == "#") {
 				// The msi has no master_hostname  (# is our convention for "unset")
 				// Let's use the kept config, or "salt"
@@ -145,21 +139,27 @@ namespace MinionConfigurationExtension {
 					session.Log("...using kept config master because msi property unset");
 					session["MASTER_HOSTNAME"] = master_from_local_config;
 				} else {
-					session.Log("...neither msi property nor kept config for master. Setting MASTER_HOSTNAME");
+					session.Log("...neither msi property nor kept config for master. Using default MASTER_HOSTNAME");
 					session["MASTER_HOSTNAME"] = "salt";
 				}
-
 			} else {
-				bool master_changed = master_from_local_config != session["MASTER_HOSTNAME"];
-				session.Log("...master changed " + master_changed);
-				var master_public_key_filename = @"C:\salt\conf\pki\minion\minion_master.pub";  // TODO more flexible later
-				bool mastre_public_key_exists = File.Exists(master_public_key_filename);
-				session.Log("...master public key exists " + mastre_public_key_exists);
-				if (master_changed && mastre_public_key_exists) {
-					File.Delete(master_public_key_filename);   // TODO try..catch
-					session.Log("...master public key deleted");
-				}
+				// msi propery master wins (without any action) over kept config master
+				// Just for clarity of the log
+				session.Log("...msi property master changes kept config ");
 			}
+			var master_public_key_filename = @"C:\salt\conf\pki\minion\minion_master.pub";  // TODO more flexible later
+			session.Log("...kept config master key exists " + File.Exists(master_public_key_filename));
+			bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
+			session.Log("...msi property master key given, will (over)write file " + MASTER_KEY_set);
+			if (MASTER_KEY_set) {
+				string new_master_pub_key =
+					"-----BEGIN PUBLIC KEY-----\n" +
+					session["MASTER_KEY"].Replace("\\n", "\n") +  // Base64 does not contain \ (backslash)		
+					"\n-----END PUBLIC KEY-----";
+				File.WriteAllText(master_public_key_filename, new_master_pub_key);  // TODO try..catch
+			}
+
+
 			return true;
 		}
 
