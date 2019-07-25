@@ -111,18 +111,42 @@ namespace MinionConfigurationExtension {
 			String master_from_local_config = "";
 			String id_from_local_config = "";
 
-			// Read master and id from MINION_CONFIGFILE  
-			string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
-			read_master_and_id_from_file(session, MINION_CONFIGFILE, ref master_from_local_config, ref id_from_local_config);
+			String[] words = { "Existing", "Custom", "Default" };
+			// Read config type from MSI property  
+			string CONFIG_TYPE = session["CONFIG_TYPE"];
+			bool ConfigTypeKnown = words[0] == CONFIG_TYPE || words[1] == CONFIG_TYPE || words[2] == CONFIG_TYPE;
 
-			// Read master and id from all *.conf files in minion.d directory.
-			// ASSUMPTION minion and minion.d are in the same folder.
-			string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
-			var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
-			foreach (var conf_file in conf_files) {
-				// skip _schedule.conf
-				if (conf_file.EndsWith("_schedule.conf")) { continue; }
-				read_master_and_id_from_file(session, conf_file, ref master_from_local_config, ref id_from_local_config);
+			session.Log("...MSI property  CONFIG_TYPE  =" + CONFIG_TYPE);
+			session.Log("...............of known value =" + ConfigTypeKnown.ToString());
+			if (! ConfigTypeKnown) {
+				CONFIG_TYPE = "Existing";
+				session.Log(".....therefore  CONFIG_TYPE  =" + CONFIG_TYPE);
+			}
+
+
+			// https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
+
+			if (CONFIG_TYPE == "Default") {
+				master_from_local_config = "salt";
+				id_from_local_config = Environment.MachineName;
+			}
+
+			if (CONFIG_TYPE == "Existing") {
+				// Read master and id from MINION_CONFIGFILE  
+				string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
+				read_master_and_id_from_file(session, MINION_CONFIGFILE, ref master_from_local_config, ref id_from_local_config);
+
+				// Read master and id from all *.conf files in minion.d directory, if it exists.
+				// ASSUMPTION minion and minion.d are in the same folder.
+				string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+				if (Directory.Exists(MINION_CONFIGDIR)) {
+					var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+					foreach (var conf_file in conf_files) {
+						// skip _schedule.conf
+						if (conf_file.EndsWith("_schedule.conf")) { continue; }
+						read_master_and_id_from_file(session, conf_file, ref master_from_local_config, ref id_from_local_config);
+					}
+				}
 			}
 			// Compare master and id with MSI properties
 			session.Log("...MSI property  id    =" + session["MINION_HOSTNAME"]);
