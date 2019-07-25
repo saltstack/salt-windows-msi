@@ -75,6 +75,8 @@ The build client is where the installer is created.
 
 ### Build the exe installer
 
+[Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
+
 Prepare
 
     cd c:\git\salt\pkg\windows
@@ -88,7 +90,7 @@ until `git status` returns
     nothing to commit, working tree clean
 
 then
-    
+
     clean_env.bat
     build.bat
 
