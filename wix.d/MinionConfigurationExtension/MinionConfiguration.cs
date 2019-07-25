@@ -171,15 +171,28 @@ namespace MinionConfigurationExtension {
 				// Just for clarity of the log
 				session.Log("...msi property master changes kept config ");
 			}
-			var master_public_key_filename = @"C:\salt\conf\pki\minion\minion_master.pub";  // TODO more flexible later
+
+			var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
+			var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub"; 
+			Directory.CreateDirectory(master_public_key_path);  // TODO Security
 			session.Log("...kept config master key exists " + File.Exists(master_public_key_filename));
 			bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
 			session.Log("...msi property master key given, will (over)write file " + MASTER_KEY_set);
 			if (MASTER_KEY_set) {
+				String master_key_one_line = session["MASTER_KEY"];
+				String master_key_many_lines = "";
+				int countup = 0;
+				foreach (char character in master_key_one_line) {
+					master_key_many_lines += character;
+					countup += 1;
+					if (countup % 64 == 0) {
+						master_key_many_lines += System.Environment.NewLine; 
+					}
+				}
 				string new_master_pub_key =
-					"-----BEGIN PUBLIC KEY-----\n" +
-					session["MASTER_KEY"].Replace("\\n", "\n") +  // Base64 does not contain \ (backslash)		
-					"\n-----END PUBLIC KEY-----";
+					"-----BEGIN PUBLIC KEY-----" + System.Environment.NewLine +
+					master_key_many_lines + System.Environment.NewLine +
+					"-----END PUBLIC KEY-----";
 				File.WriteAllText(master_public_key_filename, new_master_pub_key);  // TODO try..catch
 			}
 

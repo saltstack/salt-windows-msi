@@ -27,16 +27,14 @@ Kept configuration is reused on installation into its location.
 
 Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`), in that order.
 
-You can set a new master with the MSI property `MASTER_HOSTNAME`. This will overrule the master in the kept configuraition.
+You can set a new master with `MASTER_HOSTNAME`. This will overrule the master in a kept configuration.
 
-You can set a new master public key, with or without changing the master, but you must shorten and convert the public key it into one line:
+You can set a new master public key with `MASTER_KEY`, but you must shorten and convert the public key it into one line:
 
 - Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
-  - They will be recreated by the installer.
-- Replace linebreaks with the two characters `\n`.
-  - This is safe because the public key is base64 encoded, which does not contain the character `\`.
-- Set the msi property `MASTER_KEY`.
-- If your public key is 458 byte long, the one-line key should be 404 bytes long.
+- Remove linebreaks.
+
+From the default public key file (458 bytes), the one-line key has 394 characters.
 
 ### On unattended install ("silent install")
 
