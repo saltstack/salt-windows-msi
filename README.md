@@ -29,12 +29,12 @@ Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.con
 
 You can set a new master with `MASTER_HOSTNAME`. This will overrule the master in a kept configuration.
 
-You can set a new master public key with `MASTER_KEY`, but you must shorten and convert the public key it into one line:
+You can set a new master public key with `MASTER_KEY`, but you must convert it into one line:
 
 - Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
 - Remove linebreaks.
-
-From the default public key file (458 bytes), the one-line key has 394 characters.
+- From the default public key file (458 bytes), the one-line key has 394 characters.
+- Example: `msiexec /i YOUR.msi MASTER_HOSTNAME=YOU MASTER_KEY=MIIBIjA...2QIDAQAB`
 
 ### On unattended install ("silent install")
 
