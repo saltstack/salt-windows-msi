@@ -36,7 +36,7 @@
       Language     = "1033">
 
     <!-- Windows Installer Version 3.0 = 300 -->
-    <Package Keywords="Infrastructure management" InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
+    <Package InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
 
     <!--
       Block installation based on OS properties
