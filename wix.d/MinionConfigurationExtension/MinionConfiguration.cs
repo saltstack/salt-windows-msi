@@ -180,7 +180,12 @@ namespace MinionConfigurationExtension {
       String id_from_local_config = "";
 
       // How many files are in INSTALLFOLDER?
-      string INSTALLFOLDER = @"c:\salt"; // TODO does not work session["INSTALLFOLDER"];
+      // Problem: INSTALLFOLDER was not set
+      // Solution in Products.wxs:
+      // This IMCA must not be called BEFORE FindRelatedProducts, but BEFORE MigrateFeatureStates because
+      // INSTALLFOLDER in only set in CostFinalize, which comes after FindRelatedProducts 
+      // May called AFTER?     
+      string INSTALLFOLDER = session["INSTALLFOLDER"];
       long count_files_INSTALLFOLDER = 0;
       if (Directory.Exists(INSTALLFOLDER)) {
         foreach (string file in System.IO.Directory.GetFiles(INSTALLFOLDER, "*", SearchOption.AllDirectories)) {
