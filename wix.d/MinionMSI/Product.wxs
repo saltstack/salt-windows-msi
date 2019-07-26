@@ -117,8 +117,8 @@
         UPGRADINGPRODUCTCODE | does not work
         Not Installed        | this installer is not installed
         
-      On DECA_Upgrade and the CleanupVarFolder component:
-        DECA_Upgrade removes bin/**/*.pyc files.  CleanupVarFolder does this already. 
+      On DECA_Upgrade and the CleanupBinFolder component:
+        DECA_Upgrade removes bin/**/*.pyc files.  CleanupBinFolder does this already. 
         TODO rethink this.
 
 
@@ -141,7 +141,12 @@
     <!-- Inspiration 1: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->
     <!-- Inspiration 2: http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/   Simple Remember Pattern SRP-->
     <!-- Learn: Condition with KEEP_CONFIG is useless on Components and on Features -->
-    <!-- SRP pattern 1/2 -->
+    <!-- SRP pattern
+       We cannot recursivly delete the var folder because it contains the cache, we we regard as configuration and optionally keep.
+         It is the task of DECA_UninstallKeepConfig1 to selectivly delete the var folder
+        The use of the SRP Pattern is limited.
+    -->
+
     <!--     SRP: the Property that we'll remember  -->
     <Property Id="BINFOLDER">
       <!--   SRP:  the registry search that will reload our Property on repair, upgrade and uninstall -->
@@ -155,16 +160,6 @@
       </Component>
     </DirectoryRef>
 
-    <!-- SRP pattern 2/2 -->
-    <Property Id="VARFOLDER">
-      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="raw"  Id="VARFOLDER_REGSEARCH" />
-    </Property>
-
-    <DirectoryRef Id="VARFOLDER">
-      <Component Id="CleanupVarFolder" Guid="*">
-        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="string" Value="[VARFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="VARFOLDER" />
-      </Component>
-    </DirectoryRef>
 
     <DirectoryRef Id="TARGETDIR">
       <!-- 
@@ -193,7 +188,6 @@
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentRef      Id="CleanupBinFolder" />
-      <ComponentRef      Id="CleanupVarFolder" />
       <Feature Id="VC90_CRT_x86_x64" Title="Visual C++ 9 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
         <MergeRef Id="MSM_VC90_CRT_64"/>
       </Feature>

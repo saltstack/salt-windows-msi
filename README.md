@@ -42,8 +42,16 @@ Minion-specific msi-properties:
  `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file and directory (minion.d)      __DO NOT CHANGE (yet)__
  `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
-Kept configuration is read from file `C:\salt\conf\minion`
+These files and directories are regarded as config and kept:
+
+- C:\salt\conf\minion
+- C:\salt\conf\minion.d\
+- c:\salt\var\cache\salt\minion\extmods\
+- c:\salt\var\cache\salt\minion\files\
+
+Master and id are read from kept configuration from file `C:\salt\conf\minion`
 and then from all files `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`) in alphabetical order.
+
 
 You can set a new master with `MASTER_HOSTNAME`. This will overrule the master in a kept configuration.
 

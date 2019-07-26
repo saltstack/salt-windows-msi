@@ -29,21 +29,77 @@ namespace MinionConfigurationExtension {
      */
     [CustomAction]
     public static ActionResult DECA_UninstallKeepConfig0(Session session) {
+      // Do NOT keep config
+      // In fact keep nothing
       session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig0");
-      PurgeDir(session, @"bin");
-      PurgeDir(session, @"conf");
-      PurgeDir(session, @"var");
+      PurgeDir(session, "");  // this will result in c:\salt\
       session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig0");
       return ActionResult.Success;
     }
     [CustomAction]
     public static ActionResult DECA_UninstallKeepConfig1(Session session) {
+      // DO keep config
+      /* Selectively delete the var folder.
+       * 
+       * Directories in var regarded as config:
+         c:\salt\var\cache\salt\minion\extmods\
+         c:\salt\var\cache\salt\minion\files\
+         
+         We move the 2 directories out of var, delete var, and move back
+      */
       session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig1");
       PurgeDir(session, @"bin");
+      // move parts from var into safety
+      string safedir = @"c:\salt\_tmp_swap_space\";
+      Directory.CreateDirectory(safedir);
+      movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", true, safedir);
+      movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", true, safedir);
+      // purge var
       PurgeDir(session, @"var");
+      // move back
+      Directory.CreateDirectory(@"c:\salt\var\cache\salt\minion"); // Directory.Move cannot create dirs
+      movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", false, safedir);
+      movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", false, safedir);
+      Directory.Delete(safedir);
+
+      // log
       session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig1");
       return ActionResult.Success;
     }
+
+    private static void movedir_fromAbs_toRel(Session session, string abs_from0, string rel_tmp_dir, bool into_safety, string safedir) {
+      string abs_from;
+      string abs_to;
+      if (into_safety) {
+        abs_from = abs_from0;
+        abs_to = safedir + rel_tmp_dir;
+      } else {
+        abs_from = safedir + rel_tmp_dir;
+        abs_to = abs_from0;
+      }
+
+      session.Log("...We may need to move? does directory exist " + abs_from);
+      if (Directory.Exists(abs_from)) {
+        session.Log(".....yes");
+      } else {
+        session.Log(".....no");
+        return;
+      }
+      if (Directory.Exists(abs_to)) {
+        session.Log("....!I must first delete the TO directory " + abs_to);
+        shellout(session, @"rmdir /s /q " + abs_to); 
+      }
+      // Now move
+      try {
+        session.Log("...now move to " + abs_to);
+        
+        Directory.Move(abs_from, abs_to);
+        session.Log(".........ok");
+      } catch (Exception ex) {
+        just_ExceptionLog(@"...moving failed", session, ex);
+  }
+}
+
     [CustomAction]
     public static ActionResult DECA_Upgrade(Session session) {
       session.Log("MinionConfiguration.cs:: Begin DECA_Upgrade");
@@ -76,34 +132,39 @@ namespace MinionConfigurationExtension {
       return ActionResult.Success;
     }
 
-    private static void PurgeDir(Session session, string aDir) {
-      String soon_conf = @"c:\salt\" + aDir; //TODO use root_dir
+    private static void PurgeDir(Session session, string dir_below_salt_root) {
+      String abs_dir = @"c:\salt\" + dir_below_salt_root; //TODO use root_dir
       String root_dir = "";
       try {
         root_dir = session.CustomActionData["root_dir"];
       } catch (Exception ex) {
         just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex);
       }
-      session.Log("PurgeDir::  root_dir = " + root_dir);
       try {
-        if (Directory.Exists(soon_conf)) {
-          session.Log("PurgeDir:: about to Directory.delete " + soon_conf);
-          Directory.Delete(soon_conf, true);
+        if (Directory.Exists(abs_dir)) {
+          session.Log("PurgeDir:: about to Directory.delete " + abs_dir);
+          Directory.Delete(abs_dir, true);
+          session.Log("PurgeDir:: ...OK");
         } else {
-          session.Log("PurgeDir:: no Directory " + soon_conf);
+          session.Log("PurgeDir:: no Directory " + abs_dir);
         }
       } catch (Exception ex) {
-        just_ExceptionLog(@"PurgeDir tried to delete " + soon_conf, session, ex);
+        just_ExceptionLog(@"PurgeDir tried to delete " + abs_dir, session, ex);
       }
 
       // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied . Read only!
-      shellout(session, @"rmdir /s /q " + soon_conf);
+      shellout(session, @"rmdir /s /q " + abs_dir);
     }
 
 
     [CustomAction]
     public static ActionResult IMCA_read_NSIS(Session session) {
       /*
+       * we always call because we cannot not what is installed, who installed nsis or msi
+       * so the nsis in the procedure name is not 100% correct
+       * 
+       * We here also safe-move configuration. This looks like copy-and-paste
+       * 
        * This CustomAction must be called "early". 
        * 
        * More comments in wix.d/MinionMSI/Product.wxs.comments.txt
@@ -118,6 +179,17 @@ namespace MinionConfigurationExtension {
       String master_from_local_config = "";
       String id_from_local_config = "";
 
+      // How many files are in INSTALLFOLDER?
+      string INSTALLFOLDER = @"c:\salt"; // TODO does not work session["INSTALLFOLDER"];
+      long count_files_INSTALLFOLDER = 0;
+      if (Directory.Exists(INSTALLFOLDER)) {
+        foreach (string file in System.IO.Directory.GetFiles(INSTALLFOLDER, "*", SearchOption.AllDirectories)) {
+          count_files_INSTALLFOLDER += 1;
+        }
+      }
+      session.Log("...counted files in INSTALLFOLDER = " + INSTALLFOLDER);
+      session.Log("................................. = " + count_files_INSTALLFOLDER.ToString());
+
       // Read config type from MSI property  
       string CONFIG_TYPE = session["CONFIG_TYPE"];
       bool ConfigTypeKnown = eq(CONFIG_TYPE, "Existing") || eq(CONFIG_TYPE, "Custom") || eq(CONFIG_TYPE, "Default");
@@ -128,7 +200,6 @@ namespace MinionConfigurationExtension {
         CONFIG_TYPE = "Existing";
         session.Log(".....therefore  CONFIG_TYPE  =" + CONFIG_TYPE);
       }
-
 
       // https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
 
@@ -381,7 +452,7 @@ namespace MinionConfigurationExtension {
 
     private static void shellout(Session session, string s) {
       // This is a handmade shellout routine
-      session.Log("shellout about to try " + s);
+      session.Log("...shellout(" + s+")");
       try {
         System.Diagnostics.Process process = new System.Diagnostics.Process();
         System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
