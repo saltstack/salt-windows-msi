@@ -8,12 +8,12 @@
 
     <!--
     Immediate custom action declarations ("IMCA_").
-    Immediate custom action IMCA_SetMinionHostname sets property MINION_HOSTNAME to Computername at install-time
     You find the condition whento call it in InstallUISequence and InstallSequence in Product.wxs
-    IMCA_SetMinionHostname is scheduled Before IMCA_read_NSIS.
-    Because both can run in GUI and silent install, both must be qualified by 'firstSequence' (otherwise they would get called twice)
+    If in InstallUISequence and InstallExecuteSequence but only to be run once, must be qualified by 'firstSequence'.
+
+    Immediate custom action IMCA_SetMinionHostname sets property MINION_HOSTNAME to Computername (at install-time)
     -->
-    <CustomAction Id="IMCA_SetMinionHostname" Property="MINION_HOSTNAME" Value="[ComputerName]"                    Execute='firstSequence'/>
+    <CustomAction Id="IMCA_SetMinionHostname"    Property="MINION_HOSTNAME"  Value="[ComputerName]"                Execute='firstSequence'/>
     <CustomAction Id="IMCA_read_NSIS"            BinaryKey='MinionConfigExt' DllEntry='IMCA_read_NSIS'             Execute='firstSequence'/>
     <CustomAction Id="DECA_del_NSIS"             BinaryKey='MinionConfigExt' DllEntry='DECA_del_NSIS'              Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DECA_WriteConfig"          BinaryKey='MinionConfigExt' DllEntry='DECA_WriteConfig'           Execute='deferred' Return='check' Impersonate='no'/>
