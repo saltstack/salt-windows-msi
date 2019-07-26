@@ -2,7 +2,26 @@
 
 This project creates a Salt Minion msi installer using [WiX][WiX_link].
 
-The focus is on 64bit, unattended install.
+The focus is on 64bit, unattended install, Python 2.
+
+## Introduction
+
+[Introduction on Windows installers](http://unattended.sourceforge.net/installers.php)
+
+An msi installer allows to unattended/silent installations, meaning without opening any window, while still providing
+customized values for e.g. master hostname, minion id, installation path, using the following generic command:
+
+> msiexec /i *.msi /qb! PROPERTY1=VALUE1 PROPERTY2=VALUE2
+
+Values may be quotes (example: `PROPERTY3="VALUE3"`)
+
+Example Set a Master to salt2, the old master key, if present, wil be reused:
+
+> msiexec /i YOUR.msi MASTER_HOSTNAME=salt2
+
+Example Set a Master to salt2 with a new key:
+
+> msiexec /i YOUR.msi MASTER_HOSTNAME=salt2 MASTER_KEY=MIIBIjA...2QIDAQAB
 
 ## Features
 
@@ -35,23 +54,6 @@ You can set a new master public key with `MASTER_KEY`, but you must convert it i
 - From the default public key file (458 bytes), the one-line key has 394 characters.
 - Example below.
 
-### On unattended install ("silent install")
-
-An msi allows you to unattended install ("silently"), meaning without opening any window, while still providing
-customized values for e.g. master hostname, minion id, installation path, using the following generic command:
-
-> msiexec /i *.msi /qb! PROPERTY1=VALUE1 PROPERTY2=VALUE2
-
-Values may be quotes (example: `PROPERTY3="VALUE3"`)
-
-Example Set a Master to salt2, the old key, if present, wil be reused:
-
-> msiexec /i YOUR.msi MASTER_HOSTNAME=salt2
-
-Example Set a Master to salt2, set the key of salt2:
-
-> msiexec /i YOUR.msi MASTER_HOSTNAME=salt2 MASTER_KEY=MIIBIjA...2QIDAQAB
-
 ## Target client requirements
 
 The target client is where the installer is deployed.
@@ -61,7 +63,7 @@ The target client is where the installer is deployed.
 
 ## Build client requirements
 
-The build client is where the installer is created.
+The build client is where the msi installer is build.
 
 - 64bit Windows 10
 - Salt clone in `c:\git\salt\`
@@ -75,7 +77,7 @@ The build client is where the installer is created.
 
 <sup>**</sup> downloaded and installed by `build_env.cmd` if necessary.
 
-### Build the exe installer
+### Step 1: build the exe installer
 
 [Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
 
@@ -96,31 +98,34 @@ then execute both commands (always)
     clean_env.bat
     build.bat
 
-### Build the msi installer
+### Step 2: build the msi installer
 
-Build the exe installer first.
+You need the exe installer.
 
     cd c:\git\salt-windows-msi
     build_env.cmd
     build.cmd
 
-### MSBuild
+You should see screen output containing:
 
-General command line:
+    Build succeeded
+      warning CNDL1150
+      warning CNDL1150
+        2 Warning(s)
+        0 Error(s)
 
-> msbuild msbuild.proj \[/t:target[,target2,..]] \[/p:property=value [ .. /p:... ] ]
+## How to program the msi builder toolkit
 
-A 'help' target is available which prints out all the targets, customizable
-properties, and the current value of those properties:
-
-> msbuild msbuild.proj /t:help
+The remainder is documentation how to program the msi build toolkit.
 
 ### Directory structure
 
-- msbuild.d/: build the installer:
+- msbuild.proj: main MSbuild file.
+- msbuild.d/: contains MSbuild resource files:
   - BuildDistFragment.targets: find files (from the extracted distribution?).
   - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable for bundle.
   - Minion.Common.targets: set version and platform parameters.
+- salt-windows-msi.sln: Visual Studio solution file, included in msbuild.proj.
 - wix.d/: installer sources:
   - MinionConfigurationExtension/: C# for custom actions:
     - MinionConfiguration.cs
@@ -135,12 +140,8 @@ properties, and the current value of those properties:
       - requires [saltminionservice](https://github.com/saltstack/salt/blob/167cdb344732a6b85e6421115dd21956b71ba25a/salt/utils/saltminionservice.py) or [winservice](https://github.com/saltstack/salt/blob/3fb24929c6ebc3bfbe2a06554367f8b7ea980f5e/salt/utils/winservice.py) [Removed](https://github.com/saltstack/salt/commit/8c01aacd9b4d6be2e8cf991e3309e2a378737ea0)
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
     - WixUI_Minion.wxs: UI description, that includes the dialog.
-- msbuild.proj: main msbuild file.
-- wix.sln: Visual Studio solution file, needed to build the installer.
 
-### Naming conventions
-
-### For WiX
+### Naming conventions for WiX
 
 Prefix  | Example                 | Meaning
 ------- | ----------------------- | -------
@@ -180,6 +181,17 @@ If the new custom action requires its own dialog, these additional changes are r
 - WixUI_Minion.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs.
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
+
+### MSBuild
+
+General command line:
+
+> msbuild msbuild.proj \[/t:target[,target2,..]] \[/p:property=value [ .. /p:... ] ]
+
+A 'help' target is available which prints out all the targets, customizable
+properties, and the current value of those properties:
+
+> msbuild msbuild.proj /t:help
 
 ### Other Notes
 

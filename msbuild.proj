@@ -13,13 +13,13 @@
   <ItemGroup>
     <!-- 
     msbuild.proj 
-     1) compiles the Visual Studio Solution wix.sln, think of C#.
-     2) compiles and links WiX (via wix.sln).
+     1) compiles the Visual Studio Solution salt-windows-msi.sln, think of C#.
+     2) compiles and links WiX (via salt-windows-msi.sln).
     
-    wix.sln references to wix\MinionMSI\MinionMSI.wixproj
+    salt-windows-msi.sln references to wix\MinionMSI\MinionMSI.wixproj
     The intention is to enable Visual Studio to build the msi (which does not work).
     -->
-    <Wix Include="$(MSBuildProjectDirectory)\wix.sln" />
+    <Wix Include="$(MSBuildProjectDirectory)\salt-windows-msi.sln" />
   </ItemGroup>
 
   <!--
@@ -78,7 +78,7 @@ Current Defaults:
 
   <!--
     ================================================================================
-        Compile the wix.sln, creating an msi
+        Compile the salt-windows-msi.sln, creating an msi
     ================================================================================
   -->
   <Target Name="wix">
