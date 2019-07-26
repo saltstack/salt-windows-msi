@@ -111,10 +111,9 @@ namespace MinionConfigurationExtension {
 			String master_from_local_config = "";
 			String id_from_local_config = "";
 
-			String[] words = { "Existing", "Custom", "Default" };
 			// Read config type from MSI property  
 			string CONFIG_TYPE = session["CONFIG_TYPE"];
-			bool ConfigTypeKnown = words[0] == CONFIG_TYPE || words[1] == CONFIG_TYPE || words[2] == CONFIG_TYPE;
+			bool ConfigTypeKnown = eq(CONFIG_TYPE, "Existing") || eq(CONFIG_TYPE, "Custom") || eq(CONFIG_TYPE, "Default");
 
 			session.Log("...MSI property  CONFIG_TYPE  =" + CONFIG_TYPE);
 			session.Log("...............of known value =" + ConfigTypeKnown.ToString());
@@ -126,12 +125,12 @@ namespace MinionConfigurationExtension {
 
 			// https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
 
-			if (CONFIG_TYPE == "Default") {
+			if (eq(CONFIG_TYPE, "Default")) {
 				master_from_local_config = "salt";
 				id_from_local_config = Environment.MachineName;
 			}
 
-			if (CONFIG_TYPE == "Existing") {
+			if (eq(CONFIG_TYPE, "Existing")) {
 				// Read master and id from MINION_CONFIGFILE  
 				string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
 				read_master_and_id_from_file(session, MINION_CONFIGFILE, ref master_from_local_config, ref id_from_local_config);
@@ -261,9 +260,9 @@ namespace MinionConfigurationExtension {
 
 
     private static void read_master_and_id_from_file(Session session, String configfile, ref String master2, ref String id2) {
-			session.Log("...kept config file " + configfile);
+			session.Log("...searching master and id in kept config file " + configfile);
       bool configExists = File.Exists(configfile);
-      session.Log("......exists " + configExists);
+      session.Log("......file exists " + configExists);
       if (!configExists) { return; }
       session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
       string[] configLines = File.ReadAllLines(configfile);
@@ -519,5 +518,12 @@ namespace MinionConfigurationExtension {
       just_ExceptionLog(description, session, ex);
       return false;
     }
-  }
+
+
+		// Shortcut for case insensitive equals
+		private static bool eq(String a, String b) {
+			return String.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+		}
+	}
+
 }
