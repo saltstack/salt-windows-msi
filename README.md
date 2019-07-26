@@ -6,10 +6,10 @@ The focus is on 64bit, unattended install.
 
 ## Features
 
-- Change installation directory __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
 - Uninstall leaves configuration by default, optionally removes configuration with `msiexec /x KEEP_CONFIG=0`
 - Creates a very verbose log file, by default named %TEMP%\MSIxxxxx.LOG, where xxxxx are 5 random lowercase letters and numbers. The name of the log can be specified with `msiexec /log example.log`
 - Upgrades NSIS installations
+- Change installation directory __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
 
 Minion-specific msi-properties:
 
@@ -20,12 +20,11 @@ Minion-specific msi-properties:
  `MINION_HOSTNAME`      | `%COMPUTERNAME%`        | The minion id
  `START_MINION_SERVICE` | `0` (_false_)           | Whether to start the salt-minion service after installation
  `KEEP_CONFIG`          | `1` (_true_)            | keep configuration on uninstall. Only from command line
- `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file       __DO NOT CHANGE (yet)__
+ `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file and directory (minion.d)      __DO NOT CHANGE (yet)__
  `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
-Kept configuration is reused on installation into its location.
-
-Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`), in that order.
+Kept configuration is read from file `C:\salt\conf\minion`
+and then from all files `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`) in alphabetical order.
 
 You can set a new master with `MASTER_HOSTNAME`. This will overrule the master in a kept configuration.
 
@@ -34,19 +33,24 @@ You can set a new master public key with `MASTER_KEY`, but you must convert it i
 - Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
 - Remove linebreaks.
 - From the default public key file (458 bytes), the one-line key has 394 characters.
-- Example: `msiexec /i YOUR.msi MASTER_HOSTNAME=YOU MASTER_KEY=MIIBIjA...2QIDAQAB`
+- Example below.
 
 ### On unattended install ("silent install")
 
-An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
+An msi allows you to unattended install ("silently"), meaning without opening any window, while still providing
 customized values for e.g. master hostname, minion id, installation path, using the following generic command:
 
-> msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE
+> msiexec /i *.msi /qb! PROPERTY1=VALUE1 PROPERTY2=VALUE2
 
-Concreate example:
+Values may be quotes (example: `PROPERTY3="VALUE3"`)
 
-> msiexec /i Salt-Minion-2018.3.4-64bit.msi /qb! MASTER_HOSTNAME=salt2
+Example Set a Master to salt2, the old key, if present, wil be reused:
 
+> msiexec /i YOUR.msi MASTER_HOSTNAME=salt2
+
+Example Set a Master to salt2, set the key of salt2:
+
+> msiexec /i YOUR.msi MASTER_HOSTNAME=salt2 MASTER_KEY=MIIBIjA...2QIDAQAB
 
 ## Target client requirements
 
@@ -87,7 +91,7 @@ until `git status` returns
     HEAD detached at v2018.3.4
     nothing to commit, working tree clean
 
-then
+then execute both commands (always)
 
     clean_env.bat
     build.bat
