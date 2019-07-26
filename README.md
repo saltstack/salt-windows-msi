@@ -13,53 +13,72 @@ The focus is on 64bit, unattended install.
 
 Minion-specific msi-properties:
 
-  Property              |  Default        | Comment
- ---------------------- | --------------- | ------
- `INSTALLFOLDER`        | `c:\salt\`      | Where to install the Minion  __DO NOT CHANGE__
- `MASTER_HOSTNAME`      | `salt`          | The master hostname
- `MINION_HOSTNAME`      | `%COMPUTERNAME%`| The minion id
- `START_MINION_SERVICE` | `0` (_false_)   | Whether to start the salt-minion service after installation
- `KEEP_CONFIG`          | `1` (_true_)    | keep configuration on uninstall. Only from command line
+  Property              |  Default                | Comment
+ ---------------------- | ----------------------- | ------
+ `MASTER_HOSTNAME`      | `salt`                  | The master hostname
+ `MASTER_KEY`           |                         | The master public key. See below.
+ `MINION_HOSTNAME`      | `%COMPUTERNAME%`        | The minion id
+ `START_MINION_SERVICE` | `0` (_false_)           | Whether to start the salt-minion service after installation
+ `KEEP_CONFIG`          | `1` (_true_)            | keep configuration on uninstall. Only from command line
+ `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file       __DO NOT CHANGE (yet)__
+ `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
-A kept configuration is reused on installation into its location.
+Kept configuration is reused on installation into its location.
+
+Kept configuration is `C:\salt\conf\minion` and all `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`), in that order.
+
+You can set a new master with `MASTER_HOSTNAME`. This will overrule the master in a kept configuration.
+
+You can set a new master public key with `MASTER_KEY`, but you must convert it into one line:
+
+- Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
+- Remove linebreaks.
+- From the default public key file (458 bytes), the one-line key has 394 characters.
+- Example: `msiexec /i YOUR.msi MASTER_HOSTNAME=YOU MASTER_KEY=MIIBIjA...2QIDAQAB`
 
 ### On unattended install ("silent install")
 
 An msi allows you to install unattended ("silently"), meaning without opening any window, while still providing
-customized values for e.g. master hostname, minion id, installation path, using the following command line:
+customized values for e.g. master hostname, minion id, installation path, using the following generic command:
 
 > msiexec /i *.msi /qb! PROPERTY=VALUE PROPERTY=VALUE
+
+Concreate example:
+
+> msiexec /i Salt-Minion-2018.3.4-64bit.msi /qb! MASTER_HOSTNAME=salt2
+
 
 ## Target client requirements
 
 The target client is where the installer is deployed.
 
 - 64bit
-- Windows 7 (workstation) or Server 2012 (domain controller), or higher.
-- .Net 2.0 or higher, for the WiX msi installer.
-- 125 MB RAM
+- Windows 7 (workstation), Server 2012 (domain controller), or higher.
 
 ## Build client requirements
 
 The build client is where the installer is created.
 
-- 64bit
-- Salt clone in `c:/git/salt/`
-- This clone in `c:/git/salt-windows-msi/`
-- .Net 3.5 SDK (for WiX)
-- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 SP2 in `c:/salt_msi_resources/`
-- [Wix 3.11](http://wixtoolset.org/releases/)<sup>*</sup>
-- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>*</sup>
+- 64bit Windows 10
+- Salt clone in `c:\git\salt\`
+- This clone in `c:\git\salt-windows-msi\`
+- .Net 3.5 SDK (for WiX)<sup>*</sup>
+- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 SP2 in `c:\salt_msi_resources\`
+- [Wix 3.11](http://wixtoolset.org/releases/)<sup>**</sup>
+- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>**</sup>
 
-<sup>*</sup> downloaded and installed if necessary by `build_env.cmd`.
+<sup>*</sup> `build_env.cmd` will open `optionalfeatures` if necessary.
+
+<sup>**</sup> downloaded and installed by `build_env.cmd` if necessary.
 
 ### Build the exe installer
+
+[Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
 
 Prepare
 
     cd c:\git\salt\pkg\windows
     git checkout v2018.3.4
-    clean_env.bat
     git checkout .
     git clean -fd
 
@@ -70,6 +89,7 @@ until `git status` returns
 
 then
 
+    clean_env.bat
     build.bat
 
 ### Build the msi installer

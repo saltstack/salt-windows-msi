@@ -6,7 +6,19 @@
 
       <UIRef Id="WixUI_InstallDir" />
 
-      <!-- the funny conditition could be validation msi style -->
+      <!--
+        From https://wixtoolset.org//documentation/manual/v3/wixui/dialog_reference/wixui_dialogs.html
+          built-in dialogs:
+            VerifyReadyDlg:
+              A dialog that appears immediately before starting installation.
+              It asks the user for final confirmation before starting to make changes to the system.
+        Windows appearing:
+          Welcome
+          EULA
+          InstallDirDlg            == Destination Folder
+          SettingsCustomizationDlg == Hostname Specification
+          VerifyReadyDlg           == Ready to install
+       -->
       <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="SettingsCustomizationDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
 
       <Publish Dialog="SettingsCustomizationDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>

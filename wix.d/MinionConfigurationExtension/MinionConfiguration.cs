@@ -102,13 +102,108 @@ namespace MinionConfigurationExtension {
        * More comments in wix.d/MinionMSI/Product.wxs.comments.txt
       */
       session.Log("MinionConfiguration.cs:: Begin IMCA_read_NSIS");
-      if (!read_SimpleSetting_into_Property(session)) return ActionResult.Failure;
+      if (!read_master_and_id_from_all_local_config_files(session)) return ActionResult.Failure;
       session.Log("MinionConfiguration.cs:: End IMCA_read_NSIS");
       return ActionResult.Success;
     }
 
-    // Leaves the Config
-    [CustomAction]
+		private static bool read_master_and_id_from_all_local_config_files(Session session) {
+			String master_from_local_config = "";
+			String id_from_local_config = "";
+
+			String[] words = { "Existing", "Custom", "Default" };
+			// Read config type from MSI property  
+			string CONFIG_TYPE = session["CONFIG_TYPE"];
+			bool ConfigTypeKnown = words[0] == CONFIG_TYPE || words[1] == CONFIG_TYPE || words[2] == CONFIG_TYPE;
+
+			session.Log("...MSI property  CONFIG_TYPE  =" + CONFIG_TYPE);
+			session.Log("...............of known value =" + ConfigTypeKnown.ToString());
+			if (! ConfigTypeKnown) {
+				CONFIG_TYPE = "Existing";
+				session.Log(".....therefore  CONFIG_TYPE  =" + CONFIG_TYPE);
+			}
+
+
+			// https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
+
+			if (CONFIG_TYPE == "Default") {
+				master_from_local_config = "salt";
+				id_from_local_config = Environment.MachineName;
+			}
+
+			if (CONFIG_TYPE == "Existing") {
+				// Read master and id from MINION_CONFIGFILE  
+				string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
+				read_master_and_id_from_file(session, MINION_CONFIGFILE, ref master_from_local_config, ref id_from_local_config);
+
+				// Read master and id from all *.conf files in minion.d directory, if it exists.
+				// ASSUMPTION minion and minion.d are in the same folder.
+				string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+				if (Directory.Exists(MINION_CONFIGDIR)) {
+					var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+					foreach (var conf_file in conf_files) {
+						// skip _schedule.conf
+						if (conf_file.EndsWith("_schedule.conf")) { continue; }
+						read_master_and_id_from_file(session, conf_file, ref master_from_local_config, ref id_from_local_config);
+					}
+				}
+			}
+			// Compare master and id with MSI properties
+			session.Log("...MSI property  id    =" + session["MINION_HOSTNAME"]);
+			session.Log("...kept config   id    =" + id_from_local_config);
+			session.Log("...MSI property  master=" + session["MASTER_HOSTNAME"]);
+			session.Log("...kept config   master=" + master_from_local_config);
+
+
+
+			if (session["MASTER_HOSTNAME"] == "#") {
+				// The msi has no master_hostname  (# is our convention for "unset")
+				// Let's use the kept config, or "salt"
+				if (master_from_local_config != "") {
+					session.Log("...using kept config master because msi property unset");
+					session["MASTER_HOSTNAME"] = master_from_local_config;
+				} else {
+					session.Log("...neither msi property nor kept config for master. Using default MASTER_HOSTNAME");
+					session["MASTER_HOSTNAME"] = "salt";
+				}
+			} else {
+				// msi propery master wins (without any action) over kept config master
+				// Just for clarity of the log
+				session.Log("...msi property master changes kept config ");
+			}
+
+			var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
+			var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub"; 
+			Directory.CreateDirectory(master_public_key_path);  // TODO Security
+			session.Log("...kept config master key exists " + File.Exists(master_public_key_filename));
+			bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
+			session.Log("...msi property master key given, will (over)write file " + MASTER_KEY_set);
+			if (MASTER_KEY_set) {
+				String master_key_one_line = session["MASTER_KEY"];
+				String master_key_many_lines = "";
+				int countup = 0;
+				foreach (char character in master_key_one_line) {
+					master_key_many_lines += character;
+					countup += 1;
+					if (countup % 64 == 0) {
+						master_key_many_lines += System.Environment.NewLine; 
+					}
+				}
+				string new_master_pub_key =
+					"-----BEGIN PUBLIC KEY-----" + System.Environment.NewLine +
+					master_key_many_lines + System.Environment.NewLine +
+					"-----END PUBLIC KEY-----";
+				File.WriteAllText(master_public_key_filename, new_master_pub_key);  // TODO try..catch
+			}
+
+
+			return true;
+		}
+
+
+
+		// Leaves the Config
+		[CustomAction]
     public static ActionResult DECA_del_NSIS(Session session)  {
       session.Log("MinionConfiguration.cs:: Begin DECA_del_NSIS");
       if (!delete_NSIS(session)) return ActionResult.Failure;
@@ -165,17 +260,13 @@ namespace MinionConfigurationExtension {
     }
 
 
-    private static bool read_SimpleSetting_into_Property(Session session) {
-      /*
-       * Read simple keys from MINION_CONFIGFILE into WiX properties.
-       */
-      string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
-      session.Log("IMCA_read_NSIS MINION_CONFIGFILE " + MINION_CONFIGFILE);
-      bool configExists = File.Exists(MINION_CONFIGFILE);
-      session.Log("IMCA_read_NSIS MINION_CONFIGFILE exists " + configExists);
-      if (!configExists) { return true; }
+    private static void read_master_and_id_from_file(Session session, String configfile, ref String master2, ref String id2) {
+			session.Log("...kept config file " + configfile);
+      bool configExists = File.Exists(configfile);
+      session.Log("......exists " + configExists);
+      if (!configExists) { return; }
       session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
-      string[] configLines = File.ReadAllLines(MINION_CONFIGFILE);
+      string[] configLines = File.ReadAllLines(configfile);
       try {
         Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
         foreach (string line in configLines) {
@@ -183,14 +274,22 @@ namespace MinionConfigurationExtension {
             Match m = r.Match(line);
             string key = m.Groups[1].ToString();
             string value = m.Groups[2].ToString();
-            session.Log("IMCA_read_NSIS " + key + " " + value);
-            if (key == "master") /**/ { session["MASTER_HOSTNAME"] = value; }
-            if (key == "id") /******/ { session["MINION_HOSTNAME"] = value; }
+            //session.Log("...ANY KEY " + key + " " + value);
+            if (key == "master") {
+							master2 = value;
+							session.Log("......master " + master2);
+						}
+            if (key == "id") {
+							id2 = value;
+							session.Log("......id " + id2);
+						}
           }
         }
-      } catch (Exception ex) { return False_after_ExceptionLog("Looping Regexp", session, ex); }
+      } catch (Exception ex) { 
+         just_ExceptionLog("Looping Regexp", session, ex); 
+      }
       session.Message(InstallMessage.Progress, new Record(2, 1));
-      return true;
+			return;
     }
 
 
