@@ -5,6 +5,13 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
+// FORMATTING ////////////////////////
+// Visual Studio
+//   Tools/Options/Text Editor/C#/Tabs                  --> Smart, 2, Insert spaces
+//   Tools/Options/Text Editor/C#/Formatting/New Liness --> None
+
+
+
 
 namespace MinionConfigurationExtension {
   public class MinionConfiguration : WixExtension {
@@ -179,7 +186,7 @@ namespace MinionConfigurationExtension {
       session.Log("...msi property master key given, will (over)write file " + MASTER_KEY_set);
       if (MASTER_KEY_set) {
         String master_key_one_line = session["MASTER_KEY"];
-        String master_key_many_lines = "";
+        String master_key_many_lines = "";   // Newline after 64 characters
         int countup = 0;
         foreach (char character in master_key_one_line) {
           master_key_many_lines += character;
