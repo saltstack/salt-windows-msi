@@ -32,7 +32,7 @@ namespace MinionConfigurationExtension {
       // Do NOT keep config
       // In fact keep nothing
       session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig0");
-      PurgeDir(session, "");  // this will result in c:\salt\
+      PurgeDir(session, "");  // this means to Purge c:\salt\
       session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig0");
       return ActionResult.Success;
     }

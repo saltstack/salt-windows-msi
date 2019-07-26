@@ -23,6 +23,10 @@ Example Set a Master to salt2 with a new key:
 
 > msiexec /i YOUR.msi MASTER_HOSTNAME=salt2 MASTER_KEY=MIIBIjA...2QIDAQAB
 
+Example Remove including configuration
+
+> MsiExec.exe /X{3478B5D9-B494-438F-97A4-160ECE1CF345} KEEP_CONFIG=0
+
 ## Features
 
 - Uninstall leaves configuration by default, optionally removes configuration with `msiexec /x KEEP_CONFIG=0`
