@@ -38,12 +38,12 @@ Minion-specific msi-properties:
 
   Property              |  Default                | Comment
  ---------------------- | ----------------------- | ------
- `MASTER`               | `salt`                  | The master (name or IP). Only a single master.
+ `MASTER`               | `salt`                  | The master (name or IP). Only a single master. May also be read from kept config.
  `MASTER_KEY`           |                         | The master public key. See below.
- `ZMQ_filtering`        | False                   | True or False - does the master requires zmq_filtering?
- `MINION_ID`            | Hostname                | The minion id, may also be read from kept config.
+ `ZMQ_filtering`        | `False`                 | Set to `True` if the master requires zmq_filtering
+ `MINION_ID`            | Hostname                | May also be read from kept config.
  `START_MINION`         | _undefined_             | Set to `1` to start the salt-minion service after installation
- `KEEP_CONFIG`          | `1`                     | keep configuration on uninstall. Only from command line. Set to `0` to remove configuration on uninstall.
+ `KEEP_CONFIG`          | `1`                     | Set to `0` to remove configuration on uninstall.
  `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file and directory (minion.d)      __DO NOT CHANGE (yet)__
  `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
@@ -56,7 +56,6 @@ These files and directories are regarded as config and kept:
 
 Master and id are read from kept configuration from file `C:\salt\conf\minion`
 and then from all files `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`) in alphabetical order.
-
 
 You can set a new master with `MASTER`. This will overrule the master in a kept configuration.
 
