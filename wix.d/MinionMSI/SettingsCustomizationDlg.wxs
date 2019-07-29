@@ -9,14 +9,14 @@
         <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
         <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
 
-        <Control Id="MasterLabel"  Type="Text"       X="20"  Y="75"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Master (IP or hostname):" />
-        <Control Id="MasterId"     Type="Edit"       X="20"  Y="90"  Width="170" Height="15" Property="MASTER_HOSTNAME" />
+        <Control Id="MasterLabel"  Type="Text"       X="20"  Y="75"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Master (hostname or IP address):" />
+        <Control Id="MasterId"     Type="Edit"       X="20"  Y="90"  Width="170" Height="15" Property="MASTER" />
 
         <Control Id="MinionLabel"  Type="Text"       X="20"  Y="120" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion:" />
-        <Control Id="MinionId"     Type="Edit"       X="20"  Y="135" Width="170" Height="15" Property="MINION_HOSTNAME" />
+        <Control Id="MinionId"     Type="Edit"       X="20"  Y="135" Width="170" Height="15" Property="MINION_ID" />
 
-        <Control Id="StartService" Type="CheckBox"   X="20" Y="210"  Width="280" Height="15" Property="START_MINION_SERVICE" CheckBoxValue="1"
-          Text="&amp;Start salt-minion service immediately?"  ToolTip="Command line equivalent START_MINION_SERVICE=1"  />
+        <Control Id="StartService" Type="CheckBox"   X="20" Y="210"  Width="280" Height="15" Property="START_MINION" CheckBoxValue="[START_MINION] = 1"
+          Text="&amp;Start salt-minion service immediately?"  ToolTip="Command line equivalent START_MINION=1"  />
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
         <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)">

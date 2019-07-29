@@ -158,24 +158,18 @@ namespace MinionConfigurationExtension {
 
 
     [CustomAction]
-    public static ActionResult IMCA_read_NSIS(Session session) {
+    public static ActionResult ReadConfig_IMCAC(Session session) {
       /*
-       * we always call because we cannot not what is installed, who installed nsis or msi
-       * so the nsis in the procedure name is not 100% correct
+       * we always call because we cannot not what is installed, who installed (nsis or msi)
        * 
-       * We here also safe-move configuration. This looks like copy-and-paste
-       * 
-       * This CustomAction must be called "early". 
-       * 
-       * More comments in wix.d/MinionMSI/Product.wxs.comments.txt
-      */
-      session.Log("MinionConfiguration.cs:: Begin IMCA_read_NSIS");
-      if (!read_master_and_id_from_all_local_config_files(session)) return ActionResult.Failure;
-      session.Log("MinionConfiguration.cs:: End IMCA_read_NSIS");
+       */
+      session.Log("MinionConfiguration.cs:: Begin ReadConfig_IMCAC");
+      read_master_and_id_from_all_local_config_files(session);
+      session.Log("MinionConfiguration.cs:: End ReadConfig_IMCAC");
       return ActionResult.Success;
     }
 
-    private static bool read_master_and_id_from_all_local_config_files(Session session) {
+    private static void read_master_and_id_from_all_local_config_files(Session session) {
       String master_from_local_config = "";
       String id_from_local_config = "";
 
@@ -184,16 +178,15 @@ namespace MinionConfigurationExtension {
       // Solution in Products.wxs:
       // This IMCA must not be called BEFORE FindRelatedProducts, but BEFORE MigrateFeatureStates because
       // INSTALLFOLDER in only set in CostFinalize, which comes after FindRelatedProducts 
-      // May called AFTER?     
+      // Maybe called AFTER?
       string INSTALLFOLDER = session["INSTALLFOLDER"];
-      long count_files_INSTALLFOLDER = 0;
+      long count_files = 0;
       if (Directory.Exists(INSTALLFOLDER)) {
         foreach (string file in System.IO.Directory.GetFiles(INSTALLFOLDER, "*", SearchOption.AllDirectories)) {
-          count_files_INSTALLFOLDER += 1;
+          count_files += 1;
         }
       }
-      session.Log("...counted files in INSTALLFOLDER = " + INSTALLFOLDER);
-      session.Log("................................. = " + count_files_INSTALLFOLDER.ToString());
+      session.Log("...counted " + count_files.ToString()+" files in INSTALLFOLDER = " + INSTALLFOLDER);
 
       // Read config type from MSI property  
       string CONFIG_TYPE = session["CONFIG_TYPE"];
@@ -209,6 +202,7 @@ namespace MinionConfigurationExtension {
       // https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
 
       if (eq(CONFIG_TYPE, "Default")) {
+        session.Log("...Default CONFIG_TYPE: do not read master and id from kept config, but use salt and hostname.");
         master_from_local_config = "salt";
         id_from_local_config = Environment.MachineName;
       }
@@ -231,27 +225,41 @@ namespace MinionConfigurationExtension {
         }
       }
       // Compare master and id with MSI properties
-      session.Log("...MSI property  id    =" + session["MINION_HOSTNAME"]);
-      session.Log("...kept config   id    =" + id_from_local_config);
-      session.Log("...MSI property  master=" + session["MASTER_HOSTNAME"]);
-      session.Log("...kept config   master=" + master_from_local_config);
+      session.Log("...master  msi property  =" + session["MASTER"]);
+      session.Log("...master  kept config   =" + master_from_local_config);
+      session.Log("...id      msi property  =" + session["MINION_ID"]);
+      session.Log("...id      kept config   =" + id_from_local_config);
 
-
-
-      if (session["MASTER_HOSTNAME"] == "#") {
-        // The msi has no master_hostname  (# is our convention for "unset")
-        // Let's use the kept config, or "salt"
+      // If the msi property has value #, this is our convention for "unset"
+      // This means the use has not set the value on commandline (GUI comes later)
+      // If the msi property has value different from # "unset", the user has set the master
+      // msi propery master wins (without any action) over kept config master
+      /////////////////master
+      if (session["MASTER"] == "#") {
+        session.Log("...MASTER msi property unset means: user has not set master on the command line");
         if (master_from_local_config != "") {
-          session.Log("...using kept config master because msi property unset");
-          session["MASTER_HOSTNAME"] = master_from_local_config;
+          session.Log("......setting to value of kept config ");
+          session["MASTER"] = master_from_local_config;
         } else {
-          session.Log("...neither msi property nor kept config for master. Using default MASTER_HOSTNAME");
-          session["MASTER_HOSTNAME"] = "salt";
+          session.Log("......no kept config, we set the master to salt");
+          session["MASTER"] = "salt";
         }
       } else {
-        // msi propery master wins (without any action) over kept config master
         // Just for clarity of the log
-        session.Log("...msi property master changes kept config ");
+        session.Log("...MASTER msi property was set by user, the value overtakes the kept config (if any)");
+      }
+      ///////////////// minion id
+      if (session["MINION_ID"] == "#") {
+        session.Log("...MINION_ID msi property unset means: user has not set master on the command line");
+        if (id_from_local_config != "") {
+          session.Log("......setting to value of kept config ");
+          session["MINION_ID"] = id_from_local_config;
+        } else {
+          session.Log("......no kept config, we set MINION_ID to hostname later in SetMinionIdToHostname_XIMCA.");
+        }
+      } else {
+        // Just for clarity of the log
+        session.Log("...MINION_ID msi property was set by user, the value overtakes the kept config (if any)");
       }
 
       var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
@@ -259,7 +267,7 @@ namespace MinionConfigurationExtension {
       Directory.CreateDirectory(master_public_key_path);  // TODO Security
       session.Log("...kept config master key exists " + File.Exists(master_public_key_filename));
       bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
-      session.Log("...msi property master key given, will (over)write file " + MASTER_KEY_set);
+      session.Log("...msi property master key given, will overwrite file " + MASTER_KEY_set);
       if (MASTER_KEY_set) {
         String master_key_one_line = session["MASTER_KEY"];
         String master_key_many_lines = "";   // Newline after 64 characters
@@ -277,9 +285,6 @@ namespace MinionConfigurationExtension {
           "-----END PUBLIC KEY-----";
         File.WriteAllText(master_public_key_filename, new_master_pub_key);  // TODO try..catch
       }
-
-
-      return true;
     }
 
 
@@ -379,61 +384,102 @@ namespace MinionConfigurationExtension {
     [CustomAction]
     public static ActionResult DECA_WriteConfig(Session session) /***/ {
       string rootDir;
+      string zmq_filtering;
       try {
         rootDir = session.CustomActionData["root_dir"];
-      } catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + "root_dir", session, ex); return ActionResult.Failure; }
-
+      } catch (Exception ex) {
+        just_ExceptionLog("Getting CustomActionData " + "root_dir", session, ex);
+        return ActionResult.Failure;
+      }
+      try {
+        zmq_filtering = session.CustomActionData["zmq_filtering"];
+      } catch (Exception ex) {
+        just_ExceptionLog("Getting CustomActionData " + "zmq_filtering", session, ex);
+        return ActionResult.Failure;
+      }
       session.Log(@"looking for NSIS configuration in c:\salt");
       re_use_NSIS_config_folder(session, @"c:\salt\", rootDir); // This is intentionally using the fixed NSIS installation path
 
+      bool found_before_replacement = false;
       ActionResult result = ActionResult.Failure;
-      result = save_CustomActionDataKeyValue_to_config_file(session, "root_dir");
+      result = save_CustomActionDataKeyValue_to_config_file(session, "zmq_filtering", ref found_before_replacement);
+      session.Log(@"DECA_WriteConfig zmq_filtering from msi YAML value " + zmq_filtering.ToString());
+      session.Log(@"DECA_WriteConfig zmq_filtering from msi found in the kept config " + found_before_replacement.ToString());
+      if (!found_before_replacement && zmq_filtering == "True") {
+        string MINION_CONFIGFILE = getConfigFileLocation(session);
+        string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+        string zmq_config_file = MINION_CONFIGDIR + "\\" + "zmq_filtering.conf";
+        File.WriteAllText(zmq_config_file, "zmq_filtering: True" + Environment.NewLine);
+        session.Log(@"DECA_WriteConfig created and wrote zmq_filtering.conf");
+      }
 
       if (result == ActionResult.Success)
-        result = save_CustomActionDataKeyValue_to_config_file(session, "master");
+        result = save_CustomActionDataKeyValue_to_config_file(session, "master", ref found_before_replacement);
 
       if (result == ActionResult.Success)
-        result = save_CustomActionDataKeyValue_to_config_file(session, "id");
+        result = save_CustomActionDataKeyValue_to_config_file(session, "id", ref found_before_replacement);
 
       return result;
     }
 
-    private static ActionResult save_CustomActionDataKeyValue_to_config_file(Session session, string SaltKey) {
+    private static ActionResult save_CustomActionDataKeyValue_to_config_file
+      (Session session, string SaltKey, ref bool found_before_replacement) {
       session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
       session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
       session.Log("save_CustomActionDataKeyValue_to_config_file " + SaltKey);
       string CustomActionData_value;
       try {
         CustomActionData_value = session.CustomActionData[SaltKey];
-      } catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + SaltKey, session, ex); return ActionResult.Failure; }
+      } catch (Exception ex) {
+        just_ExceptionLog("Getting CustomActionData " + SaltKey, session, ex);
+        return ActionResult.Failure;
+      }
       session.Message(InstallMessage.Progress, new Record(2, 1));
       // pattern description
       // ^        start of line
-      // #*       a comment hashmark would be removed, if present
       //          anything after the colon is ignored and would be removed 
-      string pattern = "^#*" + SaltKey + ":";
+      string pattern = "^" + SaltKey + ":";
       string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
-      ActionResult result = replace_pattern_in_config_file(session, pattern, replacement);
+      ActionResult result = replace_pattern_in_all_config_files(session, pattern, replacement, ref found_before_replacement);
       session.Message(InstallMessage.Progress, new Record(2, 1));
       session.Log("save_CustomActionDataKeyValue_to_config_file End");
       return result;
     }
 
-    private static ActionResult replace_pattern_in_config_file(Session session, string pattern, string replacement) {
+
+
+    private static ActionResult replace_pattern_in_all_config_files
+      (Session session, string pattern, string replacement, ref bool found_before_replacement) {
+      string MINION_CONFIGFILE = getConfigFileLocation(session);
+      string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+      if (Directory.Exists(MINION_CONFIGDIR)) {
+        var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+        foreach (var conf_file in conf_files) {
+          // skip _schedule.conf
+          if (conf_file.EndsWith("_schedule.conf")) { continue; }
+          replace_pattern_in_one_config_file(session, conf_file, pattern, replacement, ref found_before_replacement);
+        }
+      }
+
+      return replace_pattern_in_one_config_file(session, MINION_CONFIGFILE, pattern, replacement, ref found_before_replacement);
+    }
+
+    private static ActionResult replace_pattern_in_one_config_file
+      (Session session, string config_file, string pattern, string replacement, ref bool found_before_replacement) {
       /*
-       * the pattern finds assigment and assigment commented out:
-       *    #a:b
-       *    a:b  
        * Only replace the first match, blank out all others
        */
-      string MINION_CONFIGFILE = getConfigFileLocation(session);
-      string[] configLines = File.ReadAllLines(MINION_CONFIGFILE);
+      string[] configLines = File.ReadAllLines(config_file);
       session.Message(InstallMessage.Progress, new Record(2, 1));
-      session.Log("replace_pattern_in_config_file..config file    {0}", MINION_CONFIGFILE);
+      session.Log("replace_pattern_in_config_file..config file    {0}", config_file);
       session.Message(InstallMessage.Progress, new Record(2, 1));
       try {
         bool never_found_the_pattern = true;
         for (int i = 0; i < configLines.Length; i++) {
+          if (configLines[i].StartsWith(replacement)) {
+            found_before_replacement = true;
+            session.Log("replace_pattern_in_config_file..found the replacement in line        {0}", configLines[i]);
+          }
           if (Regex.IsMatch(configLines[i], pattern)) {
             if (never_found_the_pattern) {
               never_found_the_pattern = false;
@@ -449,7 +495,7 @@ namespace MinionConfigurationExtension {
       } catch (Exception ex) { just_ExceptionLog("Looping Regexp", session, ex); return ActionResult.Failure; }
       session.Message(InstallMessage.Progress, new Record(2, 1));
       try {
-        File.WriteAllLines(MINION_CONFIGFILE, configLines);
+        File.WriteAllLines(config_file, configLines);
       } catch (Exception ex) { just_ExceptionLog("Writing to file", session, ex); return ActionResult.Failure; }
       return ActionResult.Success;
     }

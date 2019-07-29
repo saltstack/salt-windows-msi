@@ -60,14 +60,34 @@
       ]]>
     </Condition>
 
+
+    <!--
+      msi properties
+        Naming converntions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
+        Public properties be changed by user, e.g. at the command line.
+        A value "#" is our convention for "unset"
+     -->
     <!-- Salt properties  -->
-    <Property Id="MASTER_HOSTNAME"          Value="#"                    /> <!-- # is our convention for "unset"  -->
-    <Property Id="MASTER_KEY"               Value="#"                    /> <!-- # is our convention for "unset"  -->
-    <Property Id="MINION_HOSTNAME"          Value="#"                    /> <!-- # is our convention for "unset"  -->
-    <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  /> <!-- Can be changed by user to point to another location -->
+    <Property Id="MASTER"                   Value="#"                    />
+    <Property Id="ZMQ_FILTERING"            Value="False"                /> <!-- or True  -->
+    <Property Id="MASTER_KEY"               Value="#"                    />
+    <Property Id="MINION_ID"                Value="#"                    />
+    <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             /> <!-- or Custom or Default    WIP  -->
     <Property Id="KEEP_CONFIG"              Value="1"                    />
-    <Property Id="START_MINION_SERVICE"     Value="0"                    />
+    <Property Id="START_MINION"             Value="0"                    />
+
+    <!-- Renamed properties
+         Message when a user sets the old properties
+      -->
+    <Property Id="MASTER_HOSTNAME"      Value="#"/>
+    <Property Id="MINION_HOSTNAME"      Value="#"/>
+    <Property Id="START_MINION_SERVICE" Value="#"/>
+<!-- WIP-->
+    <Condition Message="Please change MASTER_HOSTNAME to MASTER"           ><![CDATA[MASTER_HOSTNAME = "#"]]></Condition>
+    <Condition Message="Please change MINION_HOSTNAME to MINION_ID"        ><![CDATA[MINION_HOSTNAME = "#"]]></Condition>
+    <Condition Message="Please change START_MINION_SERVICE to START_MINION"><![CDATA[START_MINION_SERVICE = "#"]]></Condition>
+
     <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
     <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"                                                />
@@ -88,26 +108,27 @@
     <!-- Sequence is determined by the Before attribute -->
     <!-- Installation sequence with GUI   -->
     <InstallUISequence>
-      <!-- set MINION_HOSTNAME if not installed and unset -->
-      <Custom Action="IMCA_SetMinionHostname"     Before='IMCA_read_NSIS'         >NOT Installed AND (MINION_HOSTNAME = "#")</Custom>
-      <Custom Action='IMCA_read_NSIS'             Before='MigrateFeatureStates'   >NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC'            Before='SetMinionIdToHostname_IMCAX' >NOT Installed</Custom>
+      <!-- set MINION_ID if not read from NSIS/kept_config and user did not set it and software not installed -->
+      <Custom Action="SetMinionIdToHostname_IMCAX" Before='MigrateFeatureStates'        >NOT Installed AND (MINION_ID = "#")</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
 
     <!-- Installation sequence without GUI, silent, headless   -->
     <InstallExecuteSequence>
-      <!-- set MINION_HOSTNAME if not installed and unset -->
-      <Custom Action="IMCA_SetMinionHostname"     Before='IMCA_read_NSIS'         >NOT Installed AND (MINION_HOSTNAME = "#")</Custom>
-      <Custom Action='IMCA_read_NSIS'             Before='MigrateFeatureStates'   >NOT Installed</Custom>
-      <!-- DECA_del_NSIS is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
-      <Custom Action='DECA_del_NSIS'              After='InstallInitialize'       >NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC'            Before='SetMinionIdToHostname_IMCAX' >NOT Installed</Custom>
+      <!-- set MINION_ID if not read from NSIS/kept_config and user did not set it and software not installed -->
+      <Custom Action="SetMinionIdToHostname_IMCAX" Before='MigrateFeatureStates'        >NOT Installed AND (MINION_ID = "#")</Custom>
 
-      <Custom Action='CADH_WriteConfig'           Before='DECA_WriteConfig'       >NOT Installed</Custom> 
-      <Custom Action='DECA_WriteConfig'           Before='StartServices'          >NOT Installed</Custom>
+      <!-- DECA_del_NSIS is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
+      <Custom Action='DECA_del_NSIS'               After='InstallInitialize'            >NOT Installed</Custom>
+
+      <Custom Action='CADH_WriteConfig'            Before='DECA_WriteConfig'            >NOT Installed</Custom> 
+      <Custom Action='DECA_WriteConfig'            Before='StartServices'               >NOT Installed</Custom>
       
       <!-- Conditionally start the service -->
-      <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
+      <StartServices Sequence="5900">START_MINION = "1"</StartServices>
 
       <!-- 
       Remove 'lifetime' data on uninstall or upgrade.
