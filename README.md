@@ -17,11 +17,11 @@ Values may be quotes (example: `PROPERTY3="VALUE3"`)
 
 Example Set a Master to salt2, the old master key, if present, wil be reused:
 
-> msiexec /i YOUR.msi MASTER_HOSTNAME=salt2
+> msiexec /i YOUR.msi MASTER=salt2
 
 Example Set a Master to salt2 with a new key:
 
-> msiexec /i YOUR.msi MASTER_HOSTNAME=salt2 MASTER_KEY=MIIBIjA...2QIDAQAB
+> msiexec /i YOUR.msi MASTER=salt2 MASTER_KEY=MIIBIjA...2QIDAQAB
 
 Example Remove including configuration
 
@@ -43,7 +43,7 @@ Minion-specific msi-properties:
  `ZMQ_filtering`        | False                   | True or False - does the master requires zmq_filtering?
  `MINION_ID`            | Hostname                | The minion id, may also be read from kept config.
  `START_MINION`         | _undefined_             | Set to `1` to start the salt-minion service after installation
- `KEEP_CONFIG`          | `1` (_true_)            | keep configuration on uninstall. Only from command line
+ `KEEP_CONFIG`          | `1`                     | keep configuration on uninstall. Only from command line. Set to `0` to remove configuration on uninstall.
  `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file and directory (minion.d)      __DO NOT CHANGE (yet)__
  `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
@@ -58,7 +58,7 @@ Master and id are read from kept configuration from file `C:\salt\conf\minion`
 and then from all files `C:\salt\conf\minion.d\*.conf` (except `_schedule.conf`) in alphabetical order.
 
 
-You can set a new master with `MASTER_HOSTNAME`. This will overrule the master in a kept configuration.
+You can set a new master with `MASTER`. This will overrule the master in a kept configuration.
 
 You can set a new master public key with `MASTER_KEY`, but you must convert it into one line:
 
