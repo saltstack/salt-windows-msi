@@ -66,6 +66,9 @@
         Naming converntions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
         Public properties be changed by user, e.g. at the command line.
         A value "#" is our convention for "unset"
+        ####
+        Values must be undefined when you want a checkbox:
+        START_MINION  
      -->
     <!-- Salt properties  -->
     <Property Id="MASTER"                   Value="#"                    />
@@ -75,7 +78,6 @@
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             /> <!-- or Custom or Default    WIP  -->
     <Property Id="KEEP_CONFIG"              Value="1"                    />
-    <Property Id="START_MINION"             Value="0"                    />
 
     <!-- Renamed properties
          Message when a user sets the old properties
@@ -128,7 +130,7 @@
       <Custom Action='DECA_WriteConfig'            Before='StartServices'               >NOT Installed</Custom>
       
       <!-- Conditionally start the service -->
-      <StartServices Sequence="5900">START_MINION = "1"</StartServices>
+      <StartServices Sequence="5900">START_MINION</StartServices>
 
       <!-- 
       Remove 'lifetime' data on uninstall or upgrade.

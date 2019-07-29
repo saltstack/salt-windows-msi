@@ -15,7 +15,7 @@
         <Control Id="MinionLabel"  Type="Text"       X="20"  Y="120" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion:" />
         <Control Id="MinionId"     Type="Edit"       X="20"  Y="135" Width="170" Height="15" Property="MINION_ID" />
 
-        <Control Id="StartService" Type="CheckBox"   X="20" Y="210"  Width="280" Height="15" Property="START_MINION" CheckBoxValue="[START_MINION] = 1"
+        <Control Id="StartService" Type="CheckBox"   X="20" Y="210"  Width="280" Height="15" Property="START_MINION" CheckBoxValue="1"
           Text="&amp;Start salt-minion service immediately?"  ToolTip="Command line equivalent START_MINION=1"  />
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
