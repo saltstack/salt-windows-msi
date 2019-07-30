@@ -153,11 +153,12 @@ The remainder is documentation how to program the msi build toolkit.
     - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
     - WixUI_Minion.wxs: UI description, that includes the dialog.
 
-### Naming conventions for WiX
+### Naming conventions
 
-Prefix  | Example                 | Meaning
-------- | ----------------------- | -------
-`IMCA_` | `IMCA_NukeConf`         | Immediate custom action
+Postfix  | Example                            | Meaning
+-------- | ---------------------------------- | -------
+`_IMCAC` | `ReadConfig_IMCAC`                 | Immediate custom action written in C#
+`_IMCAX` | `SetMinionIdToHostname_IMCAX`      | Immediate custom action written in XML
 `DECA_` | `DECA_SetMaster`        | Deferred custom action
 `CADH_` | `CADH_SetMaster`        | Custom action data helper for DECA_
 `COMP_` | `COMP_NukeBin`          | Component
