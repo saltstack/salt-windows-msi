@@ -174,7 +174,7 @@
     <!-- Inspiration 2: http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/   Simple Remember Pattern SRP-->
     <!-- Learn: Condition with KEEP_CONFIG is useless on Components and on Features -->
     <!-- SRP pattern
-       We cannot recursivly delete the var folder because it contains the cache, we we regard as configuration and optionally keep.
+       We cannot recursivly delete the var folder because it contains the cache, we regard as configuration and optionally keep.
          It is the task of DECA_UninstallKeepConfig1 to selectivly delete the var folder
         The use of the SRP Pattern is limited.
     -->
