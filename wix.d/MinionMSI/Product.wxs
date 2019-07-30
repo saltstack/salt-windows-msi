@@ -66,9 +66,13 @@
         Naming converntions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
         Public properties be changed by user, e.g. at the command line.
         A value "#" is our convention for "unset"
-        ####
-        Values must be undefined when you want a checkbox:
-        START_MINION  
+
+        On START_MINION and checkbox:
+        A checkbox is only empty if a property is undefined (missing).
+        When you say START_MINION=0 on the commandline), the service will not start, but the checkbox will be set.
+        The user must uncheck. This is ugly and a Microsoft glitch.
+        https://stackoverflow.com/questions/7624428/wix-boolean-property-values-dont-work
+        When you say START_MINION=0 /qn on the commandline (no GUI), the service will not start.
      -->
     <!-- Salt properties  -->
     <Property Id="MASTER"                   Value="#"                    />
@@ -77,6 +81,7 @@
     <Property Id="MINION_ID"                Value="#"                    />
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             /> <!-- or Custom or Default    WIP  -->
+    <Property Id="START_MINION"             Value="1"                    />
     <Property Id="KEEP_CONFIG"              Value="1"                    />
 
     <!-- Renamed properties
@@ -129,8 +134,10 @@
       <Custom Action='CADH_WriteConfig'            Before='DECA_WriteConfig'            >NOT Installed</Custom> 
       <Custom Action='DECA_WriteConfig'            Before='StartServices'               >NOT Installed</Custom>
       
-      <!-- Conditionally start the service -->
-      <StartServices Sequence="5900">START_MINION</StartServices>
+      <!-- Conditionally start the service  
+      Programmer reminder/warning: leave CDATA!
+      -->
+      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
 
       <!-- 
       Remove 'lifetime' data on uninstall or upgrade.
