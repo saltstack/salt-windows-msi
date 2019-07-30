@@ -75,7 +75,7 @@ The target client is where the installer is deployed.
 
 ## Build client requirements
 
-The build client is where the msi installer is build.
+The build client is where the msi installer is built.
 
 - 64bit Windows 10
 - Salt clone in `c:\git\salt\`
