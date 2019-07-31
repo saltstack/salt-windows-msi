@@ -42,7 +42,7 @@ Minion-specific msi-properties:
  `MASTER_KEY`           |                         | The master public key. See below.
  `ZMQ_filtering`        | `False`                 | Set to `True` if the master requires zmq_filtering
  `MINION_ID`            | Hostname                | May also be read from kept config.
- `START_MINION`         | `1`                     | Set to `0` to prevent the start of the salt-minion service.
+ `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service. (`START_MINION=""`)
  `KEEP_CONFIG`          | `1`                     | Set to `0` to remove configuration on uninstall.
  `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file and directory (minion.d)      __DO NOT CHANGE (yet)__
  `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__

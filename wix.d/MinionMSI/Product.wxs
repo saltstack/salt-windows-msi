@@ -73,9 +73,9 @@
 
         On START_MINION and checkbox:
         A checkbox is only empty if a property is undefined (missing).
-        When you say START_MINION=0 on the commandline), the service will not start, but the checkbox will be set.
-        The user must uncheck. This is ugly and a Microsoft glitch.
-        https://stackoverflow.com/questions/7624428/wix-boolean-property-values-dont-work
+        You delete a property with "" on the commandline
+        When you say START_MINION="" on the commandline, the service will not start and the checkbox will empty.
+        When you say START_MINION=0 on the commandline, the service will not start, but the checkbox will be set.
         When you say START_MINION=0 /qn on the commandline (no GUI), the service will not start.
      -->
     <!-- Salt properties  -->
