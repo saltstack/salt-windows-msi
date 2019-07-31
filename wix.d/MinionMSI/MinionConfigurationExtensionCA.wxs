@@ -44,8 +44,8 @@
     -->
     <!--  Naming/terminology changes from msi to Salt. -->    
     <CustomAction Id="CADH_WriteConfig"           Property="DECA_WriteConfig"           Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];zmq_filtering=[ZMQ_FILTERING]" />
-    <CustomAction Id="CADH_UninstallKeepConfig0"  Property="DECA_UninstallKeepConfig0"  Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
-    <CustomAction Id="CADH_UninstallKeepConfig1"  Property="DECA_UninstallKeepConfig1"  Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
+    <CustomAction Id="CADH_UninstallKeepConfig0"  Property="DECA_UninstallKeepConfig0"  Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];keep_config=[KEEP_CONFIG]" />
+    <CustomAction Id="CADH_UninstallKeepConfig1"  Property="DECA_UninstallKeepConfig1"  Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];keep_config=[KEEP_CONFIG]" />
     <CustomAction Id="CADH_Upgrade"               Property="DECA_Upgrade"               Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
     <!-- NICETOHAVE test if DECA_UninstallKeepConfig* probably does not need  master=[MASTER];id=[MINION_ID] -->
 
