@@ -231,7 +231,6 @@ namespace MinionConfigurationExtension {
       /////////////////master
       session.Log("...MASTER      msi property  =" + session["MASTER"]);
       session.Log("               kept config   =" + master_from_local_config);
-
       if (session["MASTER"] == "#") {
         session.Log("...MASTER msi property unset/void (user has not given property on the msiexec command line)");
         if (master_from_local_config != "") {
@@ -264,9 +263,9 @@ namespace MinionConfigurationExtension {
       var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
       var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
       Directory.CreateDirectory(master_public_key_path);  // TODO Security
-      session.Log("...kept config master key exists " + File.Exists(master_public_key_filename));
       bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
-      session.Log("...msi property master key given, will overwrite file " + MASTER_KEY_set);
+      session.Log("...master key kept config file exists       = " + File.Exists(master_public_key_filename));
+      session.Log("...master key MASTER_KEY msi property given = " + MASTER_KEY_set);
       if (MASTER_KEY_set) {
         String master_key_one_line = session["MASTER_KEY"];
         String master_key_many_lines = "";   // Newline after 64 characters
@@ -285,7 +284,6 @@ namespace MinionConfigurationExtension {
         File.WriteAllText(master_public_key_filename, new_master_pub_key);  // TODO try..catch
       }
     }
-
 
 
     // Leaves the Config
