@@ -32,16 +32,6 @@ namespace MinionConfigurationExtension {
       // Do NOT keep config
       // In fact keep nothing
       session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig0");
-      string keep_config = "";
-      try {
-        keep_config = session.CustomActionData["keep_config"];
-      } catch (Exception ex) {
-        just_ExceptionLog("Getting CustomActionData keep_config ", session, ex);
-        return ActionResult.Failure;
-      }
-      // log
-      session.Log("...KEEP_CONFIG = " + keep_config);
-      //
       PurgeDir(session, "");  // this means to Purge c:\salt\
       session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig0");
       return ActionResult.Success;
@@ -58,16 +48,6 @@ namespace MinionConfigurationExtension {
          We move the 2 directories out of var, delete var, and move back
       */
       session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig1");
-      string keep_config = "";
-      try {
-        keep_config = session.CustomActionData["keep_config"];
-      } catch (Exception ex) {
-        just_ExceptionLog("Getting CustomActionData keep_config ", session, ex);
-        return ActionResult.Failure;
-      }
-      // log
-      session.Log("...KEEP_CONFIG = " + keep_config);
-      //
       PurgeDir(session, @"bin");
       // move parts from var into safety
       string safedir = @"c:\salt\_tmp_swap_space\";
