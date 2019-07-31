@@ -224,42 +224,41 @@ namespace MinionConfigurationExtension {
           }
         }
       }
-      // Compare master and id with MSI properties
-      session.Log("...master  msi property  =" + session["MASTER"]);
-      session.Log("...master  kept config   =" + master_from_local_config);
-      session.Log("...id      msi property  =" + session["MINION_ID"]);
-      session.Log("...id      kept config   =" + id_from_local_config);
-
       // If the msi property has value #, this is our convention for "unset"
       // This means the use has not set the value on commandline (GUI comes later)
       // If the msi property has value different from # "unset", the user has set the master
       // msi propery master wins (without any action) over kept config master
       /////////////////master
+      session.Log("...MASTER      msi property  =" + session["MASTER"]);
+      session.Log("               kept config   =" + master_from_local_config);
+
       if (session["MASTER"] == "#") {
-        session.Log("...MASTER msi property unset means: user has not set master on the command line");
+        session.Log("...MASTER msi property unset/void (user has not given property on the msiexec command line)");
         if (master_from_local_config != "") {
-          session.Log("......setting to value of kept config ");
           session["MASTER"] = master_from_local_config;
+          session.Log("...MASTER set to kept config");
         } else {
-          session.Log("......no kept config, we set the master to salt");
           session["MASTER"] = "salt";
+          session.Log("...MASTER set to salt because no kept config");
         }
       } else {
         // Just for clarity of the log
-        session.Log("...MASTER msi property was set by user, the value overtakes the kept config (if any)");
+        session.Log("...MASTER msi property was given by user, the value overtakes the kept config (if any)");
       }
       ///////////////// minion id
+      session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
+      session.Log("               kept config   =" + id_from_local_config);
       if (session["MINION_ID"] == "#") {
-        session.Log("...MINION_ID msi property unset means: user has not set master on the command line");
+        session.Log("...MINION_ID msi property unset/void (user has not given property on the msiexec command line)");
         if (id_from_local_config != "") {
-          session.Log("......setting to value of kept config ");
+          session.Log("...MINION_ID set to kept config ");
           session["MINION_ID"] = id_from_local_config;
         } else {
-          session.Log("......no kept config, we set MINION_ID to hostname later in SetMinionIdToHostname_XIMCA.");
+          session.Log("...MINION_ID will be set by SetMinionIdToHostname_XIMCA because no kept config");
         }
       } else {
         // Just for clarity of the log
-        session.Log("...MINION_ID msi property was set by user, the value overtakes the kept config (if any)");
+        session.Log("...MINION_ID msi property was given by user, the value overtakes the kept config (if any)");
       }
 
       var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
