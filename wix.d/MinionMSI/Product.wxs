@@ -64,7 +64,12 @@
       Privileged
       ]]>
     </Condition>
-
+    <!-- Renamed properties
+         Message when a user sets the old properties
+      -->
+    <Condition Message="Please rename MASTER_HOSTNAME to MASTER"           ><![CDATA[NOT MASTER_HOSTNAME]]></Condition>
+    <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        ><![CDATA[NOT MINION_HOSTNAME]]></Condition>
+    <Condition Message="Please rename START_MINION_SERVICE to START_MINION"><![CDATA[NOT START_MINION_SERVICE]]></Condition>
     <!--
       msi properties
         Naming converntions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
@@ -88,16 +93,6 @@
     <Property Id="START_MINION"             Value="1"                    />
     <Property Id="KEEP_CONFIG"              Value="1"                    />
 
-    <!-- Renamed properties
-         Message when a user sets the old properties
-      -->
-    <Property Id="MASTER_HOSTNAME"      Value="#"/>
-    <Property Id="MINION_HOSTNAME"      Value="#"/>
-    <Property Id="START_MINION_SERVICE" Value="#"/>
-<!-- WIP-->
-    <Condition Message="Please change MASTER_HOSTNAME to MASTER"           ><![CDATA[MASTER_HOSTNAME = "#"]]></Condition>
-    <Condition Message="Please change MINION_HOSTNAME to MINION_ID"        ><![CDATA[MINION_HOSTNAME = "#"]]></Condition>
-    <Condition Message="Please change START_MINION_SERVICE to START_MINION"><![CDATA[START_MINION_SERVICE = "#"]]></Condition>
 
     <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
     <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
