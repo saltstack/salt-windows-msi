@@ -59,7 +59,11 @@
       Installed or (PhysicalMemory > 125)
       ]]>
     </Condition>
-
+    <Condition Message="Installation requires Administrator privileges">
+      <![CDATA[
+      Privileged
+      ]]>
+    </Condition>
 
     <!--
       msi properties
@@ -103,6 +107,8 @@
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
     <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
+    <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
+
     <!-- WiX properties
       WIXUI_INSTALLDIR
         From https://wixtoolset.org//documentation/manual/v3/wixui/dialog_reference/wixui_installdir.html
