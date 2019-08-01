@@ -28,16 +28,16 @@ namespace MinionConfigurationExtension {
      * Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
      */
     [CustomAction]
-    public static ActionResult DECA_UninstallKeepConfig0(Session session) {
+    public static ActionResult Uninstall_incl_Config_DECAC(Session session) {
       // Do NOT keep config
       // In fact keep nothing
-      session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig0");
+      session.Log("MinionConfiguration.cs:: Begin Uninstall_incl_Config_DECAC");
       PurgeDir(session, "");  // this means to Purge c:\salt\
-      session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig0");
+      session.Log("MinionConfiguration.cs:: End Uninstall_incl_Config_DECAC");
       return ActionResult.Success;
     }
     [CustomAction]
-    public static ActionResult DECA_UninstallKeepConfig1(Session session) {
+    public static ActionResult Uninstall_excl_Config_DECAC(Session session) {
       // DO keep config
       /* Selectively delete the var folder.
        * 
@@ -47,7 +47,7 @@ namespace MinionConfigurationExtension {
          
          We move the 2 directories out of var, delete var, and move back
       */
-      session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig1");
+      session.Log("MinionConfiguration.cs:: Begin Uninstall_excl_Config_DECAC");
       PurgeDir(session, @"bin");
       // move parts from var into safety
       string safedir = @"c:\salt\_tmp_swap_space\";
@@ -63,7 +63,7 @@ namespace MinionConfigurationExtension {
       Directory.Delete(safedir);
 
       // log
-      session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig1");
+      session.Log("MinionConfiguration.cs:: End Uninstall_excl_Config_DECAC");
       return ActionResult.Success;
     }
 

@@ -89,6 +89,8 @@ The build client is where the msi installer is built.
 
 <sup>**</sup> downloaded and installed by `build_env.cmd` if necessary.
 
+Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items?itemName=WixToolset.WiXToolset)
+
 ### Step 1: build the exe installer
 
 [Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
@@ -159,8 +161,8 @@ Postfix  | Example                            | Meaning
 -------- | ---------------------------------- | -------
 `_IMCAC` | `ReadConfig_IMCAC`                 | Immediate custom action written in C#
 `_IMCAX` | `SetMinionIdToHostname_IMCAX`      | Immediate custom action written in XML
-`DECA_` | `DECA_SetMaster`        | Deferred custom action
-`CADH_` | `CADH_SetMaster`        | Custom action data helper for DECA_
+`_DECAC` | `Uninstall_excl_Config_DECAC`      | Deferred custom action written in C#
+`_CADH`  | `Uninstall_excl_Config_CADH`       | Custom action data helper (only for deferred custom action)
 `COMP_` | `COMP_NukeBin`          | Component
 `DIR_`  | `DIR_conf`              | Directory
 
