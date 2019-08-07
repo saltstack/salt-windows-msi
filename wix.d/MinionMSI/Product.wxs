@@ -158,6 +158,10 @@
       From  https://docs.microsoft.com/en-us/windows/win32/msi/property-reference
         Installed
           The Installed property is set only if the product is installed per-machine or for the current user
+
+      From "Standard actions" https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference
+          RemoveFiles            https://docs.microsoft.com/en-us/windows/win32/msi/removefiles-action
+          RemoveExistingProducts https://docs.microsoft.com/en-us/windows/win32/msi/removeexistingproducts-action
       -->
       <Custom Action='Uninstall_incl_Config_CADH'   Before='Uninstall_incl_Config_DECAC' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
       <Custom Action='Uninstall_incl_Config_DECAC'           After='RemoveFiles'         >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
