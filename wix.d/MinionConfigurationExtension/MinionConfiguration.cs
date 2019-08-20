@@ -5,6 +5,13 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
+// FORMATTING ////////////////////////
+// Visual Studio
+//   Tools/Options/Text Editor/C#/Tabs                  --> Smart, 2, Insert spaces
+//   Tools/Options/Text Editor/C#/Formatting/New Liness --> None
+
+
+
 
 namespace MinionConfigurationExtension {
   public class MinionConfiguration : WixExtension {
@@ -21,22 +28,78 @@ namespace MinionConfigurationExtension {
      * Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
      */
     [CustomAction]
-    public static ActionResult DECA_UninstallKeepConfig0(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig0");
-      PurgeDir(session, @"bin");
-      PurgeDir(session, @"conf");
-      PurgeDir(session, @"var");
-      session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig0");
+    public static ActionResult Uninstall_incl_Config_DECAC(Session session) {
+      // Do NOT keep config
+      // In fact keep nothing
+      session.Log("MinionConfiguration.cs:: Begin Uninstall_incl_Config_DECAC");
+      PurgeDir(session, "");  // this means to Purge c:\salt\
+      session.Log("MinionConfiguration.cs:: End Uninstall_incl_Config_DECAC");
       return ActionResult.Success;
     }
     [CustomAction]
-    public static ActionResult DECA_UninstallKeepConfig1(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin DECA_UninstallKeepConfig1");
+    public static ActionResult Uninstall_excl_Config_DECAC(Session session) {
+      // DO keep config
+      /* Selectively delete the var folder.
+       * 
+       * Directories in var regarded as config:
+         c:\salt\var\cache\salt\minion\extmods\
+         c:\salt\var\cache\salt\minion\files\
+         
+         We move the 2 directories out of var, delete var, and move back
+      */
+      session.Log("MinionConfiguration.cs:: Begin Uninstall_excl_Config_DECAC");
       PurgeDir(session, @"bin");
+      // move parts from var into safety
+      string safedir = @"c:\salt\_tmp_swap_space\";
+      Directory.CreateDirectory(safedir);
+      movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", true, safedir);
+      movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", true, safedir);
+      // purge var
       PurgeDir(session, @"var");
-      session.Log("MinionConfiguration.cs:: End DECA_UninstallKeepConfig1");
+      // move back
+      Directory.CreateDirectory(@"c:\salt\var\cache\salt\minion"); // Directory.Move cannot create dirs
+      movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", false, safedir);
+      movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", false, safedir);
+      Directory.Delete(safedir);
+
+      // log
+      session.Log("MinionConfiguration.cs:: End Uninstall_excl_Config_DECAC");
       return ActionResult.Success;
     }
+
+    private static void movedir_fromAbs_toRel(Session session, string abs_from0, string rel_tmp_dir, bool into_safety, string safedir) {
+      string abs_from;
+      string abs_to;
+      if (into_safety) {
+        abs_from = abs_from0;
+        abs_to = safedir + rel_tmp_dir;
+      } else {
+        abs_from = safedir + rel_tmp_dir;
+        abs_to = abs_from0;
+      }
+
+      session.Log("...We may need to move? does directory exist " + abs_from);
+      if (Directory.Exists(abs_from)) {
+        session.Log(".....yes");
+      } else {
+        session.Log(".....no");
+        return;
+      }
+      if (Directory.Exists(abs_to)) {
+        session.Log("....!I must first delete the TO directory " + abs_to);
+        shellout(session, @"rmdir /s /q " + abs_to); 
+      }
+      // Now move
+      try {
+        session.Log("...now move to " + abs_to);
+        
+        Directory.Move(abs_from, abs_to);
+        session.Log(".........ok");
+      } catch (Exception ex) {
+        just_ExceptionLog(@"...moving failed", session, ex);
+  }
+}
+
     [CustomAction]
     public static ActionResult DECA_Upgrade(Session session) {
       session.Log("MinionConfiguration.cs:: Begin DECA_Upgrade");
@@ -64,147 +127,168 @@ namespace MinionConfigurationExtension {
       } catch (Exception ex) {
         just_ExceptionLog(@"DECA_Upgrade tried remove pyc " + soon_conf, session, ex);
       }
-      
+
       session.Log("MinionConfiguration.cs:: End DECA_Upgrade");
       return ActionResult.Success;
     }
 
-    private static void PurgeDir(Session session, string aDir) {
-      String soon_conf = @"c:\salt\" + aDir; //TODO use root_dir
+    private static void PurgeDir(Session session, string dir_below_salt_root) {
+      String abs_dir = @"c:\salt\" + dir_below_salt_root; //TODO use root_dir
       String root_dir = "";
       try {
         root_dir = session.CustomActionData["root_dir"];
       } catch (Exception ex) {
         just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex);
       }
-      session.Log("PurgeDir::  root_dir = " + root_dir);
       try {
-        if (Directory.Exists(soon_conf)) {
-          session.Log("PurgeDir:: about to Directory.delete " + soon_conf);
-          Directory.Delete(soon_conf, true);
+        if (Directory.Exists(abs_dir)) {
+          session.Log("PurgeDir:: about to Directory.delete " + abs_dir);
+          Directory.Delete(abs_dir, true);
+          session.Log("PurgeDir:: ...OK");
         } else {
-          session.Log("PurgeDir:: no Directory " + soon_conf);
+          session.Log("PurgeDir:: no Directory " + abs_dir);
         }
       } catch (Exception ex) {
-        just_ExceptionLog(@"PurgeDir tried to delete " + soon_conf, session, ex);
+        just_ExceptionLog(@"PurgeDir tried to delete " + abs_dir, session, ex);
       }
 
       // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied . Read only!
-      shellout(session, @"rmdir /s /q " + soon_conf);
+      shellout(session, @"rmdir /s /q " + abs_dir);
     }
 
 
     [CustomAction]
-    public static ActionResult IMCA_read_NSIS(Session session) {
+    public static ActionResult ReadConfig_IMCAC(Session session) {
       /*
-       * This CustomAction must be called "early". 
+       * we always call because we cannot not what is installed, who installed (nsis or msi)
        * 
-       * More comments in wix.d/MinionMSI/Product.wxs.comments.txt
-      */
-      session.Log("MinionConfiguration.cs:: Begin IMCA_read_NSIS");
-      if (!read_master_and_id_from_all_local_config_files(session)) return ActionResult.Failure;
-      session.Log("MinionConfiguration.cs:: End IMCA_read_NSIS");
+       */
+      session.Log("MinionConfiguration.cs:: Begin ReadConfig_IMCAC");
+      read_master_and_id_from_all_local_config_files(session);
+      session.Log("MinionConfiguration.cs:: End ReadConfig_IMCAC");
       return ActionResult.Success;
     }
 
-		private static bool read_master_and_id_from_all_local_config_files(Session session) {
-			String master_from_local_config = "";
-			String id_from_local_config = "";
+    private static void read_master_and_id_from_all_local_config_files(Session session) {
+      String master_from_local_config = "";
+      String id_from_local_config = "";
 
-			String[] words = { "Existing", "Custom", "Default" };
-			// Read config type from MSI property  
-			string CONFIG_TYPE = session["CONFIG_TYPE"];
-			bool ConfigTypeKnown = words[0] == CONFIG_TYPE || words[1] == CONFIG_TYPE || words[2] == CONFIG_TYPE;
+      // How many files are in INSTALLFOLDER?
+      // Problem: INSTALLFOLDER was not set
+      // Solution in Products.wxs:
+      // This IMCA must not be called BEFORE FindRelatedProducts, but BEFORE MigrateFeatureStates because
+      // INSTALLFOLDER in only set in CostFinalize, which comes after FindRelatedProducts 
+      // Maybe called AFTER?
+      string INSTALLFOLDER = session["INSTALLFOLDER"];
+      long count_files = 0;
+      if (Directory.Exists(INSTALLFOLDER)) {
+        foreach (string file in System.IO.Directory.GetFiles(INSTALLFOLDER, "*", SearchOption.AllDirectories)) {
+          count_files += 1;
+        }
+      }
+      session.Log("...counted " + count_files.ToString()+" files in INSTALLFOLDER = " + INSTALLFOLDER);
 
-			session.Log("...MSI property  CONFIG_TYPE  =" + CONFIG_TYPE);
-			session.Log("...............of known value =" + ConfigTypeKnown.ToString());
-			if (! ConfigTypeKnown) {
-				CONFIG_TYPE = "Existing";
-				session.Log(".....therefore  CONFIG_TYPE  =" + CONFIG_TYPE);
-			}
+      // Read config type from MSI property  
+      string CONFIG_TYPE = session["CONFIG_TYPE"];
+      bool ConfigTypeKnown = eq(CONFIG_TYPE, "Existing") || eq(CONFIG_TYPE, "Custom") || eq(CONFIG_TYPE, "Default");
+
+      session.Log("...MSI property  CONFIG_TYPE  =" + CONFIG_TYPE);
+      session.Log("...............of known value =" + ConfigTypeKnown.ToString());
+      if (!ConfigTypeKnown) {
+        CONFIG_TYPE = "Existing";
+        session.Log(".....therefore  CONFIG_TYPE  =" + CONFIG_TYPE);
+      }
+
+      // https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
+
+      if (eq(CONFIG_TYPE, "Default")) {
+        session.Log("...Default CONFIG_TYPE: do not read master and id from kept config, but use salt and hostname.");
+        master_from_local_config = "salt";
+        id_from_local_config = Environment.MachineName;
+      }
+
+      if (eq(CONFIG_TYPE, "Existing")) {
+        // Read master and id from MINION_CONFIGFILE  
+        string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
+        read_master_and_id_from_file(session, MINION_CONFIGFILE, ref master_from_local_config, ref id_from_local_config);
+
+        // Read master and id from all *.conf files in minion.d directory, if it exists.
+        // ASSUMPTION minion and minion.d are in the same folder.
+        string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+        if (Directory.Exists(MINION_CONFIGDIR)) {
+          var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+          foreach (var conf_file in conf_files) {
+            // skip _schedule.conf
+            if (conf_file.EndsWith("_schedule.conf")) { continue; }
+            read_master_and_id_from_file(session, conf_file, ref master_from_local_config, ref id_from_local_config);
+          }
+        }
+      }
+      // If the msi property has value #, this is our convention for "unset"
+      // This means the use has not set the value on commandline (GUI comes later)
+      // If the msi property has value different from # "unset", the user has set the master
+      // msi propery master wins (without any action) over kept config master
+      /////////////////master
+      session.Log("...MASTER      msi property  =" + session["MASTER"]);
+      session.Log("               kept config   =" + master_from_local_config);
+      if (session["MASTER"] == "#") {
+        session.Log("...MASTER msi property unset/void (user has not given property on the msiexec command line)");
+        if (master_from_local_config != "") {
+          session["MASTER"] = master_from_local_config;
+          session.Log("...MASTER set to kept config");
+        } else {
+          session["MASTER"] = "salt";
+          session.Log("...MASTER set to salt because no kept config");
+        }
+      } else {
+        // Just for clarity of the log
+        session.Log("...MASTER msi property was given by user, the value overtakes the kept config (if any)");
+      }
+      ///////////////// minion id
+      session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
+      session.Log("               kept config   =" + id_from_local_config);
+      if (session["MINION_ID"] == "#") {
+        session.Log("...MINION_ID msi property unset/void (user has not given property on the msiexec command line)");
+        if (id_from_local_config != "") {
+          session.Log("...MINION_ID set to kept config ");
+          session["MINION_ID"] = id_from_local_config;
+        } else {
+          session.Log("...MINION_ID will be set by SetMinionIdToHostname_XIMCA because no kept config");
+        }
+      } else {
+        // Just for clarity of the log
+        session.Log("...MINION_ID msi property was given by user, the value overtakes the kept config (if any)");
+      }
+
+      var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
+      var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
+      Directory.CreateDirectory(master_public_key_path);  // TODO Security
+      bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
+      session.Log("...master key kept config file exists       = " + File.Exists(master_public_key_filename));
+      session.Log("...master key MASTER_KEY msi property given = " + MASTER_KEY_set);
+      if (MASTER_KEY_set) {
+        String master_key_one_line = session["MASTER_KEY"];
+        String master_key_many_lines = "";   // Newline after 64 characters
+        int countup = 0;
+        foreach (char character in master_key_one_line) {
+          master_key_many_lines += character;
+          countup += 1;
+          if (countup % 64 == 0) {
+            master_key_many_lines += System.Environment.NewLine;
+          }
+        }
+        string new_master_pub_key =
+          "-----BEGIN PUBLIC KEY-----" + System.Environment.NewLine +
+          master_key_many_lines + System.Environment.NewLine +
+          "-----END PUBLIC KEY-----";
+        File.WriteAllText(master_public_key_filename, new_master_pub_key);  // TODO try..catch
+      }
+    }
 
 
-			// https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
-
-			if (CONFIG_TYPE == "Default") {
-				master_from_local_config = "salt";
-				id_from_local_config = Environment.MachineName;
-			}
-
-			if (CONFIG_TYPE == "Existing") {
-				// Read master and id from MINION_CONFIGFILE  
-				string MINION_CONFIGFILE = session["MINION_CONFIGFILE"];
-				read_master_and_id_from_file(session, MINION_CONFIGFILE, ref master_from_local_config, ref id_from_local_config);
-
-				// Read master and id from all *.conf files in minion.d directory, if it exists.
-				// ASSUMPTION minion and minion.d are in the same folder.
-				string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
-				if (Directory.Exists(MINION_CONFIGDIR)) {
-					var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
-					foreach (var conf_file in conf_files) {
-						// skip _schedule.conf
-						if (conf_file.EndsWith("_schedule.conf")) { continue; }
-						read_master_and_id_from_file(session, conf_file, ref master_from_local_config, ref id_from_local_config);
-					}
-				}
-			}
-			// Compare master and id with MSI properties
-			session.Log("...MSI property  id    =" + session["MINION_HOSTNAME"]);
-			session.Log("...kept config   id    =" + id_from_local_config);
-			session.Log("...MSI property  master=" + session["MASTER_HOSTNAME"]);
-			session.Log("...kept config   master=" + master_from_local_config);
-
-
-
-			if (session["MASTER_HOSTNAME"] == "#") {
-				// The msi has no master_hostname  (# is our convention for "unset")
-				// Let's use the kept config, or "salt"
-				if (master_from_local_config != "") {
-					session.Log("...using kept config master because msi property unset");
-					session["MASTER_HOSTNAME"] = master_from_local_config;
-				} else {
-					session.Log("...neither msi property nor kept config for master. Using default MASTER_HOSTNAME");
-					session["MASTER_HOSTNAME"] = "salt";
-				}
-			} else {
-				// msi propery master wins (without any action) over kept config master
-				// Just for clarity of the log
-				session.Log("...msi property master changes kept config ");
-			}
-
-			var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
-			var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub"; 
-			Directory.CreateDirectory(master_public_key_path);  // TODO Security
-			session.Log("...kept config master key exists " + File.Exists(master_public_key_filename));
-			bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
-			session.Log("...msi property master key given, will (over)write file " + MASTER_KEY_set);
-			if (MASTER_KEY_set) {
-				String master_key_one_line = session["MASTER_KEY"];
-				String master_key_many_lines = "";
-				int countup = 0;
-				foreach (char character in master_key_one_line) {
-					master_key_many_lines += character;
-					countup += 1;
-					if (countup % 64 == 0) {
-						master_key_many_lines += System.Environment.NewLine; 
-					}
-				}
-				string new_master_pub_key =
-					"-----BEGIN PUBLIC KEY-----" + System.Environment.NewLine +
-					master_key_many_lines + System.Environment.NewLine +
-					"-----END PUBLIC KEY-----";
-				File.WriteAllText(master_public_key_filename, new_master_pub_key);  // TODO try..catch
-			}
-
-
-			return true;
-		}
-
-
-
-		// Leaves the Config
-		[CustomAction]
-    public static ActionResult DECA_del_NSIS(Session session)  {
+    // Leaves the Config
+    [CustomAction]
+    public static ActionResult DECA_del_NSIS(Session session) {
       session.Log("MinionConfiguration.cs:: Begin DECA_del_NSIS");
       if (!delete_NSIS(session)) return ActionResult.Failure;
       session.Log("MinionConfiguration.cs:: End DECA_del_NSIS");
@@ -250,10 +334,10 @@ namespace MinionConfigurationExtension {
         try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
 
         session.Log("delete_NSIS_files:: Going to delete files ...");
-        try { Directory.Delete(@"c:\salt\bin", true); }  catch (Exception ex) {just_ExceptionLog("", session, ex);}
+        try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
         try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
         try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
-        try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) { ;}
+        try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
       }
       session.Log("MinionConfiguration.cs:: End delete_NSIS_files");
       return true;
@@ -261,9 +345,9 @@ namespace MinionConfigurationExtension {
 
 
     private static void read_master_and_id_from_file(Session session, String configfile, ref String master2, ref String id2) {
-			session.Log("...kept config file " + configfile);
+      session.Log("...searching master and id in kept config file " + configfile);
       bool configExists = File.Exists(configfile);
-      session.Log("......exists " + configExists);
+      session.Log("......file exists " + configExists);
       if (!configExists) { return; }
       session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
       string[] configLines = File.ReadAllLines(configfile);
@@ -276,20 +360,20 @@ namespace MinionConfigurationExtension {
             string value = m.Groups[2].ToString();
             //session.Log("...ANY KEY " + key + " " + value);
             if (key == "master") {
-							master2 = value;
-							session.Log("......master " + master2);
-						}
+              master2 = value;
+              session.Log("......master " + master2);
+            }
             if (key == "id") {
-							id2 = value;
-							session.Log("......id " + id2);
-						}
+              id2 = value;
+              session.Log("......id " + id2);
+            }
           }
         }
-      } catch (Exception ex) { 
-         just_ExceptionLog("Looping Regexp", session, ex); 
+      } catch (Exception ex) {
+        just_ExceptionLog("Looping Regexp", session, ex);
       }
       session.Message(InstallMessage.Progress, new Record(2, 1));
-			return;
+      return;
     }
 
 
@@ -297,61 +381,102 @@ namespace MinionConfigurationExtension {
     [CustomAction]
     public static ActionResult DECA_WriteConfig(Session session) /***/ {
       string rootDir;
+      string zmq_filtering;
       try {
         rootDir = session.CustomActionData["root_dir"];
-      } catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + "root_dir", session, ex); return ActionResult.Failure; }
-
+      } catch (Exception ex) {
+        just_ExceptionLog("Getting CustomActionData " + "root_dir", session, ex);
+        return ActionResult.Failure;
+      }
+      try {
+        zmq_filtering = session.CustomActionData["zmq_filtering"];
+      } catch (Exception ex) {
+        just_ExceptionLog("Getting CustomActionData " + "zmq_filtering", session, ex);
+        return ActionResult.Failure;
+      }
       session.Log(@"looking for NSIS configuration in c:\salt");
       re_use_NSIS_config_folder(session, @"c:\salt\", rootDir); // This is intentionally using the fixed NSIS installation path
 
+      bool found_before_replacement = false;
       ActionResult result = ActionResult.Failure;
-      result = save_CustomActionDataKeyValue_to_config_file(session, "root_dir");
+      result = save_CustomActionDataKeyValue_to_config_file(session, "zmq_filtering", ref found_before_replacement);
+      session.Log(@"DECA_WriteConfig zmq_filtering from msi YAML value " + zmq_filtering.ToString());
+      session.Log(@"DECA_WriteConfig zmq_filtering from msi found in the kept config " + found_before_replacement.ToString());
+      if (!found_before_replacement && zmq_filtering == "True") {
+        string MINION_CONFIGFILE = getConfigFileLocation(session);
+        string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+        string zmq_config_file = MINION_CONFIGDIR + "\\" + "zmq_filtering.conf";
+        File.WriteAllText(zmq_config_file, "zmq_filtering: True" + Environment.NewLine);
+        session.Log(@"DECA_WriteConfig created and wrote zmq_filtering.conf");
+      }
 
       if (result == ActionResult.Success)
-        result = save_CustomActionDataKeyValue_to_config_file(session, "master");
+        result = save_CustomActionDataKeyValue_to_config_file(session, "master", ref found_before_replacement);
 
       if (result == ActionResult.Success)
-        result = save_CustomActionDataKeyValue_to_config_file(session, "id");
+        result = save_CustomActionDataKeyValue_to_config_file(session, "id", ref found_before_replacement);
 
       return result;
     }
 
-    private static ActionResult save_CustomActionDataKeyValue_to_config_file(Session session, string SaltKey) {
+    private static ActionResult save_CustomActionDataKeyValue_to_config_file
+      (Session session, string SaltKey, ref bool found_before_replacement) {
       session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
       session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
       session.Log("save_CustomActionDataKeyValue_to_config_file " + SaltKey);
       string CustomActionData_value;
       try {
         CustomActionData_value = session.CustomActionData[SaltKey];
-      } catch (Exception ex) { just_ExceptionLog("Getting CustomActionData " + SaltKey, session, ex); return ActionResult.Failure; }
+      } catch (Exception ex) {
+        just_ExceptionLog("Getting CustomActionData " + SaltKey, session, ex);
+        return ActionResult.Failure;
+      }
       session.Message(InstallMessage.Progress, new Record(2, 1));
       // pattern description
       // ^        start of line
-      // #*       a comment hashmark would be removed, if present
       //          anything after the colon is ignored and would be removed 
-      string pattern = "^#*" + SaltKey + ":";
+      string pattern = "^" + SaltKey + ":";
       string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
-      ActionResult result = replace_pattern_in_config_file(session, pattern, replacement);
+      ActionResult result = replace_pattern_in_all_config_files(session, pattern, replacement, ref found_before_replacement);
       session.Message(InstallMessage.Progress, new Record(2, 1));
       session.Log("save_CustomActionDataKeyValue_to_config_file End");
       return result;
     }
 
-    private static ActionResult replace_pattern_in_config_file(Session session, string pattern, string replacement) {
+
+
+    private static ActionResult replace_pattern_in_all_config_files
+      (Session session, string pattern, string replacement, ref bool found_before_replacement) {
+      string MINION_CONFIGFILE = getConfigFileLocation(session);
+      string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+      if (Directory.Exists(MINION_CONFIGDIR)) {
+        var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+        foreach (var conf_file in conf_files) {
+          // skip _schedule.conf
+          if (conf_file.EndsWith("_schedule.conf")) { continue; }
+          replace_pattern_in_one_config_file(session, conf_file, pattern, replacement, ref found_before_replacement);
+        }
+      }
+
+      return replace_pattern_in_one_config_file(session, MINION_CONFIGFILE, pattern, replacement, ref found_before_replacement);
+    }
+
+    private static ActionResult replace_pattern_in_one_config_file
+      (Session session, string config_file, string pattern, string replacement, ref bool found_before_replacement) {
       /*
-       * the pattern finds assigment and assigment commented out:
-       *    #a:b
-       *    a:b  
        * Only replace the first match, blank out all others
        */
-      string MINION_CONFIGFILE = getConfigFileLocation(session);
-      string[] configLines = File.ReadAllLines(MINION_CONFIGFILE);
+      string[] configLines = File.ReadAllLines(config_file);
       session.Message(InstallMessage.Progress, new Record(2, 1));
-      session.Log("replace_pattern_in_config_file..config file    {0}", MINION_CONFIGFILE);
+      session.Log("replace_pattern_in_config_file..config file    {0}", config_file);
       session.Message(InstallMessage.Progress, new Record(2, 1));
       try {
         bool never_found_the_pattern = true;
         for (int i = 0; i < configLines.Length; i++) {
+          if (configLines[i].StartsWith(replacement)) {
+            found_before_replacement = true;
+            session.Log("replace_pattern_in_config_file..found the replacement in line        {0}", configLines[i]);
+          }
           if (Regex.IsMatch(configLines[i], pattern)) {
             if (never_found_the_pattern) {
               never_found_the_pattern = false;
@@ -367,7 +492,7 @@ namespace MinionConfigurationExtension {
       } catch (Exception ex) { just_ExceptionLog("Looping Regexp", session, ex); return ActionResult.Failure; }
       session.Message(InstallMessage.Progress, new Record(2, 1));
       try {
-        File.WriteAllLines(MINION_CONFIGFILE, configLines);
+        File.WriteAllLines(config_file, configLines);
       } catch (Exception ex) { just_ExceptionLog("Writing to file", session, ex); return ActionResult.Failure; }
       return ActionResult.Success;
     }
@@ -375,7 +500,7 @@ namespace MinionConfigurationExtension {
 
     private static void shellout(Session session, string s) {
       // This is a handmade shellout routine
-      session.Log("shellout about to try " + s);
+      session.Log("...shellout(" + s+")");
       try {
         System.Diagnostics.Process process = new System.Diagnostics.Process();
         System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
@@ -392,14 +517,14 @@ namespace MinionConfigurationExtension {
 
     private static void re_use_NSIS_config_folder(Session session, string old_install_path, string new_install_path) {
       session.Log("re_use_NSIS_config_folder BEGIN");
-      session.Log(old_install_path  + " to " + new_install_path );
+      session.Log(old_install_path + " to " + new_install_path);
       if (old_install_path.Equals(new_install_path, StringComparison.InvariantCultureIgnoreCase)) {
         // same location!
         session.Log(old_install_path + " == " + new_install_path);
         return;
       }
       log_config_folder_content(session, old_install_path);
-      if (! (File.Exists(minion_pem(old_install_path))
+      if (!(File.Exists(minion_pem(old_install_path))
         && File.Exists(minion_pup(old_install_path))
         && File.Exists(master_pup(old_install_path)))) {
         session.Log("There is no complete configuration at " + old_install_path);
@@ -415,7 +540,7 @@ namespace MinionConfigurationExtension {
 
       log_config_folder_content(session, new_install_path);
       if (File.Exists(minion_pem(new_install_path))
-        || File.Exists(minion_pup(new_install_path)) 
+        || File.Exists(minion_pup(new_install_path))
         || File.Exists(master_pup(new_install_path))) {
         session.Log("There is a configuration at " + new_install_path);
         session.Log("No move");
@@ -430,8 +555,8 @@ namespace MinionConfigurationExtension {
       File.Move(minion_pup(old_install_path), minion_pup(new_install_path));
       File.Move(master_pup(old_install_path), master_pup(new_install_path));
 
-      if ( Directory.Exists(minion_d_folder(old_install_path))
-      && ! Directory.Exists(minion_d_folder(new_install_path))) 
+      if (Directory.Exists(minion_d_folder(old_install_path))
+      && !Directory.Exists(minion_d_folder(new_install_path)))
         Directory.Move(minion_d_folder(old_install_path), minion_d_folder(new_install_path));
 
       session.Log("re_use_NSIS_config_folder END");
@@ -448,7 +573,7 @@ namespace MinionConfigurationExtension {
     private static bool log_config_folder_content(Session session, string potential_config_folder) {
       session.Log("potential_config_folder         = " + potential_config_folder);
       session.Log("potential_config_folder_exists  = " + Directory.Exists(potential_config_folder));
-      if (!Directory.Exists(potential_config_folder)) { 
+      if (!Directory.Exists(potential_config_folder)) {
         return false;
       }
 
@@ -519,5 +644,12 @@ namespace MinionConfigurationExtension {
       just_ExceptionLog(description, session, ex);
       return false;
     }
+
+
+    // Shortcut for case insensitive equals
+    private static bool eq(String a, String b) {
+      return String.Equals(a, b, StringComparison.OrdinalIgnoreCase);
+    }
   }
+
 }

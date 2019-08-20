@@ -1,6 +1,6 @@
 @echo off
-:: Get the file name
+:: Get the (last) file name
 for /f "delims=" %%a in ('dir /b wix.d\MinionMSI\bin\Release\*.msi')   do @set "msi=%%a"
 
 @echo on
-msiexec /i wix.d\MinionMSI\bin\Release\%msi% /qb!
+msiexec /i wix.d\MinionMSI\bin\Release\%msi% START_MINION_SERVICE=0

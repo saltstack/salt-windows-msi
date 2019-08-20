@@ -46,7 +46,16 @@ Verify $f $h
 #### Ensure resources are installed or get them
 ###
 
-## Wix 3.11.1 robmen released this on Dec 31, 2017    see https://wixtoolset.org/releases/
+## You get WiX from https://wixtoolset.org/releases/
+##
+## Wix 3.11.1 robmen released this on Dec 31, 2017
+##
+## You must edit the hard reference to the WiX version in file
+##          wix.d/MinionConfigurationExtension/MinionConfigurationExtension.csproj
+##    <Reference Include="wix">
+##      <HintPath>c:\Program Files (x86)\WiX Toolset v3.11\bin\wix.dll</HintPath>
+##    </Reference>
+##
 if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E868-267F-47FB-86BC-D3D62305D7F4}") {
     Write-Host -ForegroundColor Green "Wix 3.11.1 is installed"
 } else {

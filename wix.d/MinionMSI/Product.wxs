@@ -59,15 +59,41 @@
       Installed or (PhysicalMemory > 125)
       ]]>
     </Condition>
+    <Condition Message="Installation requires Administrator privileges">
+      <![CDATA[
+      Privileged
+      ]]>
+    </Condition>
+    <!-- Renamed properties
+         Message when a user sets the old properties
+      -->
+    <Condition Message="Please rename MASTER_HOSTNAME to MASTER"           ><![CDATA[NOT MASTER_HOSTNAME]]></Condition>
+    <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        ><![CDATA[NOT MINION_HOSTNAME]]></Condition>
+    <Condition Message="Please rename START_MINION_SERVICE to START_MINION"><![CDATA[NOT START_MINION_SERVICE]]></Condition>
+    <!--
+      msi properties
+        Naming converntions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
+        Public properties be changed by user, e.g. at the command line.
+        A value "#" is our convention for "unset"
 
+        On START_MINION and checkbox:
+        A checkbox is only empty if a property is undefined (missing).
+        You delete a property with "" on the commandline
+        When you say START_MINION="" on the commandline, the service will not start and the checkbox will empty.
+        When you say START_MINION=0 on the commandline, the service will not start, but the checkbox will be set.
+        When you say START_MINION=0 /qn on the commandline (no GUI), the service will not start.
+     -->
     <!-- Salt properties  -->
-    <Property Id="MASTER_HOSTNAME"          Value="#"                    /> <!-- # is our convention for "unset"  -->
-    <Property Id="MASTER_KEY"               Value="#"                    /> <!-- # is our convention for "unset"  -->
-    <Property Id="MINION_HOSTNAME"          Value="kingbob"              /> <!-- $(env.COMPUTERNAME) is the name of the building machine. Must be set dynamically. Must not be empty.    -->
-    <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  /> <!-- Can be changed by user to point to another location -->
+    <Property Id="MASTER"                   Value="#"                    />
+    <Property Id="ZMQ_FILTERING"            Value="False"                /> <!-- or True  -->
+    <Property Id="MASTER_KEY"               Value="#"                    />
+    <Property Id="MINION_ID"                Value="#"                    />
+    <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             /> <!-- or Custom or Default    WIP  -->
+    <Property Id="START_MINION"             Value="1"                    />
     <Property Id="KEEP_CONFIG"              Value="1"                    />
-    <Property Id="START_MINION_SERVICE"     Value="0"                    />
+
+
     <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
     <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"                                                />
@@ -76,6 +102,8 @@
     <Property Id="ARPPRODUCTICON"           Value="icon"                 />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"              />
     <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
+    <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
+
     <!-- WiX properties
       WIXUI_INSTALLDIR
         From https://wixtoolset.org//documentation/manual/v3/wixui/dialog_reference/wixui_installdir.html
@@ -88,24 +116,29 @@
     <!-- Sequence is determined by the Before attribute -->
     <!-- Installation sequence with GUI   -->
     <InstallUISequence>
-      <Custom Action="IMCA_SetMinionHostname"     Before='IMCA_read_NSIS'     >NOT Installed</Custom>
-      <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'>NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC'            Before='SetMinionIdToHostname_IMCAX' >NOT Installed</Custom>
+      <!-- set MINION_ID if not read from NSIS/kept_config and user did not set it and software not installed -->
+      <Custom Action="SetMinionIdToHostname_IMCAX" Before='MigrateFeatureStates'        >NOT Installed AND (MINION_ID = "#")</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
 
     <!-- Installation sequence without GUI, silent, headless   -->
     <InstallExecuteSequence>
-      <Custom Action="IMCA_SetMinionHostname"     Before='IMCA_read_NSIS'        >NOT Installed</Custom>
-      <Custom Action='IMCA_read_NSIS'             Before='FindRelatedProducts'   >NOT Installed</Custom>
-      <!-- DECA_del_NSIS is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
-      <Custom Action='DECA_del_NSIS'              After='InstallInitialize'      >NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC'            Before='SetMinionIdToHostname_IMCAX' >NOT Installed</Custom>
+      <!-- set MINION_ID if not read from NSIS/kept_config and user did not set it and software not installed -->
+      <Custom Action="SetMinionIdToHostname_IMCAX" Before='MigrateFeatureStates'        >NOT Installed AND (MINION_ID = "#")</Custom>
 
-      <Custom Action='CADH_WriteConfig'           Before='DECA_WriteConfig'      >NOT Installed</Custom> 
-      <Custom Action='DECA_WriteConfig'           Before='StartServices'         >NOT Installed</Custom>
+      <!-- DECA_del_NSIS is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
+      <Custom Action='DECA_del_NSIS'               After='InstallInitialize'            >NOT Installed</Custom>
+
+      <Custom Action='CADH_WriteConfig'            Before='DECA_WriteConfig'            >NOT Installed</Custom> 
+      <Custom Action='DECA_WriteConfig'            Before='StartServices'               >NOT Installed</Custom>
       
-      <!-- Conditionally start the service -->
-      <StartServices Sequence="5900">START_MINION_SERVICE = "1"</StartServices>
+      <!-- Conditionally start the service  
+      Programmer reminder/warning: leave CDATA!
+      -->
+      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
 
       <!-- 
       Remove 'lifetime' data on uninstall or upgrade.
@@ -117,21 +150,25 @@
         UPGRADINGPRODUCTCODE | does not work
         Not Installed        | this installer is not installed
         
-      On DECA_Upgrade and the CleanupVarFolder component:
-        DECA_Upgrade removes bin/**/*.pyc files.  CleanupVarFolder does this already. 
+      On DECA_Upgrade and the CleanupBinFolder component:
+        DECA_Upgrade removes bin/**/*.pyc files.  CleanupBinFolder does this already. 
         TODO rethink this.
 
 
       From  https://docs.microsoft.com/en-us/windows/win32/msi/property-reference
         Installed
           The Installed property is set only if the product is installed per-machine or for the current user
+
+      From "Standard actions" https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference
+          RemoveFiles            https://docs.microsoft.com/en-us/windows/win32/msi/removefiles-action
+          RemoveExistingProducts https://docs.microsoft.com/en-us/windows/win32/msi/removeexistingproducts-action
       -->
-      <Custom Action='CADH_UninstallKeepConfig0'   Before='DECA_UninstallKeepConfig0' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
-      <Custom Action='DECA_UninstallKeepConfig0'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
-      <Custom Action='CADH_UninstallKeepConfig1'   Before='DECA_UninstallKeepConfig1' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      <Custom Action='DECA_UninstallKeepConfig1'           After='RemoveFiles'        >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      <Custom Action='CADH_Upgrade'                Before='DECA_Upgrade'              >NOT Installed</Custom>
-      <Custom Action='DECA_Upgrade'                        After='RemoveFiles'        >NOT Installed</Custom>
+      <Custom Action='Uninstall_incl_Config_CADH'   Before='Uninstall_incl_Config_DECAC' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='Uninstall_incl_Config_DECAC'           After='RemoveFiles'         >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='Uninstall_excl_Config_CADH'   Before='Uninstall_excl_Config_DECAC' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='Uninstall_excl_Config_DECAC'           After='RemoveFiles'         >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='CADH_Upgrade'                 Before='DECA_Upgrade'                >NOT Installed</Custom>
+      <Custom Action='DECA_Upgrade'                         After='RemoveFiles'          >NOT Installed</Custom>
     </InstallExecuteSequence>
 
     <!-- http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html -->
@@ -141,7 +178,12 @@
     <!-- Inspiration 1: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->
     <!-- Inspiration 2: http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/   Simple Remember Pattern SRP-->
     <!-- Learn: Condition with KEEP_CONFIG is useless on Components and on Features -->
-    <!-- SRP pattern 1/2 -->
+    <!-- SRP pattern
+       We cannot recursivly delete the var folder because it contains the cache, we regard as configuration and optionally keep.
+         It is the task of Uninstall_excl_Config_DECAC to selectivly delete the var folder
+        The use of the SRP Pattern is limited.
+    -->
+
     <!--     SRP: the Property that we'll remember  -->
     <Property Id="BINFOLDER">
       <!--   SRP:  the registry search that will reload our Property on repair, upgrade and uninstall -->
@@ -155,16 +197,6 @@
       </Component>
     </DirectoryRef>
 
-    <!-- SRP pattern 2/2 -->
-    <Property Id="VARFOLDER">
-      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="raw"  Id="VARFOLDER_REGSEARCH" />
-    </Property>
-
-    <DirectoryRef Id="VARFOLDER">
-      <Component Id="CleanupVarFolder" Guid="*">
-        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="VarPath" Type="string" Value="[VARFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="VARFOLDER" />
-      </Component>
-    </DirectoryRef>
 
     <DirectoryRef Id="TARGETDIR">
       <!-- 
@@ -193,7 +225,6 @@
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentRef      Id="CleanupBinFolder" />
-      <ComponentRef      Id="CleanupVarFolder" />
       <Feature Id="VC90_CRT_x86_x64" Title="Visual C++ 9 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
         <MergeRef Id="MSM_VC90_CRT_64"/>
       </Feature>
