@@ -406,6 +406,7 @@ namespace MinionConfigurationExtension {
         string MINION_CONFIGFILE = getConfigFileLocation(session);
         string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
         string zmq_config_file = MINION_CONFIGDIR + "\\" + "zmq_filtering.conf";
+        System.IO.Directory.CreateDirectory(MINION_CONFIGDIR);  // Ensures that the path to conf/minion.d exists
         File.WriteAllText(zmq_config_file, "zmq_filtering: True" + Environment.NewLine);
         session.Log(@"DECA_WriteConfig created and wrote zmq_filtering.conf");
       }
