@@ -73,6 +73,27 @@ The target client is where the installer is deployed.
 - 64bit
 - Windows 7 (workstation), Server 2012 (domain controller), or higher.
 
+## Development requirements
+
+To contibrute to the development of the MSI itself, although not required, Visual Studio can be quite helpful.
+If you wish to develop within an IDE, Visual Studio 2015 is recommended. Otherwise, you will need to edit the
+main .sln file. This file describes and *moderately* forces you to use VS2015. This is described below within
+the salt-windows-msi.sln file:
+```
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+```  
+The VisualStudioVersion: 14.0.25420.1 translates to VS2015 with Service Pack 3. This is available for download
+for free from https://visualstudio.microsoft.com/vs/older-downloads/ so long as you have a develop account. This
+is free for developers and does not expire. What this enables you to do is build the MSI using the build in Wix
+commands, all from within the IDE. Note that this requires:
+ - [This](https://marketplace.visualstudio.com/items?itemName=WixToolset.WixToolsetVisualStudio2015Extension)
+ extention 
+
+
+
 ## Build client requirements
 
 The build client is where the msi installer is built.
