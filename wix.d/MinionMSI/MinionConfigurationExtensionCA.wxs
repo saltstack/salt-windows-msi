@@ -15,11 +15,11 @@
     -->
 <CustomAction Id="SetMinionIdToHostname_IMCAX" Property="MINION_ID"        Value="[ComputerName]"                 Execute='firstSequence'/>
 <CustomAction Id="ReadConfig_IMCAC"            BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'            Execute='firstSequence'/>
-<CustomAction Id="DECA_del_NSIS"               BinaryKey='MinionConfigExt' DllEntry='DECA_del_NSIS'               Execute='deferred' Return='check' Impersonate='no'/>
-<CustomAction Id="DECA_WriteConfig"            BinaryKey='MinionConfigExt' DllEntry='DECA_WriteConfig'            Execute='deferred' Return='check' Impersonate='no'/>
+<CustomAction Id="del_NSIS_DECAC"              BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'               Execute='deferred' Return='check' Impersonate='no'/>
+<CustomAction Id="WriteConfig_DECAC"           BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'            Execute='deferred' Return='check' Impersonate='no'/>
 <CustomAction Id="Uninstall_incl_Config_DECAC" BinaryKey='MinionConfigExt' DllEntry='Uninstall_incl_Config_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
 <CustomAction Id="Uninstall_excl_Config_DECAC" BinaryKey='MinionConfigExt' DllEntry='Uninstall_excl_Config_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
-<CustomAction Id="DECA_Upgrade"                BinaryKey='MinionConfigExt' DllEntry='DECA_Upgrade'                Execute='deferred' Return='check' Impersonate='no'/>
+<CustomAction Id="Upgrade_DECAC"               BinaryKey='MinionConfigExt' DllEntry='Upgrade_DECAC'                Execute='deferred' Return='check' Impersonate='no'/>
     <!--
          Deferred execution is necessary to change the configuration prior 
          to start the service, which is done during the install instead of running 'net start' at the end. 
@@ -31,11 +31,11 @@
                   Example: session["MASTER"] = value;
                   Warning: WiX does not check if the property exists. The installer will only break at install time.
 
-         "Deferred custom actions" (DECA_) require properties to be passed as Session.CustomActionData
-         via separate type 51 "custom actions data helper" (CADH_):
-           The 'Property=' attribute must be set to the name of the "deferred custom action" (DECA_) receiving the data, and
+         "Deferred custom actions" in C# (_DECAC) require properties to be passed as Session.CustomActionData
+         via separate type 51 "custom actions data helper" (_CADH):
+           The 'Property=' attribute must be set to the name of the "deferred custom action" (_DECAC) receiving the data, and
            the 'Value=' attribute must be a list of key=[Property] pairs.
-               Example: public static ActionResult DECA_WriteConfig(Session session)
+               Example: public static ActionResult WriteConfig_DECAC(Session session)
                Example: rootDir = session.CustomActionData["root_dir"]
                Warning: WiX does not check if the key exists. The installer will only break at install time.
 
@@ -43,11 +43,11 @@
          Actions must have C# Signature [CustomAction] public static ActionResult
     -->
     <!--  Naming/terminology changes from msi to Salt. -->    
-    <CustomAction Id="CADH_WriteConfig"            Property="DECA_WriteConfig"             Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];zmq_filtering=[ZMQ_FILTERING]" />
+    <CustomAction Id="WriteConfig_CADH"            Property="WriteConfig_DECAC"             Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];zmq_filtering=[ZMQ_FILTERING]" />
     <CustomAction Id="Uninstall_incl_Config_CADH"  Property="Uninstall_incl_Config_DECAC"  Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
     <CustomAction Id="Uninstall_excl_Config_CADH"  Property="Uninstall_excl_Config_DECAC"  Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
-    <CustomAction Id="CADH_Upgrade"                Property="DECA_Upgrade"                 Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
-    <!-- NICETOHAVE test if DECA_UninstallKeepConfig* probably does not need  master=[MASTER];id=[MINION_ID] -->
+    <CustomAction Id="Upgrade_CADH"                Property="Upgrade_DECAC"                 Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
+    <!-- NICETOHAVE test if *_DECAC really need  master=[MASTER];id=[MINION_ID] -->
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>

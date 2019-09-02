@@ -26,7 +26,7 @@
 
       <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SettingsCustomizationDlg" Order="1">NOT Installed</Publish>
 
-      <ProgressText Action="DECA_WriteConfig">Configuring minion</ProgressText>
+      <ProgressText Action="WriteConfig_DECAC">Configuring minion</ProgressText>
     </UI>
   </Fragment>
 </Wix>

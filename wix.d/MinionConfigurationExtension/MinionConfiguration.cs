@@ -101,8 +101,8 @@ namespace MinionConfigurationExtension {
 }
 
     [CustomAction]
-    public static ActionResult DECA_Upgrade(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin DECA_Upgrade");
+    public static ActionResult Upgrade_DECAC(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin Upgrade_DECAC");
       String soon_conf = @"c:\salt\bin"; //TODO use root_dir
       String root_dir = "";
       try {
@@ -110,10 +110,10 @@ namespace MinionConfigurationExtension {
       } catch (Exception ex) {
         just_ExceptionLog("FATAL ERROR while getting Property INSTALLFOLDER", session, ex);
       }
-      session.Log("DECA_Upgrade::  root_dir = " + root_dir);
+      session.Log("Upgrade_DECAC::  root_dir = " + root_dir);
       try {
         if (Directory.Exists(soon_conf)) {
-          session.Log("DECA_Upgrade:: about to delete pyc from " + soon_conf);
+          session.Log("Upgrade_DECAC:: about to delete pyc from " + soon_conf);
           // Only get files that end in *.pyc
           string[] foundfiles = Directory.GetFiles(soon_conf, "*.pcy", SearchOption.AllDirectories);
           session.Log("The number of pyc files is {0}.", foundfiles.Length);
@@ -122,13 +122,13 @@ namespace MinionConfigurationExtension {
             File.Delete(foundfile);
           }
         } else {
-          session.Log("DECA_Upgrade:: no Directory " + soon_conf);
+          session.Log("Upgrade_DECAC:: no Directory " + soon_conf);
         }
       } catch (Exception ex) {
-        just_ExceptionLog(@"DECA_Upgrade tried remove pyc " + soon_conf, session, ex);
+        just_ExceptionLog(@"Upgrade_DECAC tried remove pyc " + soon_conf, session, ex);
       }
 
-      session.Log("MinionConfiguration.cs:: End DECA_Upgrade");
+      session.Log("MinionConfiguration.cs:: End Upgrade_DECAC");
       return ActionResult.Success;
     }
 
@@ -288,10 +288,10 @@ namespace MinionConfigurationExtension {
 
     // Leaves the Config
     [CustomAction]
-    public static ActionResult DECA_del_NSIS(Session session) {
-      session.Log("MinionConfiguration.cs:: Begin DECA_del_NSIS");
+    public static ActionResult del_NSIS_DECAC(Session session) {
+      session.Log("MinionConfiguration.cs:: Begin del_NSIS_DECAC");
       if (!delete_NSIS(session)) return ActionResult.Failure;
-      session.Log("MinionConfiguration.cs:: End DECA_del_NSIS");
+      session.Log("MinionConfiguration.cs:: End del_NSIS_DECAC");
       return ActionResult.Success;
     }
 
@@ -379,7 +379,7 @@ namespace MinionConfigurationExtension {
 
     // Must have this signature or cannot uninstall not even write to the log
     [CustomAction]
-    public static ActionResult DECA_WriteConfig(Session session) /***/ {
+    public static ActionResult WriteConfig_DECAC(Session session) /***/ {
       string rootDir;
       string zmq_filtering;
       try {
@@ -400,8 +400,8 @@ namespace MinionConfigurationExtension {
       bool found_before_replacement = false;
       ActionResult result = ActionResult.Failure;
       result = save_CustomActionDataKeyValue_to_config_file(session, "zmq_filtering", ref found_before_replacement);
-      session.Log(@"DECA_WriteConfig zmq_filtering from msi YAML value " + zmq_filtering.ToString());
-      session.Log(@"DECA_WriteConfig zmq_filtering from msi found in the kept config " + found_before_replacement.ToString());
+      session.Log(@"WriteConfig_DECAC zmq_filtering from msi YAML value " + zmq_filtering.ToString());
+      session.Log(@"WriteConfig_DECAC zmq_filtering from msi found in the kept config " + found_before_replacement.ToString());
       if (!found_before_replacement && zmq_filtering == "True") {
         string MINION_CONFIGFILE = getConfigFileLocation(session);
         string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
@@ -409,7 +409,7 @@ namespace MinionConfigurationExtension {
         System.IO.Directory.CreateDirectory(MINION_CONFIGDIR);  // Ensures that the path to conf/minion.d exists
         // File.WriteAllText() throws an Exception if the path to the file does not exist
         File.WriteAllText(zmq_config_file, "zmq_filtering: True" + Environment.NewLine);
-        session.Log(@"DECA_WriteConfig created and wrote zmq_filtering.conf");
+        session.Log(@"WriteConfig_DECAC created and wrote zmq_filtering.conf");
       }
 
       if (result == ActionResult.Success)

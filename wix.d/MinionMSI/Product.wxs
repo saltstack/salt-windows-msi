@@ -129,11 +129,10 @@
       <!-- set MINION_ID if not read from NSIS/kept_config and user did not set it and software not installed -->
       <Custom Action="SetMinionIdToHostname_IMCAX" Before='MigrateFeatureStates'        >NOT Installed AND (MINION_ID = "#")</Custom>
 
-      <!-- DECA_del_NSIS is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
-      <Custom Action='DECA_del_NSIS'               After='InstallInitialize'            >NOT Installed</Custom>
-
-      <Custom Action='CADH_WriteConfig'            Before='DECA_WriteConfig'            >NOT Installed</Custom> 
-      <Custom Action='DECA_WriteConfig'            Before='StartServices'               >NOT Installed</Custom>
+      <!-- del_NSIS_DECAC is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
+      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'            >NOT Installed</Custom>
+      <Custom Action='WriteConfig_CADH'            Before='WriteConfig_DECAC'            >NOT Installed</Custom> 
+      <Custom Action='WriteConfig_DECAC'           Before='StartServices'               >NOT Installed</Custom>
       
       <!-- Conditionally start the service  
       Programmer reminder/warning: leave CDATA!
@@ -150,8 +149,8 @@
         UPGRADINGPRODUCTCODE | does not work
         Not Installed        | this installer is not installed
         
-      On DECA_Upgrade and the CleanupBinFolder component:
-        DECA_Upgrade removes bin/**/*.pyc files.  CleanupBinFolder does this already. 
+      On Upgrade_DECAC and the CleanupBinFolder component:
+        Upgrade_DECAC removes bin/**/*.pyc files.  CleanupBinFolder does this already. 
         TODO rethink this.
 
 
@@ -167,8 +166,8 @@
       <Custom Action='Uninstall_incl_Config_DECAC'           After='RemoveFiles'         >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
       <Custom Action='Uninstall_excl_Config_CADH'   Before='Uninstall_excl_Config_DECAC' >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
       <Custom Action='Uninstall_excl_Config_DECAC'           After='RemoveFiles'         >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      <Custom Action='CADH_Upgrade'                 Before='DECA_Upgrade'                >NOT Installed</Custom>
-      <Custom Action='DECA_Upgrade'                         After='RemoveFiles'          >NOT Installed</Custom>
+      <Custom Action='Upgrade_CADH'                 Before='Upgrade_DECAC'               >NOT Installed</Custom>
+      <Custom Action='Upgrade_DECAC'                         After='RemoveFiles'         >NOT Installed</Custom>
     </InstallExecuteSequence>
 
     <!-- http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html -->
