@@ -206,17 +206,17 @@
          - Compile a Cython or Pyrex file.
 
       Explicit list of cases which need the C++ runtime:
-        - TODO
+        - TODO/unknown
 
-      Microsoft provides official C++ compilers called Visual C++, you can find them bundled with Visual Studio
+      Microsoft provides official C++ compilers called Visual C++, you can find them bundled with Visual Studio.
 
       Which Microsoft Visual C++ compiler to use with a specific Python version?
-      CPython versions used in Salt:
-        2.7 requires VC++ 9,  VC90_CRT  from Visual Studio 2008
-        3.5 requires VC++ 10, VC140_CRT from Visual Studio 2015
+      Python     | VC++        | Visual Studio
+        2.7      | VC90_CRT    | 2008
+        3.5-8    | VC140_CRT   | 2015
 
-      We install the c++ runtime merge modules (*.msm), following the how-to:
-      https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html
+      The msi incorporates the VC*_CRT as merge modules (*.msm), following the how-to:
+        https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html
       -->
       <Merge Id="MSM_VC90_CRT_64" SourceFile="c:\salt_msi_resources\Microsoft_VC90_CRT_x86_x64.msm" DiskId="1" Language="0"/>
     </DirectoryRef>
@@ -236,14 +236,14 @@
     <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="imgLeft.jpg" />
 
-    <UIRef Id="WixUI_Minion" />                             <!-- // Include WixUI_Minion.wxs in this directory -->
+    <UIRef Id="WixUI_Minion" />                             <!-- Include WixUI_Minion.wxs in this directory -->
     
-    <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- // Do not create cab files -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- Do not create cab files -->
     
   </Product>
 
   <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir"> <!-- // Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
+    <Directory Id="TARGETDIR" Name="SourceDir"> <!-- Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
       <Directory Id="INSTALLFOLDER" Name="salt" >
         <Directory Id="CONFFOLDER" Name="conf" />
         <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->        
@@ -256,7 +256,7 @@
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
 
     <Component Id="InstallfolderPermissions"  Directory="INSTALLFOLDER" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
-      <CreateFolder> <!-- // like mkdir, the folder will not be created if present. -->
+      <CreateFolder> <!-- like mkdir, the folder will not be created if present. -->
         <!--
           Function win_verify_env()  in  salt/slt/utils/verify.py sets permissions on each start of the salt-minion services.
           The installer must create the folder with the same permissions, so you keep sets of permissions in sync.
@@ -290,7 +290,7 @@
   <!-- From the "Default WiX Project Template" -->
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <ComponentGroupRef Id="dist"    />       <!-- // Include dist-amd64.wxs in this directory -->
+      <ComponentGroupRef Id="dist"    />       <!-- Include dist-amd64.wxs in this directory -->
       <ComponentGroupRef Id="service" /> 
       <!-- experimental, does not (yet) work.
            Intended to replace nssm (ssm) with the Windows method of starting a service.

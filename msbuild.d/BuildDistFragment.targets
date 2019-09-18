@@ -15,7 +15,12 @@
          Generates dist-$(TargetPlatform).wxs using the WiX <HeatDirectory /> task.
 
          [IN]
-         @(DistContent) - the extracted dist zipfile content
+         @(DistContent) - Distribution content
+         DistContent is defined by msbuild target c:\git\salt-windows-msi\msbuild.d\Minion.Common.targets
+
+         Uses the WiX task HeatDirectory, that wraps heat.exe
+           https://wixtoolset.org/documentation/manual/v3/msbuild/task_reference/heatdirectory.html
+
   ==================================================================================
   -->
   <Target Name="BuildDistFragments" Inputs="@(DistContent)" Outputs="dist-$(TargetPlatform).wxs" DependsOnTargets="DistContent" BeforeTargets="Compile">
