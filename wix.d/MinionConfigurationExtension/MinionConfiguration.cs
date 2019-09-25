@@ -383,53 +383,78 @@ namespace MinionConfigurationExtension {
     [CustomAction]
     public static ActionResult WriteConfig_DECAC(Session session) /***/ {
       string rootDir;
-      string zmq_filtering;
+      string master = "";
+      string id = "";
+			string minion_id_caching = "";
+			string minion_id_remove_domain = "";
+
+			string zmq_filtering = "";
+// root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];zmq_filtering=[ZMQ_FILTERING];minion_id_caching=[MINION_ID_CACHING];minion_id_remove_domain=[MINION_ID_REMOVE_DOMAIN]        
       try {
         rootDir = session.CustomActionData["root_dir"];
       } catch (Exception ex) {
         just_ExceptionLog("Getting CustomActionData " + "root_dir", session, ex);
         return ActionResult.Failure;
       }
-      try {
-        zmq_filtering = session.CustomActionData["zmq_filtering"];
-      } catch (Exception ex) {
-        just_ExceptionLog("Getting CustomActionData " + "zmq_filtering", session, ex);
-        return ActionResult.Failure;
-      }
+
       session.Log(@"looking for NSIS configuration in c:\salt");
       re_use_NSIS_config_folder(session, @"c:\salt\", rootDir); // This is intentionally using the fixed NSIS installation path
 
-      bool found_before_replacement = false;
-      ActionResult result = ActionResult.Failure;
+      bool replaced = false;
       string MINION_CONFIGFILE = getConfigFileLocation(session);
       string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+			var ok = ActionResult.Success;
 
-      result = save_CustomActionDataKeyValue_to_config_file(session, "zmq_filtering", ref found_before_replacement);
-      if (result != ActionResult.Success)
-        return result;
-      session.Log(@"WriteConfig_DECAC zmq_filtering from msi YAML value " + zmq_filtering.ToString());
-      session.Log(@"WriteConfig_DECAC zmq_filtering from msi found in the kept config " + found_before_replacement.ToString());
-      if (!found_before_replacement && zmq_filtering == "True") {
-        string zmq_config_file = MINION_CONFIGDIR + "\\" + "zmq_filtering.conf";
-        System.IO.Directory.CreateDirectory(MINION_CONFIGDIR);  // Ensures that the path to conf/minion.d exists
-        // File.WriteAllText() throws an Exception if the path to the file does not exist
-        File.WriteAllText(zmq_config_file, "zmq_filtering: True" + Environment.NewLine);
-        session.Log(@"WriteConfig_DECAC created and wrote zmq_filtering.conf");
+			// ----------------------------------------------------
+			if (get_value_and_replace_in_files(session, "zmq_filtering", ref zmq_filtering, ref replaced) != ok) {
+				return ActionResult.Failure;
+			}
+      if (!replaced && zmq_filtering == "True") {
+        Write_safely_to_file(session, MINION_CONFIGDIR, "zmq_filtering.conf", "zmq_filtering: True");
       }
-      
-      result = save_CustomActionDataKeyValue_to_config_file(session, "master", ref found_before_replacement);
 
-      result = save_CustomActionDataKeyValue_to_config_file(session, "id", ref found_before_replacement);
+			// ----------------------------------------------------
+			if (get_value_and_replace_in_files(session, "master", ref master, ref replaced) != ok) {
+				return ActionResult.Failure;
+			}
+      if (!replaced) {
+         Write_safely_to_file(session, MINION_CONFIGDIR, "master.conf", "master: " + master);
+      }
 
-      return result;
+			// ----------------------------------------------------
+			if (get_value_and_replace_in_files(session, "id", ref id, ref replaced) != ok) {
+				return ActionResult.Failure;
+			}
+      if (!replaced && id != "#") {
+         Write_safely_to_file(session, MINION_CONFIGDIR, "id.conf", "id: " + id);
+      }
+
+			// ----------------------------------------------------
+			if (get_value_and_replace_in_files(session, "minion_id_caching", ref minion_id_caching, ref replaced) != ok) {
+				return ActionResult.Failure;
+			}
+			if (!replaced && minion_id_caching != "1") {
+				Write_safely_to_file(session, MINION_CONFIGDIR, "minion_id_caching.conf", "minion_id_caching: " + minion_id_caching);
+			}
+
+			// ----------------------------------------------------
+			if (get_value_and_replace_in_files(session, "minion_id_remove_domain", ref minion_id_remove_domain, ref replaced) != ok) {
+				return ActionResult.Failure;
+			}
+			if (!replaced && minion_id_remove_domain != "") {
+				Write_safely_to_file(session, MINION_CONFIGDIR, "minion_id_remove_domain.conf", "minion_id_remove_domain: " + minion_id_remove_domain);
+			}
+
+
+
+			return ok;
     }
 
-    private static ActionResult save_CustomActionDataKeyValue_to_config_file
-      (Session session, string SaltKey, ref bool found_before_replacement) {
+
+    private static ActionResult get_value_and_replace_in_files(Session session, string SaltKey, ref string CustomActionData_value, ref bool replaced) {
       session.Message(InstallMessage.ActionStart, new Record("SetConfigKeyValue1 " + SaltKey, "SetConfigKeyValue2 " + SaltKey, "[1]"));
       session.Message(InstallMessage.Progress, new Record(0, 5, 0, 0));
-      session.Log("save_CustomActionDataKeyValue_to_config_file " + SaltKey);
-      string CustomActionData_value;
+      session.Log("...CustomActionDataKey " + SaltKey);
       try {
         CustomActionData_value = session.CustomActionData[SaltKey];
       } catch (Exception ex) {
@@ -437,18 +462,27 @@ namespace MinionConfigurationExtension {
         return ActionResult.Failure;
       }
       session.Message(InstallMessage.Progress, new Record(2, 1));
+
       // pattern description
       // ^        start of line
       //          anything after the colon is ignored and would be removed 
       string pattern = "^" + SaltKey + ":";
       string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
-      ActionResult result = replace_pattern_in_all_config_files(session, pattern, replacement, ref found_before_replacement);
+
+      // Replace in all files
+      ActionResult result = replace_pattern_in_all_config_files(session, pattern, replacement, ref replaced);
+
       session.Message(InstallMessage.Progress, new Record(2, 1));
-      session.Log("save_CustomActionDataKeyValue_to_config_file End");
+      session.Log(@"...CustomActionDataKeyValue " + CustomActionData_value.ToString());
+      session.Log(@"...CustomActionDataKey found_before_replacement " + replaced.ToString());
       return result;
     }
 
-
+    private static void Write_safely_to_file(Session session, string path, string filename, string filecontent) {
+      System.IO.Directory.CreateDirectory(path);  // Ensures that the path exists
+      File.WriteAllText(path + "\\" + filename, filecontent + Environment.NewLine);       //  throws an Exception if path does not exist
+			session.Log(@"...created " + path + "\\" + filename + "        " + filecontent);
+    }
 /*
  * "All config" files means:
  *   conf/minion.d/+.conf
@@ -461,8 +495,7 @@ namespace MinionConfigurationExtension {
  * TODO This function should input a dictionary of key/value pairs because it reopens all config files over and over.
  *
  */ 
-    private static ActionResult replace_pattern_in_all_config_files
-      (Session session, string pattern, string replacement, ref bool found_before_replacement) {
+    private static ActionResult replace_pattern_in_all_config_files(Session session, string pattern, string replacement, ref bool replaced) {
       string MINION_CONFIGFILE = getConfigFileLocation(session);
       string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
       if (Directory.Exists(MINION_CONFIGDIR)) {
@@ -470,15 +503,14 @@ namespace MinionConfigurationExtension {
         foreach (var conf_file in conf_files) {
           // skip _schedule.conf
           if (conf_file.EndsWith("_schedule.conf")) { continue; }
-          replace_pattern_in_one_config_file(session, conf_file, pattern, replacement, ref found_before_replacement);
+          replace_pattern_in_one_config_file(session, conf_file, pattern, replacement, ref replaced);
         }
       }
 
-      return replace_pattern_in_one_config_file(session, MINION_CONFIGFILE, pattern, replacement, ref found_before_replacement);
+      return replace_pattern_in_one_config_file(session, MINION_CONFIGFILE, pattern, replacement, ref replaced);
     }
 
-    private static ActionResult replace_pattern_in_one_config_file
-      (Session session, string config_file, string pattern, string replacement, ref bool found_before_replacement) {
+    private static ActionResult replace_pattern_in_one_config_file(Session session, string config_file, string pattern, string replacement, ref bool replaced) {
       /*
        * Only replace the first match, blank out all others
        */
@@ -490,7 +522,7 @@ namespace MinionConfigurationExtension {
         bool never_found_the_pattern = true;
         for (int i = 0; i < configLines.Length; i++) {
           if (configLines[i].StartsWith(replacement)) {
-            found_before_replacement = true;
+            replaced = true;
             session.Log("replace_pattern_in_config_file..found the replacement in line        {0}", configLines[i]);
           }
           if (Regex.IsMatch(configLines[i], pattern)) {
@@ -500,6 +532,7 @@ namespace MinionConfigurationExtension {
               session.Log("replace_pattern_in_config_file..matched  line  {0}", configLines[i]);
               session.Log("replace_pattern_in_config_file..replaced line  {0}", replacement);
               configLines[i] = replacement + "\n";
+							replaced = true;
             } else {
               configLines[i] = "\n";  // only assign the the config variable once
             }
