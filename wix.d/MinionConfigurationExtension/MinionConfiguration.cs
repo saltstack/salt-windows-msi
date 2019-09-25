@@ -100,6 +100,8 @@ namespace MinionConfigurationExtension {
   }
 }
 
+    // TODO This deletes c:\salt\bin\**\*.pcy [sic!] files, so it does nothing useful.
+    //      What was the intention?
     [CustomAction]
     public static ActionResult Upgrade_DECAC(Session session) {
       session.Log("MinionConfiguration.cs:: Begin Upgrade_DECAC");
@@ -399,24 +401,25 @@ namespace MinionConfigurationExtension {
 
       bool found_before_replacement = false;
       ActionResult result = ActionResult.Failure;
+      string MINION_CONFIGFILE = getConfigFileLocation(session);
+      string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
+
       result = save_CustomActionDataKeyValue_to_config_file(session, "zmq_filtering", ref found_before_replacement);
+      if (result != ActionResult.Success)
+        return result;
       session.Log(@"WriteConfig_DECAC zmq_filtering from msi YAML value " + zmq_filtering.ToString());
       session.Log(@"WriteConfig_DECAC zmq_filtering from msi found in the kept config " + found_before_replacement.ToString());
       if (!found_before_replacement && zmq_filtering == "True") {
-        string MINION_CONFIGFILE = getConfigFileLocation(session);
-        string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
         string zmq_config_file = MINION_CONFIGDIR + "\\" + "zmq_filtering.conf";
         System.IO.Directory.CreateDirectory(MINION_CONFIGDIR);  // Ensures that the path to conf/minion.d exists
         // File.WriteAllText() throws an Exception if the path to the file does not exist
         File.WriteAllText(zmq_config_file, "zmq_filtering: True" + Environment.NewLine);
         session.Log(@"WriteConfig_DECAC created and wrote zmq_filtering.conf");
       }
+      
+      result = save_CustomActionDataKeyValue_to_config_file(session, "master", ref found_before_replacement);
 
-      if (result == ActionResult.Success)
-        result = save_CustomActionDataKeyValue_to_config_file(session, "master", ref found_before_replacement);
-
-      if (result == ActionResult.Success)
-        result = save_CustomActionDataKeyValue_to_config_file(session, "id", ref found_before_replacement);
+      result = save_CustomActionDataKeyValue_to_config_file(session, "id", ref found_before_replacement);
 
       return result;
     }
@@ -446,7 +449,18 @@ namespace MinionConfigurationExtension {
     }
 
 
-
+/*
+ * "All config" files means:
+ *   conf/minion.d/+.conf
+ *   conf/minion
+ *
+ * TODO This should be the other way around
+ *
+ * It DOES NOT mean conf/minion_id 
+ *
+ * TODO This function should input a dictionary of key/value pairs because it reopens all config files over and over.
+ *
+ */ 
     private static ActionResult replace_pattern_in_all_config_files
       (Session session, string pattern, string replacement, ref bool found_before_replacement) {
       string MINION_CONFIGFILE = getConfigFileLocation(session);

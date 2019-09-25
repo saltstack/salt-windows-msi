@@ -7,7 +7,7 @@
     -->
 
     <!--
-    Immediate custom action declarations ("IMCA_").
+    Immediate (*_IMCA?) and defferred (*_DECA?) custom action declarations.
     You find the condition whento call it in InstallUISequence and InstallSequence in Product.wxs
     If in InstallUISequence and InstallExecuteSequence but only to be run once, must be qualified by 'firstSequence'.
 
@@ -25,13 +25,13 @@
          to start the service, which is done during the install instead of running 'net start' at the end. 
          Running 'net start' would not produce any useful log information.
 
-         "Immediate custom actions" (IMCA_) can get and set msi Properties using the "Session".
+         "Immediate custom actions" (*_IMCA?) can get and set msi Properties using the "Session".
              Example: public static ActionResult ReadConfig_IMCAC(Session session)
              Session is a kind of dictionary/hash of msi properties
                   Example: session["MASTER"] = value;
                   Warning: WiX does not check if the property exists. The installer will only break at install time.
 
-         "Deferred custom actions" in C# (_DECAC) require properties to be passed as Session.CustomActionData
+         "Deferred custom actions" in C# (*_DECAC) require properties to be passed as Session.CustomActionData
          via separate type 51 "custom actions data helper" (_CADH):
            The 'Property=' attribute must be set to the name of the "deferred custom action" (_DECAC) receiving the data, and
            the 'Value=' attribute must be a list of key=[Property] pairs.
@@ -43,11 +43,11 @@
          Actions must have C# Signature [CustomAction] public static ActionResult
     -->
     <!--  Naming/terminology changes from msi to Salt. -->    
-    <CustomAction Id="WriteConfig_CADH"            Property="WriteConfig_DECAC"             Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];zmq_filtering=[ZMQ_FILTERING]" />
-    <CustomAction Id="Uninstall_incl_Config_CADH"  Property="Uninstall_incl_Config_DECAC"  Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
-    <CustomAction Id="Uninstall_excl_Config_CADH"  Property="Uninstall_excl_Config_DECAC"  Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
+    <CustomAction Id="WriteConfig_CADH"            Property="WriteConfig_DECAC"             Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];zmq_filtering=[ZMQ_FILTERING];minion_id_caching=[MINION_ID_CACHING];minion_id_remove_domain=[MINION_ID_REMOVE_DOMAIN]" />
+    <CustomAction Id="Uninstall_incl_Config_CADH"  Property="Uninstall_incl_Config_DECAC"   Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
+    <CustomAction Id="Uninstall_excl_Config_CADH"  Property="Uninstall_excl_Config_DECAC"   Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
     <CustomAction Id="Upgrade_CADH"                Property="Upgrade_DECAC"                 Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
-    <!-- NICETOHAVE test if *_DECAC really need  master=[MASTER];id=[MINION_ID] -->
+    <!-- NICETOHAVE test if Uninstall_*_DECAC needs  master=[MASTER];id=[MINION_ID] -->
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>

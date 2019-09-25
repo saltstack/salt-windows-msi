@@ -40,7 +40,7 @@ Minion-specific msi-properties:
  ---------------------- | ----------------------- | ------
  `MASTER`               | `salt`                  | The master (name or IP). Only a single master. May also be read from kept config.
  `MASTER_KEY`           |                         | The master public key. See below.
- `ZMQ_filtering`        | `False`                 | Set to `True` if the master requires zmq_filtering
+ `ZMQ_filtering`        | `False`                 | Set to `True` if the master requires zmq_filtering.
  `MINION_ID`            | Hostname                | May also be read from kept config.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service. (`START_MINION=""`)
  `KEEP_CONFIG`          | `1`                     | Set to `0` to remove configuration on uninstall.
@@ -154,6 +154,10 @@ You should see screen output containing:
 ## How to program the msi builder toolkit
 
 The remainder is documentation how to program the msi build toolkit.
+
+The C# code is needed to manipulate the configuration files. 
+
+To achieve an atomic installation (either installed or the prior state is restored), all changes (filesystem and registry) must be manipulated by WiX code.
 
 ### Directory structure
 

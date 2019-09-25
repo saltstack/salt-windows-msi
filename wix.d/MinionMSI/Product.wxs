@@ -39,6 +39,13 @@
     <Package InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
 
     <!--
+      On the XML CDATA Section
+      Quotes from https://www.firegiant.com/wix/tutorial/com-expression-syntax-miscellanea/expression-syntax
+         "you have to be cautious when you use angle brackets that can be mistaken for an opening or closing character of an XML tag"
+         "The safest approach would be to wrap everything"      
+    -->
+
+    <!--
       Block installation based on OS properties
       Properties:
        - MsiNTProductType:  1=Workstation  2=Domain controller  3=Server
@@ -72,9 +79,13 @@
     <Condition Message="Please rename START_MINION_SERVICE to START_MINION"><![CDATA[NOT START_MINION_SERVICE]]></Condition>
     <!--
       msi properties
-        Naming converntions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
-        Public properties be changed by user, e.g. at the command line.
-        A value "#" is our convention for "unset"
+        Naming conventions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
+        Public properties may be changed by the user and must be upper-case.
+
+        The value "#" is our convention for "unset"
+        This convention is flawed: an unset msi property is simply never set.
+        You do not need to declare a msi property.
+        This happens to be the same situation as with Python variables: you do not declare them.        
 
         On START_MINION and checkbox:
         A checkbox is only empty if a property is undefined (missing).
@@ -82,19 +93,26 @@
         When you say START_MINION="" on the commandline, the service will not start and the checkbox will empty.
         When you say START_MINION=0 on the commandline, the service will not start, but the checkbox will be set.
         When you say START_MINION=0 /qn on the commandline (no GUI), the service will not start.
-     -->
-    <!-- Salt properties  -->
+
+      Salt msi properties that need to be set before the minion starts for the first time.
+
+          Properties, that are unset by default:
+                  MINION_ID_REMOVE_DOMAIN 
+
+    -->
+
     <Property Id="MASTER"                   Value="#"                    />
     <Property Id="ZMQ_FILTERING"            Value="False"                /> <!-- or True  -->
     <Property Id="MASTER_KEY"               Value="#"                    />
     <Property Id="MINION_ID"                Value="#"                    />
+    <Property Id="MINION_ID_CACHING"        Value="1"                    />
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             /> <!-- or Custom or Default    WIP  -->
     <Property Id="START_MINION"             Value="1"                    />
     <Property Id="KEEP_CONFIG"              Value="1"                    />
 
 
-    <!-- Windows Installer properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
+    <!-- Windows Installer msi properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx -->
     <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"                                                  />
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"                                                />
     <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"                           />
@@ -104,7 +122,7 @@
     <Property Id="MsiLogging"               Value="v"                    />  <!--  Logging into %TEMP%\MSIxxxxx.LOG  https://msdn.microsoft.com/en-us/library/windows/desktop/aa370322.aspx -->
     <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
 
-    <!-- WiX properties
+    <!-- WiX msi properties
       WIXUI_INSTALLDIR
         From https://wixtoolset.org//documentation/manual/v3/wixui/dialog_reference/wixui_installdir.html
           Selecting a user interface
@@ -134,9 +152,7 @@
       <Custom Action='WriteConfig_CADH'            Before='WriteConfig_DECAC'            >NOT Installed</Custom> 
       <Custom Action='WriteConfig_DECAC'           Before='StartServices'               >NOT Installed</Custom>
       
-      <!-- Conditionally start the service  
-      Programmer reminder/warning: leave CDATA!
-      -->
+      <!-- Conditionally start the service  -->
       <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
 
       <!-- 
@@ -149,9 +165,9 @@
         UPGRADINGPRODUCTCODE | does not work
         Not Installed        | this installer is not installed
         
-      On Upgrade_DECAC and the CleanupBinFolder component:
-        Upgrade_DECAC removes bin/**/*.pyc files.  CleanupBinFolder does this already. 
-        TODO rethink this.
+      TODO Upgrade_DECAC and the CleanupBinFolder component:
+        - Upgrade_DECAC tries to remove c:\salt\bin\**\*.pcy files (typo pcy).
+        - CleanupBinFolder does this already. 
 
 
       From  https://docs.microsoft.com/en-us/windows/win32/msi/property-reference
