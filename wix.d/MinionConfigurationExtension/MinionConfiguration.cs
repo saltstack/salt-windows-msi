@@ -462,11 +462,11 @@ Then the default config file is laid down by the installer... settings for `mast
 
 
 		private static void replace_in_existing_cfiles_DECAC(Session session, string SaltKey, ref string CustomActionData_value, ref bool replaced) {
-      session.Log("...replace_in_existing_cfiles_DECAC key " + SaltKey);
+      session.Log("...replace_in_existing_cfiles_DECAC SaltKey " + SaltKey);
+			CustomActionData_value = session.CustomActionData[SaltKey];
+			session.Log("...replace_in_existing_cfiles_DECAC CustomActionData_value " + CustomActionData_value);
 
-      CustomActionData_value = session.CustomActionData[SaltKey];
-
-      session.Message(InstallMessage.Progress, new Record(2, 1));
+			session.Message(InstallMessage.Progress, new Record(2, 1));
 
       // pattern description
       // ^        start of line
@@ -540,7 +540,10 @@ Then the default config file is laid down by the installer... settings for `mast
 		 *
 		 */
 		private static void replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement, ref bool replaced) {
-      string MINION_CONFIGFILE = getConfigFileLocation_DECAC(session);
+			session.Log("...replace_pattern_in_all_config_files_DECAC pattern    {0}", pattern);
+			session.Log("...replace_pattern_in_all_config_files_DECAC replacement    {0}", replacement);
+
+			string MINION_CONFIGFILE = getConfigFileLocation_DECAC(session);
 			string MINION_CONFIGDIR = getConfigdDirectoryLocation_DECAC(session);
 
 			replace_pattern_in_one_config_file_DECAC(session, MINION_CONFIGFILE, pattern, replacement, ref replaced);
@@ -560,27 +563,26 @@ Then the default config file is laid down by the installer... settings for `mast
     }
 
     private static void replace_pattern_in_one_config_file_DECAC(Session session, string config_file, string pattern, string replacement, ref bool replaced) {
-      /*
+			/*
        */
-      string[] configLines = File.ReadAllLines(config_file);
-      session.Message(InstallMessage.Progress, new Record(2, 1));
-      session.Log("replace_pattern_in_config_file..config file    {0}", config_file);
-      session.Message(InstallMessage.Progress, new Record(2, 1));
+			session.Log("...replace_pattern_in_one_config_file_DECAC  config file    {0}", config_file);
+			session.Log("...replace_pattern_in_one_config_file_DECAC  pattern        {0}", pattern);
+			session.Log("...replace_pattern_in_one_config_file_DECAC  replacement    {0}", replacement);
+			string[] configLines = File.ReadAllLines(config_file);
+			session.Log("...replace_pattern_in_one_config_file_DECAC  configLines.Length  {0}", configLines.Length);
+
 			for (int i = 0; i < configLines.Length; i++) {
 				if (configLines[i].StartsWith(replacement)) {
 					replaced = true;
-					session.Log("replace_pattern_in_config_file..found the replacement in line        {0}", configLines[i]);
+					session.Log("...replace_pattern_in_one_config_file_DECAC  found the replacement in line        {0}", configLines[i]);
 				}
 				if (Regex.IsMatch(configLines[i], pattern)) {
-					session.Log("replace_pattern_in_config_file..pattern        {0}", pattern);
-					session.Log("replace_pattern_in_config_file..matched  line  {0}", configLines[i]);
-					session.Log("replace_pattern_in_config_file..replaced line  {0}", replacement);
+					session.Log("...replace_pattern_in_one_config_file_DECAC  matched  line  {0}", configLines[i]);
 					configLines[i] = replacement + "\n";
 					replaced = true;
 				}
 			}
 
-			session.Message(InstallMessage.Progress, new Record(2, 1));
       File.WriteAllLines(config_file, configLines);
     }
 

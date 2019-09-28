@@ -99,7 +99,8 @@
         Public properties may be changed by the user and must be upper-case.
 
         The value "#" is our convention for "unset"
-        This convention may be too expressive: an unset msi property is simply never set.
+        The advantage of '#' is that DECAC can lookup a msi property with '#' and decide that it is unset.
+        A DECAC that looksup an unset property crashes. 
 
         On START_MINION and checkbox:
         A checkbox is only empty if a property is undefined (missing).
@@ -110,9 +111,6 @@
 
       Salt msi properties that need to be set before the minion starts for the first time.
 
-          Properties, that are unset by default:
-                  MINION_ID_REMOVE_DOMAIN 
-
     -->
 
     <Property Id="MASTER"                   Value="#"                    />
@@ -120,6 +118,7 @@
     <Property Id="MASTER_KEY"               Value="#"                    />
     <Property Id="MINION_ID"                Value="#"                    />
     <Property Id="MINION_ID_CACHING"        Value="1"                    />
+    <Property Id="MINION_ID_REMOVE_DOMAIN"  Value="#"                    />
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
     <Property Id="START_MINION"             Value="1"                    />
