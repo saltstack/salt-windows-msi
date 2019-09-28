@@ -98,9 +98,12 @@
         Naming conventions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
         Public properties may be changed by the user and must be upper-case.
 
-        The value "#" is our convention for "unset"
-        The advantage of '#' is that DECAC can lookup a msi property with '#' and decide that it is unset.
-        A DECAC that looksup an unset property crashes. 
+        The value "#" is our convention for "unset". 
+        You MUST add the property at the CADH helper or the DECAC function will crash. 
+        A DECAC that looks up a not-listed-in CADH key crashes. 
+          eg. master=[MASTER];
+          session.CustomActionData["master"] 
+          session.CustomActionData["crash"]
 
         On START_MINION and checkbox:
         A checkbox is only empty if a property is undefined (missing).

@@ -485,7 +485,7 @@ Then the default config file is laid down by the installer... settings for `mast
 
 		static private void append_to_config_DECAC(Session session, string key, string value) {
 			string MINION_CONFIGDIR = getConfigdDirectoryLocation_DECAC(session);
-			if (session.CustomActionData["CONFIG_TYPE"] == "New") {
+			if (session.CustomActionData["config_type"] == "New") {
 				//CONFIG_TYPE New creates a minion.d/*.conf file
 				Write_file(session, MINION_CONFIGDIR, key+".conf", key+": " + value);
 			} else {	
@@ -549,7 +549,7 @@ Then the default config file is laid down by the installer... settings for `mast
 			replace_pattern_in_one_config_file_DECAC(session, MINION_CONFIGFILE, pattern, replacement, ref replaced);
 
 			// Shane wants that the installer changes only the MINION_CONFIGFILE, not the minion.d/*.conf files
-			if (session.CustomActionData["CONFIG_TYPE"] == "New") {
+			if (session.CustomActionData["config_type"] == "New") {
 				// Go into the minion.d/ folder
 				if (Directory.Exists(MINION_CONFIGDIR)) {
 					var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
@@ -582,8 +582,10 @@ Then the default config file is laid down by the installer... settings for `mast
 					replaced = true;
 				}
 			}
-
-      File.WriteAllLines(config_file, configLines);
+			session.Log("...replace_pattern_in_one_config_file_DECAC  replaced    {0}", replaced);
+			if (replaced) {
+				File.WriteAllLines(config_file, configLines);
+			}
     }
 
 		private static void shellout(Session session, string s) {
