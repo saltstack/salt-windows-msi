@@ -45,7 +45,9 @@
       
       Quote from https://wixtoolset.org/documentation/manual/v3/xsd/wix/condition.html
          "The condition is specified in the inner text of the element. "
-            Quotes from    https://www.firegiant.com/wix/tutorial/com-expression-syntax-miscellanea/expression-syntax            "Properties in expressions"
+      
+      Quotes from    https://www.firegiant.com/wix/tutorial/com-expression-syntax-miscellanea/expression-syntax
+            "Properties in expressions"
             "PROPERTY This will evaluate to true if the property has been set and has any value, even if this value is false or 0."
             "NOT PROPERTY This will evaluate to true if the property has not been set at all."
             
@@ -178,22 +180,18 @@
     
     <!-- Sequence with GUI   -->
     <InstallUISequence>
-      <Custom Action='ReadConfig_IMCAC'            Before='SetMinionIdToHostname_IMCAX' >NOT Installed</Custom>
-      <!-- set MINION_ID if not read from NSIS/kept_config and user did not set it and software not installed -->
-      <Custom Action="SetMinionIdToHostname_IMCAX" Before='MigrateFeatureStates'        >NOT Installed AND (MINION_ID = "#")</Custom>
-
+      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'        >NOT Installed</Custom>
+      
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
 
     <!-- Sequence without GUI (silent, headless)   -->
     <InstallExecuteSequence>
-      <Custom Action='ReadConfig_IMCAC'            Before='SetMinionIdToHostname_IMCAX' >NOT Installed</Custom>
-      <!-- set MINION_ID if not read from NSIS/kept_config and user did not set it and software not installed -->
-      <Custom Action="SetMinionIdToHostname_IMCAX" Before='MigrateFeatureStates'        >NOT Installed AND (MINION_ID = "#")</Custom>
+      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'        >NOT Installed</Custom>
 
       <!-- del_NSIS_DECAC is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
       <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'            >NOT Installed</Custom>
-      <Custom Action='WriteConfig_CADH'            Before='WriteConfig_DECAC'            >NOT Installed</Custom> 
+      <Custom Action='WriteConfig_CADH'            Before='WriteConfig_DECAC'           >NOT Installed</Custom> 
       <Custom Action='WriteConfig_DECAC'           Before='StartServices'               >NOT Installed</Custom>
       
       <!-- Conditionally start the service  -->

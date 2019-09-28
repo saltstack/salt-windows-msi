@@ -225,7 +225,7 @@ To achieve an atomic installation (either installed or the prior state is restor
 Postfix  | Example                            | Meaning
 -------- | ---------------------------------- | -------
 `_IMCAC` | `ReadConfig_IMCAC`                 | Immediate custom action written in C#
-`_IMCAX` | `SetMinionIdToHostname_IMCAX`      | Immediate custom action written in XML
+`_IMCAX` |                                    | Immediate custom action written in XML
 `_DECAC` | `Uninstall_excl_Config_DECAC`      | Deferred custom action written in C#
 `_CADH`  | `Uninstall_excl_Config_CADH`       | Custom action data helper (only for deferred custom action)
 

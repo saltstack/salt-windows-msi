@@ -175,113 +175,167 @@ namespace MinionConfigurationExtension {
        * 
        */
       session.Log("...Begin ReadConfig_IMCAC");
-      read_master_and_id_from_all_local_config_files_IMCAC(session);
+      determine_master_and_id(session);
       session.Log("...End ReadConfig_IMCAC");
       return ActionResult.Success;
     }
 
 
+		/*
+		 * When installatioin starts,there might be a previous installation.
+		 * From the previous installation, we read only two properties, that we present in the installer:
+		 *  - master
+		 *  - id
+		 *  
+		 *  This function reads these two properties from 
+		 *   - the 2 msi properties:
+		 *     - MASTER
+		 *     - MINION_ID		    
+		 *   - files from a provious installations: 
+		 *     - the number of file the function searches depend on CONFIGURATION_TYPE
+		 *   - dependend on CONFIGURATION_TYPE, default values can be:
+		 *     - master = "salt"
+		 *     - id = %hostname%
+		 *  
+		 *  
+		 *  This function writes its results in the 2 msi properties:
+		 *   - MASTER
+		 *   - MINION_ID
+		 *   
+		 *   A GUI installation will show these msi properties because this function is called before the GUI.
+		 *   
+		 */
+		private static void determine_master_and_id(Session session) {
+      String master_from_previous_installation = "";
+      String id_from_previous_installation = "";
+			
 
-    private static void read_master_and_id_from_all_local_config_files_IMCAC(Session session) {
-      String master_from_local_config = "";
-      String id_from_local_config = "";
+			if (Directory.Exists(session["INSTALLFOLDER"])) {
+				// Log how many files there are in INSTALLFOLDER
+				var count_files = Directory.GetFiles(session["INSTALLFOLDER"], "*", SearchOption.AllDirectories).Length;
+				session.Log("...counted " + count_files.ToString() + " files in INSTALLFOLDER = " + session["INSTALLFOLDER"]);
+			} else {
+				// Log there is no INSTALLFOLDER
+				session.Log("...no directory INSTALLFOLDER = " + session["INSTALLFOLDER"]);
+			}
 
-			// Log how many files there are in INSTALLFOLDER
-      long count_files = 0;
-      if (Directory.Exists(session["INSTALLFOLDER"])) {
-				count_files = Directory.GetFiles(session["INSTALLFOLDER"], "*", SearchOption.AllDirectories).Length;
-      }
-      session.Log("...counted " + count_files.ToString()+" files in INSTALLFOLDER = " + session["INSTALLFOLDER"]);
+			session.Log("...CONFIG_TYPE msi property  =" + session["CONFIG_TYPE"]);
+			session.Log("...MASTER      msi property  =" + session["MASTER"]);
+			session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
 
-      // config type 
-      // https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
+			// config types 
+			// https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
 
-      if (session["CONFIG_TYPE"] == "Default") {
-				/* Overwrite the existing config if present with the default config for salt. 
+			if (session["CONFIG_TYPE"] == "Default") {
+				/* ----------------------------------
+				 * Overwrite the existing config if present with the default config for salt. 
 				 * Default is to use the existing config if present. 
-				 * If /master and/or /minion-name is passed, those values will be used to update the new default config. */
-				if (session["MASTER"]    == "#") { master_from_local_config = "salt"; }
-				if (session["MINION_ID"] == "#") { id_from_local_config = Environment.MachineName; }
+				 * If /master and/or /minion-name is passed, those values will be used to update the new default config. 
+				 
+Default
+
+This setting will reset config to be the default config contained in the pkg. 
+Therefore, all existing config files should be backed up
+1. `minion` config renamed to `minion-<timestamp>.bak`
+2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
+3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
+Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
+				 */
+				Backup_configuration_files_from_previous_installation(session);
+
+				if (session["MASTER"]    == "#") {
+					session["MASTER"] = "salt";
+					session.Log("...MASTER set to salt because it was unset and CONFIG_TYPE=Default");
+				}
+				if (session["MINION_ID"] == "#") {
+					session["MINION_ID"] = Environment.MachineName;
+					session.Log("...MINION_ID set to hostname because it was unset and CONFIG_TYPE=Default");
+				}
       }
+
+
 			if (session["CONFIG_TYPE"] == "Custom" ) {
-				/* 
-				 * This setting will lay down a custom config passed via the command line. Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
+				/* ----------------------------------
+				 * 
+This setting will lay down a custom config passed via the command line. Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
 1. `minion` config renamed to `minion-<timestamp>.bak`
 2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
 3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
 Then the custom config is laid down by the installer... and `master` and `minion id` should be applied to the custom config if passed.
 				 *  */
-				// Backup 
-				string timestamp = "-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".bak";
-				if (File.Exists(@"C:\salt\conf\minion")) {
-					File.Move(@"C:\salt\conf\minion", @"C:\salt\conf\minion" + timestamp);
-				}
-				if (File.Exists(@"C:\salt\conf\minion_id")) {
-					File.Move(@"C:\salt\conf\minion", @"C:\salt\conf\minion_id" + timestamp);
-				}
 
-				if (Directory.Exists(@"C:\salt\conf\minion.d")) { 
-					Directory.Move(@"C:\salt\conf\minion.d", @"C:\salt\conf\minion.d" + timestamp);
-				}
+				Backup_configuration_files_from_previous_installation(session);
+
 				// will lay down a custom config passed via the command line
 				string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session["MINION_CONFIGFILE"]));
 				Write_safely_to_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
 			}
 
-			if (session["CONFIG_TYPE"] == "Existing" || session["CONFIG_TYPE"] == "New") {
-        // Read master and id from MINION_CONFIGFILE  
-        read_master_and_id_from_file(session, session["MINION_CONFIGFILE"], ref master_from_local_config, ref id_from_local_config);
 
-				if (session["CONFIG_TYPE"] == "New") {
-					// Aditionally, read master and id from minion.d/*.conf
-					string MINION_CONFIGDIR = session["MINION_CONFIGFILE"] + ".d";
-					if (Directory.Exists(MINION_CONFIGDIR)) {
-						var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
-						foreach (var conf_file in conf_files) {
-							if (conf_file.EndsWith("_schedule.conf")) { continue; } // skip _schedule.conf
-							read_master_and_id_from_file(session, conf_file, ref master_from_local_config, ref id_from_local_config);
-						}
+			if (session["CONFIG_TYPE"] == "Existing") {
+				/* ------------------------------------
+				 * 
+This setting makes no changes to the existing config and just upgrades/downgrades salt. 
+Makes for easy upgrades. Just run the installer with a silent option. 
+If there is no existing config, then the default is used and `master` and `minion id` are applied if passed.
+				 * 
+				 * 
+				 */
+
+			// Nothing to do, at this point
+
+			}
+
+			if (session["CONFIG_TYPE"] == "New") {
+				/* ------------------------------------------------------------------------
+				 */
+				// Read master and id from MINION_CONFIGFILE   in any case
+				read_master_and_id_from_file(session, session["MINION_CONFIGFILE"], ref master_from_previous_installation, ref id_from_previous_installation);
+				// Read master and id from minion.d/*.conf in any case
+				string MINION_CONFIGDIR = session["MINION_CONFIGFILE"] + ".d";
+				if (Directory.Exists(MINION_CONFIGDIR)) {
+					var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+					foreach (var conf_file in conf_files) {
+						if (conf_file.EndsWith("_schedule.conf")) { continue; } // skip _schedule.conf
+						read_master_and_id_from_file(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
 					}
 				}
-      }
-      // If the msi property has value #, this is our convention for "unset"
-      // This means the use has not set the value on commandline (GUI comes later)
-      // If the msi property has value different from # "unset", the user has set the master
-      // msi propery master wins (without any action) over kept config master
-      /////////////////master
-      session.Log("...MASTER      msi property  =" + session["MASTER"]);
-      session.Log("               kept config   =" + master_from_local_config);
-      if (session["MASTER"] == "#") {
-        session.Log("...MASTER msi property unset/void (user has not given property on the msiexec command line)");
-        if (master_from_local_config != "") {
-          session["MASTER"] = master_from_local_config;
-          session.Log("...MASTER set to kept config");
-        } else {
-          session["MASTER"] = "salt";
-          session.Log("...MASTER set to salt because no kept config");
-        }
-      } else {
-        // Just for clarity of the log
-        session.Log("...MASTER msi property was given by user, the value overtakes the kept config (if any)");
-      }
-      ///////////////// minion id
-      session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
-      session.Log("               kept config   =" + id_from_local_config);
-      if (session["MINION_ID"] == "#") {
-        session.Log("...MINION_ID msi property unset/void (user has not given property on the msiexec command line)");
-        if (id_from_local_config != "") {
-          session.Log("...MINION_ID set to kept config ");
-          session["MINION_ID"] = id_from_local_config;
-        } else {
-          session.Log("...MINION_ID will be set by SetMinionIdToHostname_IMCAX because no kept config");
-        }
-      } else {
-        // Just for clarity of the log
-        session.Log("...MINION_ID msi property was given by user, the value overtakes the kept config (if any)");
-      }
+
+				// If the msi property has value #, this is our convention for "unset"
+				// This means the user has not set the value on commandline (GUI comes later)
+				// If the msi property has value different from # "unset", the user has set the master
+				// msi propery has precedence over kept config 
+				// Only if msi propery is unset, set value of previous installation
+
+				/////////////////master
+				if (session["MASTER"] == "#") {
+					session.Log("...MASTER       kept config   =" + master_from_previous_installation);
+					if (master_from_previous_installation != "") {
+						session["MASTER"] = master_from_previous_installation;
+						session.Log("...MASTER set to kept config");
+					} else {
+						session["MASTER"] = "salt";
+						session.Log("...MASTER set to salt because it was unset and no kept config");
+					}
+				}
+
+				///////////////// minion id
+				// only if MINION_ID_CACHING
+				if (session["MINION_ID_CACHING"] == "1" && session["MINION_ID"] == "#") {
+					session.Log("...MINION_ID   kept config   =" + id_from_previous_installation);
+					if (id_from_previous_installation != "") {
+						session.Log("...MINION_ID set to kept config ");
+						session["MINION_ID"] = id_from_previous_installation;
+					} else {
+						session["MINION_ID"] = Environment.MachineName;
+						session.Log("...MINION_ID set to hostname because it was unset and no previous installation and CONFIG_TYPE=New and MINION_ID_CACHING");
+					}
+				}
+			}
 
 			// Save the salt-master public key 
-      var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
+			// This is a little early and should happen in WriteConfig
+			var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
       var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
       bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
       session.Log("...master key earlier config file exists = " + File.Exists(master_public_key_filename));
@@ -325,7 +379,7 @@ Then the custom config is laid down by the installer... and `master` and `minion
        *   all fixed path are OK here.
        *   The msi is never peeled.
       */
-      session.Log("...Begin delete_NSIS_files");
+				session.Log("...Begin delete_NSIS_files");
       session.Log("Environment.Version = " + Environment.Version);
       if (IntPtr.Size == 8) {
         session.Log("probably 64 bit process");
@@ -653,8 +707,23 @@ Then the custom config is laid down by the installer... and `master` and `minion
       session.Log(ex.StackTrace.ToString());
     }
 
+		private static void Backup_configuration_files_from_previous_installation(Session session) {
+			string timestamp_bak = "-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".bak";
 
-    private static bool False_after_ExceptionLog(string description, Session session, Exception ex) {
+			if (File.Exists(@"C:\salt\conf\minion")) {
+				File.Move(@"C:\salt\conf\minion", @"C:\salt\conf\minion" + timestamp_bak);
+			}
+			if (File.Exists(@"C:\salt\conf\minion_id")) {
+				File.Move(@"C:\salt\conf\minion", @"C:\salt\conf\minion_id" + timestamp_bak);
+			}
+
+			if (Directory.Exists(@"C:\salt\conf\minion.d")) {
+				Directory.Move(@"C:\salt\conf\minion.d", @"C:\salt\conf\minion.d" + timestamp_bak);
+			}
+		}
+
+
+private static bool False_after_ExceptionLog(string description, Session session, Exception ex) {
       just_ExceptionLog(description, session, ex);
       return false;
     }

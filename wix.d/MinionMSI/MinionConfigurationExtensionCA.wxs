@@ -7,13 +7,11 @@
     -->
 
     <!--
-    Immediate (*_IMCA?) and defferred (*_DECA?) custom action declarations.
+    Immediate (*_IMCAC) and defferred (*_DECAC) custom action declarations.
     You find the condition whento call it in InstallUISequence and InstallSequence in Product.wxs
     If in InstallUISequence and InstallExecuteSequence but only to be run once, must be qualified by 'firstSequence'.
 
-    WiX-XML Immediate custom action SetMinionIdToHostname_IMCAX sets property MINION_ID to Computername (at install-time)
     -->
-<CustomAction Id="SetMinionIdToHostname_IMCAX" Property="MINION_ID"        Value="[ComputerName]"                 Execute='firstSequence'/>
 <CustomAction Id="ReadConfig_IMCAC"            BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'            Execute='firstSequence'/>
 <CustomAction Id="del_NSIS_DECAC"              BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'               Execute='deferred' Return='check' Impersonate='no'/>
 <CustomAction Id="WriteConfig_DECAC"           BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'            Execute='deferred' Return='check' Impersonate='no'/>
@@ -25,13 +23,13 @@
          to start the service, which is done during the install instead of running 'net start' at the end. 
          Running 'net start' would not produce any useful log information.
 
-         "Immediate custom actions" (*_IMCA?) can get and set msi Properties using the "Session".
+         C# "Immediate custom actions" (*_IMCAC) can get and set msi Properties using the "Session".
              Example: public static ActionResult ReadConfig_IMCAC(Session session)
              Session is a kind of dictionary/hash of msi properties
                   Example: session["MASTER"] = value;
                   Warning: WiX does not check if the property exists. The installer will only break at install time.
 
-         "Deferred custom actions" in C# (*_DECAC) require properties to be passed as Session.CustomActionData
+         C# "Deferred custom actions" in C# (*_DECAC) require properties to be passed as Session.CustomActionData
          via separate type 51 "custom actions data helper" (_CADH):
            The 'Property=' attribute must be set to the name of the "deferred custom action" (_DECAC) receiving the data, and
            the 'Value=' attribute must be a list of key=[Property] pairs.
