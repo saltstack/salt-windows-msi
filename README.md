@@ -44,8 +44,9 @@ Minion-specific msi-properties:
  `MINION_ID`            | Hostname                | May also be read from kept config.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service. (`START_MINION=""`)
  `KEEP_CONFIG`          | `1`                     | Set to `0` to remove configuration on uninstall.
- `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | The minion config file and directory (minion.d)      __DO NOT CHANGE (yet)__
- `INSTALLFOLDER`        | `c:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
+ `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | A string value specifying the name of a custom config file in the same path as the installer or the full path to a custom config file
+ `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
+ `CONFIG_TYPE`          | `Existing`              | See below.
 
 These files and directories are regarded as config and kept:
 
@@ -65,6 +66,43 @@ You can set a new master public key with `MASTER_KEY`, but you must convert it i
 - Remove linebreaks.
 - From the default public key file (458 bytes), the one-line key has 394 characters.
 - Example below.
+
+`CONFIG_TYPE` 
+
+There are 4 scenarios the installer tries to account for:
+
+1. existing-config (default)
+2. custom-config
+3. default-config
+4. new-config
+
+Existing
+
+This setting makes no changes to the existing config and just upgrades/downgrades salt. 
+Makes for easy upgrades. Just run the installer with a silent option. 
+If there is no existing config, then the default is used and `master` and `minion id` are applied if passed.
+
+Custom
+
+This setting will lay down a custom config passed via the command line. 
+Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
+1. `minion` config renamed to `minion-<timestamp>.bak`
+2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
+3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
+Then the custom config is laid down by the installer... and `master` and `minion id` should be applied to the custom config if passed.
+
+Default
+
+This setting will reset config to be the default config contained in the pkg. 
+Therefore, all existing config files should be backed up
+1. `minion` config renamed to `minion-<timestamp>.bak`
+2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
+3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
+Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
+
+New
+
+Each Salt property (MASTER, ZMQ_FILTERING or MINON_ID) given is changed in all present config files or, if missing, added as a new file to the minion.d directory.
 
 ## Target client requirements
 
