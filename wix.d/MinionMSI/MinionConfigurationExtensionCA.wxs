@@ -17,7 +17,7 @@
 <CustomAction Id="WriteConfig_DECAC"           BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'            Execute='deferred' Return='check' Impersonate='no'/>
 <CustomAction Id="Uninstall_incl_Config_DECAC" BinaryKey='MinionConfigExt' DllEntry='Uninstall_incl_Config_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
 <CustomAction Id="Uninstall_excl_Config_DECAC" BinaryKey='MinionConfigExt' DllEntry='Uninstall_excl_Config_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
-<CustomAction Id="Upgrade_DECAC"               BinaryKey='MinionConfigExt' DllEntry='Upgrade_DECAC'                Execute='deferred' Return='check' Impersonate='no'/>
+    
     <!--
          Deferred execution is necessary to change the configuration prior 
          to start the service, which is done during the install instead of running 'net start' at the end. 
@@ -40,11 +40,10 @@
          Actions are declared here and called (repeatedly) in Product.wxs.
          Actions must have C# Signature [CustomAction] public static ActionResult
     -->
-    <!--  Naming/terminology changes from msi to Salt. -->    
+    <!--  Terminology changes from msi to Salt. -->    
     <CustomAction Id="WriteConfig_CADH"            Property="WriteConfig_DECAC"             Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];zmq_filtering=[ZMQ_FILTERING];minion_id_caching=[MINION_ID_CACHING];minion_id_remove_domain=[MINION_ID_REMOVE_DOMAIN]" />
     <CustomAction Id="Uninstall_incl_Config_CADH"  Property="Uninstall_incl_Config_DECAC"   Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
     <CustomAction Id="Uninstall_excl_Config_CADH"  Property="Uninstall_excl_Config_DECAC"   Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
-    <CustomAction Id="Upgrade_CADH"                Property="Upgrade_DECAC"                 Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
     <!-- NICETOHAVE test if Uninstall_*_DECAC needs  master=[MASTER];id=[MINION_ID] -->
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>

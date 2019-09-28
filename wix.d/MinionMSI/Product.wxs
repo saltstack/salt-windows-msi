@@ -149,7 +149,7 @@
     <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"/>
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"/>
     <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"/>
-    <Property Id="ROOTDRIVE"                Value="C:\"/>   <!-- Will become a TODO once path not fixed c:\salt  -->
+    <Property Id="ROOTDRIVE"                Value="C:\"/>
     <Property Id="ARPPRODUCTICON"           Value="icon"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="MsiLogging"               Value="v"/>
@@ -165,74 +165,77 @@
 
 
     <!-- Sequences
-    
-    Notes on ReadConfig_IMCAC:
-      Note 1: 
-        Problem: INSTALLFOLDER was not set in ReadConfig_IMCAC
-        Solution:
-        ReadConfig_IMCAC must not be called BEFORE FindRelatedProducts, but BEFORE MigrateFeatureStates because
-        INSTALLFOLDER in only set in CostFinalize, which comes after FindRelatedProducts 
-        Maybe one could call ReadConfig_IMCAC AFTER FindRelatedProducts
-      Note 2:
-        ReadConfig_IMCAC is in both InstallUISequence and InstallExecuteSequence, 
-        but because it is declared Execute='firstSequence', it will not be repeated in InstallExecuteSequence if it has been called in InstallUISequence.
-      -->
-    
-    <!-- Sequence with GUI   -->
-    <InstallUISequence>
-      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'        >NOT Installed</Custom>
-      
-      <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
-    </InstallUISequence>
-
-    <!-- Sequence without GUI (silent, headless)   -->
-    <InstallExecuteSequence>
-      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'        >NOT Installed</Custom>
-
-      <!-- del_NSIS_DECAC is a in-script custom action.  It must be sequenced in between the InstallInitialize action and the InstallFinalize action in the InstallExecuteSequence table  -->
-      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'            >NOT Installed</Custom>
-      <Custom Action='WriteConfig_CADH'            Before='WriteConfig_DECAC'           >NOT Installed</Custom> 
-      <Custom Action='WriteConfig_DECAC'           Before='StartServices'               >NOT Installed</Custom>
-      
-      <!-- Conditionally start the service  -->
-      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
-
-      <!-- 
-      Remove 'lifetime' data on uninstall or upgrade.
-      Lifetime data is mainly *.pyc files.
+      An msi in no linear program.
+      To understand when custom actions will be executed, one must look at the condition within the tag and Before/After:
 
       On custom action conditions:
-        http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf
-      On the upgrade custom action condition:
-        UPGRADINGPRODUCTCODE | does not work
-        Not Installed        | this installer is not installed
-        
-      TODO Upgrade_DECAC and the CleanupBinFolder component:
-        - Upgrade_DECAC tries to remove c:\salt\bin\**\*.pcy files (typo pcy).
-        - CleanupBinFolder does this already. 
-
-
-      From  https://docs.microsoft.com/en-us/windows/win32/msi/property-reference
-        Installed
-          The Installed property is set only if the product is installed per-machine or for the current user
+         http://resources.flexerasoftware.com/web/pdf/archive/IS-CHS-Common-MSI-Conditions.pdf
+         https://docs.microsoft.com/en-us/windows/win32/msi/property-reference
+       On the upgrade custom action condition:
+         UPGRADINGPRODUCTCODE | does not work
+         Installed            | the product is installed per-machine or for the current user
+         Not Installed        | there is no previous version with the same UpgradeCode
+         REMOVE ~= "ALL"      | Uninstall 
 
       From "Standard actions" https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference
           RemoveFiles            https://docs.microsoft.com/en-us/windows/win32/msi/removefiles-action
           RemoveExistingProducts https://docs.microsoft.com/en-us/windows/win32/msi/removeexistingproducts-action
+          MigrateFeatureStates
+          InstallInitialize
+        
+    
+        Notes on ReadConfig_IMCAC:
+          Note 1: 
+            Problem: INSTALLFOLDER was not set in ReadConfig_IMCAC
+            Solution:
+            ReadConfig_IMCAC must not be called BEFORE FindRelatedProducts, but BEFORE MigrateFeatureStates because
+            INSTALLFOLDER in only set in CostFinalize, which comes after FindRelatedProducts 
+            Maybe one could call ReadConfig_IMCAC AFTER FindRelatedProducts
+          Note 2:
+            ReadConfig_IMCAC is in both InstallUISequence and InstallExecuteSequence, 
+            but because it is declared Execute='firstSequence', it will not be repeated in InstallExecuteSequence if it has been called in InstallUISequence.
       -->
+    
+    
+    
+    <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * * *  -->
+      
+      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'        >NOT Installed</Custom>
+      
+      <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
+      
+    </InstallUISequence>
+    
+    
+    
+    <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * * * * * * * * * * * * * *  -->
+      
+      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'        >NOT Installed</Custom>
+
+      <!-- del_NSIS_DECAC is a in-script custom action.  It must be sequenced between InstallInitialize and InstallFinalize in the InstallExecuteSequence  -->
+      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'            >NOT Installed</Custom>
+      
+      <!--  Remove 'lifetime' data on uninstall (and upgrade?) Lifetime data is mainly *.pyc files. -->
       <Custom Action='Uninstall_incl_Config_CADH'   
-              Before='Uninstall_incl_Config_DECAC'                      >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
-      <Custom Action='Uninstall_incl_Config_DECAC' After='RemoveFiles'  >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+              Before='Uninstall_incl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+      <Custom Action='Uninstall_incl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
       
       <Custom Action='Uninstall_excl_Config_CADH'   
-              Before='Uninstall_excl_Config_DECAC'                      >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      <Custom Action='Uninstall_excl_Config_DECAC' After='RemoveFiles'  >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      
-      <Custom Action='Upgrade_CADH'                 
-              Before='Upgrade_DECAC'                                    >NOT Installed</Custom>
-      <Custom Action='Upgrade_DECAC'               After='RemoveFiles'  >NOT Installed</Custom>
+              Before='Uninstall_excl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+      <Custom Action='Uninstall_excl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+
+
+      <Custom Action='WriteConfig_CADH'     
+              Before='WriteConfig_DECAC'                                                >NOT Installed</Custom>
+      <Custom Action='WriteConfig_DECAC'           Before='StartServices'               >NOT Installed</Custom>
+
+      <!-- Start the service  -->
+      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
+
     </InstallExecuteSequence>
 
+    
+    
     <!-- http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
