@@ -208,7 +208,18 @@ namespace MinionConfigurationExtension {
 		private static void determine_master_and_id(Session session) {
       String master_from_previous_installation = "";
       String id_from_previous_installation = "";
-			
+			// Read master and id from MINION_CONFIGFILE   
+			read_master_and_id_from_file(session, session["MINION_CONFIGFILE"], ref master_from_previous_installation, ref id_from_previous_installation);
+			// Read master and id from minion.d/*.conf 
+			string MINION_CONFIGDIR = @"C:\salt\conf\minion.d";
+			if (Directory.Exists(MINION_CONFIGDIR)) {
+				var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+				foreach (var conf_file in conf_files) {
+					if (conf_file.Equals("_schedule.conf")) { continue; }            // skip _schedule.conf
+					read_master_and_id_from_file(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
+				}
+			}
+
 
 			if (Directory.Exists(session["INSTALLFOLDER"])) {
 				// Log how many files there are in INSTALLFOLDER
@@ -223,11 +234,64 @@ namespace MinionConfigurationExtension {
 			session.Log("...MASTER      msi property  =" + session["MASTER"]);
 			session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
 
-			// config types 
-			// https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
+			/* config types 
+			 * https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
+			 * 
+			 * There are 4 scenarios the installer tries to account for:
+1. existing-config (default)
+2. custom-config
+3. default-config
+4. new-config
+		 	 */
+
+
+			if (session["CONFIG_TYPE"] == "Existing") {
+				/* ------------------------------------
+				 *      1 / 4
+				 * ------------------------------------
+				 * 
+				 * 
+This setting makes no changes to the existing config and just upgrades/downgrades salt. 
+Makes for easy upgrades. Just run the installer with a silent option. 
+If there is no existing config, then the default is used and `master` and `minion id` are applied if passed.
+				 */
+
+				// Nothing to do: 
+				//  - the installer will lay down the default.
+				//  - a msi property is applied if passed
+			}
+
+			if (session["CONFIG_TYPE"] == "Custom") {
+				/* ----------------------------------
+				 *      2 / 4
+				 * ----------------------------------
+				 * 
+This setting will lay down a custom config passed via the command line. Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
+1. `minion` config renamed to `minion-<timestamp>.bak`
+2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
+3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
+Then the custom config is laid down by the installer... and `master` and `minion id` should be applied to the custom config if passed.
+				 */
+
+				// Nothing to do: 
+				//  - the installer will lay down the default.
+				//  - a msi property is applied if passed
+
+				// TODO SHOULD happen in WriteConfig
+				Backup_configuration_files_from_previous_installation(session);
+
+				// TODO MUST happen in WriteConfig
+				// lay down a custom config passed via the command line
+				string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session["MINION_CONFIGFILE"]));
+				Write(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
+			}
+
+
 
 			if (session["CONFIG_TYPE"] == "Default") {
 				/* ----------------------------------
+				 *        3 / 4
+				 * ----------------------------------
 				 * Overwrite the existing config if present with the default config for salt. 
 				 * Default is to use the existing config if present. 
 				 * If /master and/or /minion-name is passed, those values will be used to update the new default config. 
@@ -241,6 +305,8 @@ Therefore, all existing config files should be backed up
 3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
 Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
 				 */
+
+				// TODO SHOULD happen in WriteConfig
 				Backup_configuration_files_from_previous_installation(session);
 
 				if (session["MASTER"]    == "#") {
@@ -254,53 +320,11 @@ Then the default config file is laid down by the installer... settings for `mast
       }
 
 
-			if (session["CONFIG_TYPE"] == "Custom" ) {
-				/* ----------------------------------
-				 * 
-This setting will lay down a custom config passed via the command line. Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
-1. `minion` config renamed to `minion-<timestamp>.bak`
-2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
-3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
-Then the custom config is laid down by the installer... and `master` and `minion id` should be applied to the custom config if passed.
-				 *  */
-
-				Backup_configuration_files_from_previous_installation(session);
-
-				// will lay down a custom config passed via the command line
-				string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session["MINION_CONFIGFILE"]));
-				Write_safely_to_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
-			}
-
-
-			if (session["CONFIG_TYPE"] == "Existing") {
-				/* ------------------------------------
-				 * 
-This setting makes no changes to the existing config and just upgrades/downgrades salt. 
-Makes for easy upgrades. Just run the installer with a silent option. 
-If there is no existing config, then the default is used and `master` and `minion id` are applied if passed.
-				 * 
-				 * 
-				 */
-
-			// Nothing to do, at this point
-
-			}
-
 			if (session["CONFIG_TYPE"] == "New") {
-				/* ------------------------------------------------------------------------
+				/* -------------------------------
+				 *       4 / 4
+				 * -------------------------------
 				 */
-				// Read master and id from MINION_CONFIGFILE   in any case
-				read_master_and_id_from_file(session, session["MINION_CONFIGFILE"], ref master_from_previous_installation, ref id_from_previous_installation);
-				// Read master and id from minion.d/*.conf in any case
-				string MINION_CONFIGDIR = session["MINION_CONFIGFILE"] + ".d";
-				if (Directory.Exists(MINION_CONFIGDIR)) {
-					var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
-					foreach (var conf_file in conf_files) {
-						if (conf_file.EndsWith("_schedule.conf")) { continue; } // skip _schedule.conf
-						read_master_and_id_from_file(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
-					}
-				}
-
 				// If the msi property has value #, this is our convention for "unset"
 				// This means the user has not set the value on commandline (GUI comes later)
 				// If the msi property has value different from # "unset", the user has set the master
@@ -333,8 +357,9 @@ If there is no existing config, then the default is used and `master` and `minio
 				}
 			}
 
+
+			// TODO SHOULD happen in WriteConfig
 			// Save the salt-master public key 
-			// This is a little early and should happen in WriteConfig
 			var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
       var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
       bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
@@ -377,7 +402,6 @@ If there is no existing config, then the default is used and `master` and `minio
        *   remove files, except /salt/conf and /salt/var
        *   
        *   all fixed path are OK here.
-       *   The msi is never peeled.
       */
 				session.Log("...Begin delete_NSIS_files");
       session.Log("Environment.Version = " + Environment.Version);
@@ -392,6 +416,7 @@ If there is no existing config, then the default is used and `master` and `minio
       string Salt_uninstall_regpath32 = @"SOFTWARE\WoW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
       var SaltRegSubkey64 = reg.OpenSubKey(Salt_uninstall_regpath64);
       var SaltRegSubkey32 = reg.OpenSubKey(Salt_uninstall_regpath32);
+
       bool NSIS_is_installed64 = (SaltRegSubkey64 != null) && SaltRegSubkey64.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
       bool NSIS_is_installed32 = (SaltRegSubkey32 != null) && SaltRegSubkey32.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
       session.Log("delete_NSIS_files:: NSIS_is_installed64 = " + NSIS_is_installed64);
@@ -418,14 +443,13 @@ If there is no existing config, then the default is used and `master` and `minio
     }
 
 
-    private static void read_master_and_id_from_file(Session session, String configfile, ref String master2, ref String id2) {
-      session.Log("...searching master and id in kept config file " + configfile);
+    private static void read_master_and_id_from_file(Session session, String configfile, ref String ref_master, ref String ref_id) {
+      session.Log("...searching master and id in " + configfile);
       bool configExists = File.Exists(configfile);
       session.Log("......file exists " + configExists);
       if (!configExists) { return; }
       session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
       string[] configLines = File.ReadAllLines(configfile);
-      try {
         Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
         foreach (string line in configLines) {
           if (r.IsMatch(line)) {
@@ -434,20 +458,15 @@ If there is no existing config, then the default is used and `master` and `minio
             string value = m.Groups[2].ToString();
             //session.Log("...ANY KEY " + key + " " + value);
             if (key == "master") {
-              master2 = value;
-              session.Log("......master " + master2);
+              ref_master = value;
+              session.Log("......master " + ref_master);
             }
             if (key == "id") {
-              id2 = value;
-              session.Log("......id " + id2);
+              ref_id = value;
+              session.Log("......id " + ref_id);
             }
           }
         }
-      } catch (Exception ex) {
-        just_ExceptionLog("Looping Regexp", session, ex);
-      }
-      session.Message(InstallMessage.Progress, new Record(2, 1));
-      return;
     }
 
 
@@ -480,7 +499,7 @@ If there is no existing config, then the default is used and `master` and `minio
 				return ActionResult.Failure;
 			}
       if (!found && zmq_filtering == "True") {
-        Write_safely_to_file(session, MINION_CONFIGDIR, "zmq_filtering.conf", "zmq_filtering: True");
+        Writeln(session, MINION_CONFIGDIR, "zmq_filtering.conf", "zmq_filtering: True");
       }
 
 			// ----------------------------------------------------
@@ -488,7 +507,7 @@ If there is no existing config, then the default is used and `master` and `minio
 				return ActionResult.Failure;
 			}
       if (!found) {
-         Write_safely_to_file(session, MINION_CONFIGDIR, "master.conf", "master: " + master);
+         Writeln(session, MINION_CONFIGDIR, "master.conf", "master: " + master);
       }
 
 			// ----------------------------------------------------
@@ -496,7 +515,7 @@ If there is no existing config, then the default is used and `master` and `minio
 				return ActionResult.Failure;
 			}
       if (!found && id != "#") {
-         Write_safely_to_file(session, MINION_CONFIGDIR, "id.conf", "id: " + id);
+         Writeln(session, MINION_CONFIGDIR, "id.conf", "id: " + id);
       }
 
 			// ----------------------------------------------------
@@ -504,7 +523,7 @@ If there is no existing config, then the default is used and `master` and `minio
 				return ActionResult.Failure;
 			}
 			if (!found && minion_id_caching != "1") {
-				Write_safely_to_file(session, MINION_CONFIGDIR, "minion_id_caching.conf", "minion_id_caching: " + minion_id_caching);
+				Writeln(session, MINION_CONFIGDIR, "minion_id_caching.conf", "minion_id_caching: " + minion_id_caching);
 			}
 
 			// ----------------------------------------------------
@@ -512,7 +531,7 @@ If there is no existing config, then the default is used and `master` and `minio
 				return ActionResult.Failure;
 			}
 			if (!found && minion_id_remove_domain != "") {
-				Write_safely_to_file(session, MINION_CONFIGDIR, "minion_id_remove_domain.conf", "minion_id_remove_domain: " + minion_id_remove_domain);
+				Writeln(session, MINION_CONFIGDIR, "minion_id_remove_domain.conf", "minion_id_remove_domain: " + minion_id_remove_domain);
 			}
 
 			return ok;
@@ -543,24 +562,31 @@ If there is no existing config, then the default is used and `master` and `minio
       return result;
     }
 
-    private static void Write_safely_to_file(Session session, string path, string filename, string filecontent) {
+    private static void Writeln(Session session, string path, string filename, string filecontent) {
       System.IO.Directory.CreateDirectory(path);  // Ensures that the path exists
-      File.WriteAllText(path + "\\" + filename, filecontent + Environment.NewLine);       //  throws an Exception if path does not exist
+      File.WriteAllText(path + "\\" + filename, filecontent);       //  throws an Exception if path does not exist
 			session.Log(@"...created " + path + "\\" + filename);
     }
-/*
- * "All config" files means:
- *   conf/minion.d/+.conf
- *   conf/minion
- *
- * TODO This should be the other way around
- *
- * It DOES NOT mean conf/minion_id 
- *
- * TODO This function should input a dictionary of key/value pairs because it reopens all config files over and over.
- *
- */ 
-    private static ActionResult replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement, ref bool replaced) {
+
+		private static void Write(Session session, string path, string filename, string filecontent) {
+			Writeln(session, path, filename, filecontent + Environment.NewLine);
+		}
+
+
+
+		/*
+		 * "All config" files means:
+		 *   conf/minion.d/+.conf
+		 *   conf/minion
+		 *
+		 * TODO This should be the other way around
+		 *
+		 * It DOES NOT mean conf/minion_id 
+		 *
+		 * TODO This function should input a dictionary of key/value pairs because it reopens all config files over and over.
+		 *
+		 */
+		private static ActionResult replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement, ref bool replaced) {
       string MINION_CONFIGFILE = getConfigFileLocation(session);
       string MINION_CONFIGDIR = MINION_CONFIGFILE + ".d";
       if (Directory.Exists(MINION_CONFIGDIR)) {
