@@ -219,9 +219,9 @@ You should see screen output containing:
         2 Warning(s)
         0 Error(s)
 
-To test, you may use  test*.cmd, or add new ones.
+To test, you may use one of `test*.cmd`.
 
-To read the msi logfile, you may use `open_last_log_in_code.cmd`
+To read the most recent msi logfile, you may use `open_last_log_in_code.cmd`
 
 ## How to program the msi builder toolkit
 
