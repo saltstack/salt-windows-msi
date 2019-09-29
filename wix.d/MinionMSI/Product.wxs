@@ -83,7 +83,7 @@
     <Condition Message="Please rename START_MINION_SERVICE to START_MINION"><![CDATA[Installed OR NOT START_MINION_SERVICE]]></Condition>
 
     <!-- Block installation when the user uses wrong property values -->
-    <Condition Message="CONFIG_TYPE must not be '[CONFIG_TYPE]'. Please set to 'Existing', 'Custom', 'Default' or 'New'.">
+    <Condition Message="CONFIG_TYPE must not be '[CONFIG_TYPE]'. Please use 'Existing', 'Custom', 'Default' or 'New'.">
       <![CDATA[
       Installed 
       OR  (CONFIG_TYPE = "Existing")
@@ -92,7 +92,15 @@
       OR  (CONFIG_TYPE = "New")
       ]]>
     </Condition>
-    
+    <Condition Message="ZMQ_FILTERING must not be '[ZMQ_FILTERING]'. Please use 'True' or 'False'.">
+      <![CDATA[
+      Installed
+      OR  (ZMQ_FILTERING = "True")
+      OR  (ZMQ_FILTERING = "False")
+      ]]>
+    </Condition>
+
+
     <!--
       Set default values for Salt msi properties
         Naming conventions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
