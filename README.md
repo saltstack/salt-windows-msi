@@ -219,11 +219,9 @@ You should see screen output containing:
         2 Warning(s)
         0 Error(s)
 
+To test, you may use  test*.cmd, or add new ones.
 
-To test, you can use  test*.cmd, or add new ones.
-
-To read the logfile, you can use open_last_log_in_code.cmd
-
+To read the msi logfile, you may use `open_last_log_in_code.cmd`
 
 ## How to program the msi builder toolkit
 
@@ -234,6 +232,9 @@ The C# code is needed to manipulate the configuration files.
 To achieve an atomic installation (either installed or the prior state is restored), all changes (filesystem and registry) must be manipulated by WiX code.
 
 ### Directory structure
+
+
+
 
 - msbuild.proj: main MSbuild file.
 - msbuild.d/: contains MSbuild resource files:
