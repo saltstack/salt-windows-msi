@@ -11,26 +11,24 @@ The focus is on 64bit, unattended install, Python 2.
 An msi installer allows unattended/silent installations, meaning without opening any window, while still providing
 customized values for e.g. master hostname, minion id, installation path, using the following generic command:
 
-> msiexec /i *.msi /qb! PROPERTY1=VALUE1 PROPERTY2=VALUE2
+> msiexec /i *.msi PROPERTY1=VALUE1 PROPERTY2=VALUE2 PROPERTY3="VALUE3a and 3b"
 
-Values may be quoted (example: `PROPERTY3="VALUE3"`)
+Values may be quoted
 
-Example Set a Master to salt2, the old master key, if present, wil be reused:
+Example: Set the master:
 
-> msiexec /i YOUR.msi MASTER=salt2
+> msiexec /i *.msi MASTER=salt2
 
-Example Set a Master to salt2 with a new key:
+Example: set the master and its key:
 
-> msiexec /i YOUR.msi MASTER=salt2 MASTER_KEY=MIIBIjA...2QIDAQAB
+> msiexec /i *.msi MASTER=salt2 MASTER_KEY=MIIBIjA...2QIDAQAB
 
-Example Uninstall and remove configuration
+Example: uninstall and remove configuration
 
-> MsiExec.exe /X{3478B5D9-B494-438F-97A4-160ECE1CF345} KEEP_CONFIG=0
+> MsiExec.exe /X *.msi KEEP_CONFIG=0
 
 ## Features
 
-- Options that must be set before the first contact to the salt-master, e.g. zmq_filtering or minion_id.
-- By default, uninstall leaves configuration files on the client, it optionally removes configuration files with `msiexec /x KEEP_CONFIG=0`
 - Creates a very verbose log file, by default named %TEMP%\MSIxxxxx.LOG, where xxxxx are 5 random lowercase letters and numbers. The name of the log can be specified with `msiexec /log example.log`
 - Upgrades NSIS installations
 - Change installation directory __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
@@ -39,18 +37,18 @@ Minion-specific msi-properties:
 
   Property              |  Default                | Comment
  ---------------------- | ----------------------- | ------
- `MASTER`               | `salt`                  | The master (name or IP). Only a single master. May also be read from kept config.
+ `MASTER`               | `salt`                  | The master (name or IP). Only a single master. 
  `MASTER_KEY`           |                         | The master public key. See below.
- `ZMQ_filtering`        | `False`                 | Set to `True` if the master requires zmq_filtering.
- `MINION_ID`            | Hostname                | May also be read from kept config.
- `MINION_ID_CACHING`    | `1`                     | `0` prevents that the minion id is written to any configuration file.
- `MINION_ID_FUNCTION`   |                         | Set minion ID by module. See below
- `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | A string value specifying the name of a custom config file in the same path as the installer or the full path to a custom config file
- `MINION_CONFIG`        |                         | Written to the `minion` config file, lines are separated by comma.
+ `ZMQ_filtering`        | `False`                 | `True` if the master requires zmq_filtering.
+ `MINION_ID`            | Hostname                | The minion id.
+ `MINION_ID_CACHING`    | `1`                     | `0` if the minion id shall be determined at each salt-minion service start.
+ `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
+ `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | Name of a custom config file in the same path as the installer or the full path.
+ `MINION_CONFIG`        |                         | Written to the `minion` config file, lines are separated by comma. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service. (`START_MINION=""`)
  `KEEP_CONFIG`          | `1`                     | Set to `0` to remove configuration on uninstall.
- `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default` or `New`. See below.
+ `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
 These files and directories are regarded as config and kept:
 
@@ -71,6 +69,14 @@ You can set a new master public key with `MASTER_KEY`, but you must convert it i
 - Remove linebreaks.
 - From the default public key file (458 bytes), the one-line key has 394 characters.
 
+### `MINION_CONFIG`
+
+If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with the content
+
+Example `MINION_CONFIG="a: A,b: B` results in:
+
+	a: A
+  b: B
 
 ### `MINION_ID_FUNCTION`
 
@@ -156,7 +162,6 @@ commands, all from within the IDE. Note that this requires:
  extention 
 
 
-
 ## Build client requirements
 
 The build client is where the msi installer is built.
@@ -173,7 +178,7 @@ The build client is where the msi installer is built.
 
 <sup>*</sup> `build_env.cmd` will open `optionalfeatures` if necessary.
 
-<sup>**</sup> downloaded and installed by `build_env.cmd` if necessary.
+<sup>**</sup> `build_env.cmd` will download and install if necessary.
 
 Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items?itemName=WixToolset.WiXToolset)
 
@@ -181,7 +186,7 @@ Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items
 
 [Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
 
-Prepare
+Execute
 
     cd c:\git\salt\pkg\windows
     git checkout v2018.3.4
@@ -193,7 +198,7 @@ until `git status` returns
     HEAD detached at v2018.3.4
     nothing to commit, working tree clean
 
-then execute both commands (always)
+then execute 
 
     clean_env.bat
     build.bat
