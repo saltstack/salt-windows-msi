@@ -93,7 +93,6 @@ commands, all from within the IDE. Note that this requires:
  extention 
 
 
-
 ## Build client requirements
 
 The build client is where the msi installer is built.
@@ -149,11 +148,18 @@ You should see screen output containing:
         2 Warning(s)
         0 Error(s)
 
+To test, you may use  test*.cmd, or add new ones.
+
+To read the msi logfile, you may use `open_last_log_in_code.cmd`
+
 ## How to program the msi builder toolkit
 
 The remainder is documentation how to program the msi build toolkit.
 
 ### Directory structure
+
+
+
 
 - msbuild.proj: main MSbuild file.
 - msbuild.d/: contains MSbuild resource files:
