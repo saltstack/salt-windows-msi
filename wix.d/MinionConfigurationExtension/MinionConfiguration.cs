@@ -519,8 +519,12 @@ Then the custom config is laid down by the installer... and `master` and `minion
 
 			session.Log("...replace_Saltkey_in_previous_configuration_DECAC Key   " + SaltKey);
 			CustomActionData_value = lookup_DECAC(session, SaltKey);
+			if (SaltKey == "zmq_filtering" && CustomActionData_value == "1") {
+				CustomActionData_value = "True";
+				session.Log("...changing zmq_filtering from 1 to " + CustomActionData_value);
+			}
 
-			session.Message(InstallMessage.Progress, new Record(2, 1));
+				session.Message(InstallMessage.Progress, new Record(2, 1));
 
       // pattern description
       // ^        start of line

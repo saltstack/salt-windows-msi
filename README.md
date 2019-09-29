@@ -13,7 +13,7 @@ customized values for e.g. master hostname, minion id, installation path, using 
 
 > msiexec /i *.msi PROPERTY1=VALUE1 PROPERTY2=VALUE2 PROPERTY3="VALUE3a and 3b"
 
-Values may be quoted
+Values must be quoted when they contains whitespace, or to unset a property, as in `PROPERTY=""`
 
 Example: Set the master:
 
@@ -39,9 +39,9 @@ Minion-specific msi-properties:
  ---------------------- | ----------------------- | ------
  `MASTER`               | `salt`                  | The master (name or IP). Only a single master. 
  `MASTER_KEY`           |                         | The master public key. See below.
- `ZMQ_filtering`        | `False`                 | `True` if the master requires zmq_filtering.
+ `ZMQ_filtering`        |                         | Set to `1` if the master requires zmq_filtering.
  `MINION_ID`            | Hostname                | The minion id.
- `MINION_ID_CACHING`    | `1`                     | `0` if the minion id shall be determined at each salt-minion service start.
+ `MINION_ID_CACHING`    | `1`                     | Set to `0` if the minion id shall be determined at each salt-minion service start.
  `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
  `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | Name of a custom config file in the same path as the installer or the full path.
  `MINION_CONFIG`        |                         | Written to the `minion` config file, lines are separated by comma. See below.
