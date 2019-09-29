@@ -214,6 +214,12 @@ You should see screen output containing:
         2 Warning(s)
         0 Error(s)
 
+
+To test, you can use  test*.cmd, or add new ones.
+
+To read the logfile, you can use open_last_log_in_code.cmd
+
+
 ## How to program the msi builder toolkit
 
 The remainder is documentation how to program the msi build toolkit.
