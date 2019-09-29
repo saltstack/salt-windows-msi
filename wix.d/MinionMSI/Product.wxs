@@ -99,11 +99,19 @@
         Public properties may be changed by the user and must be upper-case.
 
         The value "#" is our convention for "unset". 
-        You MUST add the property at the CADH helper or the DECAC function will crash. 
-        A DECAC that looks up a not-listed-in CADH key crashes. 
-          eg. master=[MASTER];
-          session.CustomActionData["master"] 
-          session.CustomActionData["crash"]
+        Alternatively, the msi property that is never set is unset, these are them:
+           MINION_ID_FUNCTION
+           MINION_ID_REMOVE_DOMAIN
+           MINION_CONFIG
+        
+        You *must* mention each msi property at the CADH helper or the DECAC function will crash:
+        A DECAC that looks up a not-listed-in CADH key crashes:
+          Example
+            In the CADH:
+              master=[MASTER];minion_id_function=[MINION_ID_FUNCTION]
+            In the DECAC:
+              session.CustomActionData["master"]      THIS IS OK
+              session.CustomActionData["mister"]      THIS WILL CRASH
 
         On START_MINION and checkbox:
         A checkbox is only empty if a property is undefined (missing).
@@ -121,7 +129,6 @@
     <Property Id="MASTER_KEY"               Value="#"                    />
     <Property Id="MINION_ID"                Value="#"                    />
     <Property Id="MINION_ID_CACHING"        Value="1"                    />
-    <Property Id="MINION_ID_REMOVE_DOMAIN"  Value="#"                    />
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
     <Property Id="START_MINION"             Value="1"                    />
@@ -229,9 +236,9 @@
 
       <Custom Action='WriteConfig_CADH'     
               Before='WriteConfig_DECAC'                                                >NOT Installed</Custom>
-      <Custom Action='WriteConfig_DECAC'           Before='StartServices'               >NOT Installed</Custom>
+      <Custom Action='WriteConfig_DECAC'           After='InstallFiles'                 >NOT Installed</Custom>
 
-      <!-- Start the service  -->
+      <!-- Optionally start the service  -->
       <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
 
     </InstallExecuteSequence>

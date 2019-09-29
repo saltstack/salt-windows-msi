@@ -220,17 +220,12 @@ This setting will lay down a custom config passed via the command line. Since we
 Then the custom config is laid down by the installer... and `master` and `minion id` should be applied to the custom config if passed.
 				 */
 
-				// Nothing to do: 
+				// Nothing to now: 
 				//  - the installer will lay down the default.
 				//  - a msi property is applied if passed
 
-				// TODO SHOULD happen in WriteConfig
-				Backup_configuration_files_from_previous_installation(session);
-
-				// TODO MUST happen in WriteConfig
-				// lay down a custom config passed via the command line
-				string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session["MINION_CONFIGFILE"]));
-				Writeln_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
+			// Work in done in WriteConfig_DECAC()
+			// The custom config file must overwrite whatever the installer saves, so we cannot write now.
 			}
 
 
@@ -253,7 +248,7 @@ Therefore, all existing config files should be backed up
 Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
 				 */
 
-				// TODO SHOULD happen in WriteConfig
+				// More logical in WriteConfig, but here is easier and no harm
 				Backup_configuration_files_from_previous_installation(session);
 
 				if (session["MASTER"]    == "#") {
@@ -305,7 +300,7 @@ Then the default config file is laid down by the installer... settings for `mast
 			}
 
 
-			// TODO SHOULD happen in WriteConfig
+			// More logical in WriteConfig, but here is easier and no harm because there is no public master key in the installer.
 			// Save the salt-master public key 
 			var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
       var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
@@ -425,46 +420,105 @@ Then the default config file is laid down by the installer... settings for `mast
 		 */
 		// Must have this signature or cannot uninstall not even write to the log
 		[CustomAction]
-		public static ActionResult WriteConfig_DECAC(Session session) /***/ {
+		public static ActionResult WriteConfig_DECAC(Session session) {
 			string zmq_filtering = "";
 			string master = "";
 			string id = "";
 			string minion_id_caching = "";
 			string minion_id_remove_domain = "";
-			bool found = false;
 
 			session.Log(@"...WriteConfig_DECAC START");
-			
-			replace_in_existing_cfiles_DECAC(session, "zmq_filtering", ref zmq_filtering, ref found);
-			if (!found && zmq_filtering == "True") {
-				append_to_config_DECAC(session, "zmq_filtering", zmq_filtering);
+
+			if (!replace_Saltkey_in_previous_configuration_DECAC(session, "zmq_filtering", ref zmq_filtering)) {
+				if (zmq_filtering == "True") {
+					append_to_config_DECAC(session, "zmq_filtering", zmq_filtering);
+				}
 			}
-			replace_in_existing_cfiles_DECAC(session, "master", ref master, ref found);
-			if (!found) {
-				append_to_config_DECAC(session, "master", master);
+			if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
+					append_to_config_DECAC(session, "master", master);
 			}
-			replace_in_existing_cfiles_DECAC(session, "id", ref id, ref found);
-			if (!found) {
-				append_to_config_DECAC(session, "id", id);			
+			if (!replace_Saltkey_in_previous_configuration_DECAC(session, "id", ref id)) {
+					append_to_config_DECAC(session, "id", id);
 			}
-			replace_in_existing_cfiles_DECAC(session, "minion_id_caching", ref minion_id_caching, ref found);
-			if (!found && minion_id_caching != "1") {
-				append_to_config_DECAC(session, "minion_id_caching", minion_id_caching);
+			if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_caching", ref minion_id_caching)) {
+				if (minion_id_caching != "1") {
+					append_to_config_DECAC(session, "minion_id_caching", minion_id_caching);
+				}
 			}
-			replace_in_existing_cfiles_DECAC(session, "minion_id_remove_domain", ref minion_id_remove_domain, ref found);
-			if (!found && minion_id_remove_domain != "") {
-				append_to_config_DECAC(session, "minion_id_remove_domain", minion_id_remove_domain);
+			if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_remove_domain", ref minion_id_remove_domain)) {
+				if (minion_id_remove_domain != "") {
+					append_to_config_DECAC(session, "minion_id_remove_domain", minion_id_remove_domain);
+				}
 			}
+
+			save_id_function_DECAC(session);
+
+			save_custom_config_file_if_config_type_demands_DECAC(session);
+
+			save_config_DECAC(session);
 
 			session.Log(@"...WriteConfig_DECAC STOP");
 			return ActionResult.Success;
 		}
 
+		private static void save_id_function_DECAC (Session session) {
+			session.Log(@"...save_id_function_DECAC");
+			string minion_id_function = lookup_DECAC(session, "minion_id_function");
+			if (minion_id_function.Length > 0) {
+				string filepath = @"c:\salt\var\cache\salt\minion\extmods\modules";
+				string filename = @"id_function.py";
+				string filecontent = @"import socket
+def id_function():
+    return " + minion_id_function;
+				Writeln_file(session, filepath, filename, filecontent);
+			}
 
-		private static void replace_in_existing_cfiles_DECAC(Session session, string SaltKey, ref string CustomActionData_value, ref bool replaced) {
-      session.Log("...replace_in_existing_cfiles_DECAC SaltKey " + SaltKey);
-			CustomActionData_value = session.CustomActionData[SaltKey];
-			session.Log("...replace_in_existing_cfiles_DECAC CustomActionData_value " + CustomActionData_value);
+		}
+		private static void save_custom_config_file_if_config_type_demands_DECAC(Session session) {
+			if (session.CustomActionData["config_type"] == "Custom") {
+				/* ----------------------------------
+				 *      2 / 4
+				 * ----------------------------------
+				 * 
+This setting will lay down a custom config passed via the command line. Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
+1. `minion` config renamed to `minion-<timestamp>.bak`
+2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
+3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
+Then the custom config is laid down by the installer... and `master` and `minion id` should be applied to the custom config if passed.
+				 */
+
+
+				Backup_configuration_files_from_previous_installation(session);
+
+				// lay down a custom config passed via the command line
+				string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session.CustomActionData["minion_configfile"]));
+				Write_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
+			}
+		}
+
+
+		private static void save_config_DECAC(Session session) {
+			session.Log(@"...save_config_DECAC");
+			string kwargs_in_commata = lookup_DECAC(session, "minion_config");
+			if (kwargs_in_commata.Length > 0) {
+				string lines = kwargs_in_commata.Replace(",", Environment.NewLine);
+				Writeln_file(session, @"C:\salt\conf", "minion", lines);
+			}
+		}
+
+		private static string lookup_DECAC(Session session, string key) {
+			session.Log("...CustomActionData key {0}", key);
+			string val = session.CustomActionData[key];
+			session.Log("...CustomActionData val {0}", val);
+			session.Log("...CustomActionData len {0}", val.Length);
+			return val;
+		}
+
+		private static bool replace_Saltkey_in_previous_configuration_DECAC(Session session, string SaltKey, ref string CustomActionData_value) {
+			bool replaced = false;
+
+			session.Log("...replace_Saltkey_in_previous_configuration_DECAC Key   " + SaltKey);
+			CustomActionData_value = lookup_DECAC(session, SaltKey);
 
 			session.Message(InstallMessage.Progress, new Record(2, 1));
 
@@ -474,20 +528,51 @@ Then the default config file is laid down by the installer... settings for `mast
       string pattern = "^" + SaltKey + ":";
       string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
 
-      // Replace in all files
-      replace_pattern_in_all_config_files_DECAC(session, pattern, replacement, ref replaced);
+			// Replace in all files
+			replaced = replace_pattern_in_all_config_files_DECAC(session, pattern, replacement);
 
       session.Message(InstallMessage.Progress, new Record(2, 1));
-      session.Log(@"...replace_in_existing_cfiles_DECAC Value " + CustomActionData_value.ToString());
-      session.Log(@"...replace_in_existing_cfiles_DECAC found_before_replacement " + replaced.ToString());
+      session.Log(@"...replace_Saltkey_in_previous_configuration_DECAC found or replaces " + replaced.ToString());
+			return replaced;
     }
+
+
+		/*
+		 * "All config" files means:
+		 *   conf/minion
+		 *   conf/minion.d/*.conf           (only for New)
+		 *
+		 * MAYBE this function could input a dictionary of key/value pairs, because it reopens all config files over and over.
+		 *
+		 */
+		private static bool replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement) {
+			bool replaced_in_any_file = false;
+			string MINION_CONFIGFILE = getConfigFileLocation_DECAC(session);
+			string MINION_CONFIGDIR = getConfigdDirectoryLocation_DECAC(session);
+
+			replaced_in_any_file |= replace_in_file_DECAC(session, MINION_CONFIGFILE, pattern, replacement);
+
+			// Shane wants that the installer changes only the MINION_CONFIGFILE, not the minion.d/*.conf files
+			if (session.CustomActionData["config_type"] == "New") {
+				// Go into the minion.d/ folder
+				if (Directory.Exists(MINION_CONFIGDIR)) {
+					var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+					foreach (var conf_file in conf_files) {
+						// skip _schedule.conf
+						if (conf_file.EndsWith("_schedule.conf")) { continue; }
+						replaced_in_any_file |= replace_in_file_DECAC(session, conf_file, pattern, replacement);
+					}
+				}
+			}
+			return replaced_in_any_file;
+		}
 
 
 		static private void append_to_config_DECAC(Session session, string key, string value) {
 			string MINION_CONFIGDIR = getConfigdDirectoryLocation_DECAC(session);
 			if (session.CustomActionData["config_type"] == "New") {
 				//CONFIG_TYPE New creates a minion.d/*.conf file
-				Write_file(session, MINION_CONFIGDIR, key+".conf", key+": " + value);
+				Writeln_file(session, MINION_CONFIGDIR, key+".conf", key+": " + value);
 			} else {	
 				// Shane: CONFIG_TYPES 1-3 change only the MINION_CONFIGFILE, not the minion.d/*.conf files, because the admin knows what he is doing.
 				insert_value_after_comment_or_end_in_minionconfig_file(session, key, value);
@@ -530,62 +615,32 @@ Then the default config file is laid down by the installer... settings for `mast
 		}
 
 
-
-		/*
-		 * "All config" files means:
-		 *   conf/minion
-		 *   conf/minion.d/*.conf           (only for New)
-		 *
-		 * MAYBE this function could input a dictionary of key/value pairs, because it reopens all config files over and over.
-		 *
-		 */
-		private static void replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement, ref bool replaced) {
-			session.Log("...replace_pattern_in_all_config_files_DECAC pattern    {0}", pattern);
-			session.Log("...replace_pattern_in_all_config_files_DECAC replacement    {0}", replacement);
-
-			string MINION_CONFIGFILE = getConfigFileLocation_DECAC(session);
-			string MINION_CONFIGDIR = getConfigdDirectoryLocation_DECAC(session);
-
-			replace_pattern_in_one_config_file_DECAC(session, MINION_CONFIGFILE, pattern, replacement, ref replaced);
-
-			// Shane wants that the installer changes only the MINION_CONFIGFILE, not the minion.d/*.conf files
-			if (session.CustomActionData["config_type"] == "New") {
-				// Go into the minion.d/ folder
-				if (Directory.Exists(MINION_CONFIGDIR)) {
-					var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
-					foreach (var conf_file in conf_files) {
-						// skip _schedule.conf
-						if (conf_file.EndsWith("_schedule.conf")) { continue; }
-						replace_pattern_in_one_config_file_DECAC(session, conf_file, pattern, replacement, ref replaced);
-					}
-				}
-			}
-    }
-
-    private static void replace_pattern_in_one_config_file_DECAC(Session session, string config_file, string pattern, string replacement, ref bool replaced) {
+    private static bool replace_in_file_DECAC(Session session, string config_file, string pattern, string replacement) {
 			/*
        */
-			session.Log("...replace_pattern_in_one_config_file_DECAC  config file    {0}", config_file);
-			session.Log("...replace_pattern_in_one_config_file_DECAC  pattern        {0}", pattern);
-			session.Log("...replace_pattern_in_one_config_file_DECAC  replacement    {0}", replacement);
+			bool replaced = false;
+			bool found = false;
+			session.Log("...replace_in_file_DECAC   config file    {0}", config_file);
 			string[] configLines = File.ReadAllLines(config_file);
-			session.Log("...replace_pattern_in_one_config_file_DECAC  configLines.Length  {0}", configLines.Length);
+			session.Log("...replace_in_file_DECAC   lines          {0}", configLines.Length);
 
 			for (int i = 0; i < configLines.Length; i++) {
-				if (configLines[i].StartsWith(replacement)) {
-					replaced = true;
-					session.Log("...replace_pattern_in_one_config_file_DECAC  found the replacement in line        {0}", configLines[i]);
+				if (configLines[i].Equals(replacement)) {
+					found = true;
+					session.Log("...found the replacement in line        {0}", configLines[i]);
 				}
 				if (Regex.IsMatch(configLines[i], pattern)) {
-					session.Log("...replace_pattern_in_one_config_file_DECAC  matched  line  {0}", configLines[i]);
-					configLines[i] = replacement + "\n";
+					session.Log("...matched  line  {0}", configLines[i]);
+					configLines[i] = replacement;
 					replaced = true;
 				}
 			}
-			session.Log("...replace_pattern_in_one_config_file_DECAC  replaced    {0}", replaced);
+			session.Log("...replace_in_file_DECAC   found          {0}", found);
+			session.Log("...replace_in_file_DECAC   replaced       {0}", replaced);
 			if (replaced) {
 				File.WriteAllLines(config_file, configLines);
 			}
+			return replaced || found;
     }
 
 		private static void shellout(Session session, string s) {
@@ -632,18 +687,40 @@ Then the default config file is laid down by the installer... settings for `mast
 
 		
 		private static void Backup_configuration_files_from_previous_installation(Session session) {
+			session.Log("...Backup_configuration_files_from_previous_installation");
 			string timestamp_bak = "-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".bak";
-			Move_file(@"C:\salt\conf\minion", timestamp_bak);
-			Move_file(@"C:\salt\conf\minion_id", timestamp_bak);
-			Move_dir(@"C:\salt\conf\minion.d", timestamp_bak);
+			session.Log("...timestamp_bak = " + timestamp_bak);
+			Move_file(session, @"C:\salt\conf\minion", timestamp_bak);
+			Move_file(session, @"C:\salt\conf\minion_id", timestamp_bak);
+			Move_dir(session, @"C:\salt\conf\minion.d", timestamp_bak);
 		}
 
-		private static void Move_file(string ffn, string timestamp_bak) {
-			if (File.Exists(ffn)) { File.Move(ffn, ffn + timestamp_bak); }
+		private static void Move_file(Session session, string ffn, string timestamp_bak) {
+			string target = ffn + timestamp_bak;
+			session.Log("...Move_file?   " + ffn);
+
+			if (File.Exists(ffn)) {
+				session.Log("...Move_file!   " + ffn);
+				if (File.Exists(target)) {
+					session.Log("...target exists   " + target);
+				} else {
+					File.Move(ffn, target);
+				}
+			}
 		}
 
-		private static void Move_dir(string ffn, string timestamp_bak) {
-			if (Directory.Exists(ffn)) { Directory.Move(ffn, ffn + timestamp_bak); }
+		private static void Move_dir(Session session, string ffn, string timestamp_bak) {
+			string target = ffn + timestamp_bak;
+			session.Log("...Move_dir?   " + ffn);
+
+			if (Directory.Exists(ffn)) {
+				session.Log("...Move_dir!   " + ffn);
+				if (Directory.Exists(target)) {
+					session.Log("...target exists   " + target);
+				} else {
+					Directory.Move(ffn, ffn + timestamp_bak);
+				}
+			}
 		}
 	}
 }
