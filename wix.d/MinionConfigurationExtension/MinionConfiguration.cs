@@ -145,7 +145,7 @@ namespace MinionConfigurationExtension {
         private static void determine_master_and_id_IMCAC(Session session) {
             String master_from_previous_installation = "";
             String id_from_previous_installation = "";
-            // Read master and id from MINION_CONFIGFILE   
+            // Read master and id from MINION_CONFIGFILE
             read_master_and_id_from_file(session, session["MINION_CONFIGFILE"], ref master_from_previous_installation, ref id_from_previous_installation);
             // Read master and id from minion.d/*.conf 
             string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_IMCAC(session);
@@ -170,32 +170,9 @@ namespace MinionConfigurationExtension {
             session.Log("...MASTER      msi property  =" + session["MASTER"]);
             session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
 
-            // config types 1-4
-            if (session["CONFIG_TYPE"] == "Existing") {                  //    1 / 4
-                /* Nothing to do:
-                 *  -the installer will lay down the default.
-                 *  - a msi property is applied if passed
-                 */
-            }
-
-            if (session["CONFIG_TYPE"] == "Custom") {                    //    2 / 4
-                /* Nothing to do:
-                 *  -the installer will lay down the default.
-                 *  - a msi property is applied if passed
-                 * Work is done in WriteConfig_DECAC()
-                 * The custom config file must overwrite whatever the installer saves, so we cannot write now.
-                 */
-            }
-
-            if (session["CONFIG_TYPE"] == "Default") {                  //    3 / 4
+            if (session["CONFIG_TYPE"] == "Default") {
                 /* Overwrite the existing config if present with the default config for salt. 
-                 * Default is to use the existing config if present. 
-                 * If /master and/or /minion-name is passed, those values will be used to update the new default config. 
-                 * 
-                 *  Would be more logical in WriteConfig, but here is easier and no harm
                  */
-
-                Backup_configuration_files_from_previous_installation(session);
 
                 if (session["MASTER"] == "#") {
                     session["MASTER"] = "salt";
@@ -205,10 +182,11 @@ namespace MinionConfigurationExtension {
                     session["MINION_ID"] = Environment.MachineName;
                     session.Log("...MINION_ID set to hostname because it was unset and CONFIG_TYPE=Default");
                 }
-            }
 
+                // Would be more logical in WriteConfig, but here is easier and no harm
+                Backup_configuration_files_from_previous_installation(session);
 
-            if (session["CONFIG_TYPE"] == "New") {                 //    4 / 4
+            } else {
                 /* If the msi property has value #, this is our convention for "unset"
                  * This means the user has not set the value on commandline (GUI comes later)
                  * If the msi property has value different from # "unset", the user has set the master
@@ -229,15 +207,14 @@ namespace MinionConfigurationExtension {
                 }
 
                 ///////////////// minion id
-                // only if MINION_ID_CACHING
-                if (session["MINION_ID_CACHING"] == "1" && session["MINION_ID"] == "#") {
+                if (session["MINION_ID"] == "#") {
                     session.Log("...MINION_ID   kept config   =" + id_from_previous_installation);
                     if (id_from_previous_installation != "") {
                         session.Log("...MINION_ID set to kept config ");
                         session["MINION_ID"] = id_from_previous_installation;
                     } else {
                         session["MINION_ID"] = Environment.MachineName;
-                        session.Log("...MINION_ID set to hostname because it was unset and no previous installation and CONFIG_TYPE=New and MINION_ID_CACHING");
+                        session.Log("...MINION_ID set to hostname because it was unset and no previous installation and CONFIG_TYPE!=Default");
                     }
                 }
             }
