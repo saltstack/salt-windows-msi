@@ -446,12 +446,12 @@ def id_function():
                 if (!found && configLines_in[i].StartsWith("#" + key + ":")) {
                     found = true;
                     session.Log("...insert_value_after_comment_or_end..found the # in       {0}", configLines_in[i]);
-                    configLines_out[configLines_out_index++] = value;
+                    configLines_out[configLines_out_index++] = key + ": " + value;
                 }
             }
             if (!found) {
                 session.Log("...insert_value_after_comment_or_end..end");
-                configLines_out[configLines_out_index++] = value;
+                configLines_out[configLines_out_index++] = key + ": " + value;
             }
             File.WriteAllLines(MINION_CONFIGFILE, configLines_out);
         }
