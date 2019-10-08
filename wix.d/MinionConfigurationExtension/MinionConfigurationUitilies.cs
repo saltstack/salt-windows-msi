@@ -49,7 +49,6 @@ namespace MinionConfigurationExtension {
         }
 
 
-
         public static void movedir_fromAbs_toRel(Session session, string abs_from0, string rel_tmp_dir, bool into_safety, string safedir) {
             string abs_from;
             string abs_to;
@@ -84,7 +83,6 @@ namespace MinionConfigurationExtension {
         }
 
 
-
         public static string get_property_DECAC(Session session, string key) {
             session.Log("...CustomActionData key {0}", key);
             string val = session.CustomActionData[key];
@@ -92,7 +90,6 @@ namespace MinionConfigurationExtension {
             session.Log("...CustomActionData len {0}", val.Length);
             return val;
         }
-
 
 
         public static string getConfigFileLocation_DECAC(Session session) {
@@ -113,14 +110,13 @@ namespace MinionConfigurationExtension {
             return session["INSTALLFOLDER"] + "conf\\minion.d";
         }
 
+
         public static void just_ExceptionLog(string description, Session session, Exception ex) {
             session.Log(" ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ");
             session.Log(description);
             session.Log("Exception: {0}", ex.Message.ToString());
             session.Log(ex.StackTrace.ToString());
         }
-
-
 
 
         public static void shellout(Session session, string s) {
@@ -139,7 +135,6 @@ namespace MinionConfigurationExtension {
                 just_ExceptionLog("shellout tried " + s, session, ex);
             }
         }
-
 
     }
 }

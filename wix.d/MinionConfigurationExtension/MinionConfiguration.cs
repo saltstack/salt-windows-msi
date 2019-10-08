@@ -389,7 +389,6 @@ def id_function():
         }
 
 
-
         private static bool replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement) {
             /*
              * "All config" files means:
