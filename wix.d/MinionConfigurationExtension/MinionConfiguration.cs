@@ -15,101 +15,44 @@ namespace MinionConfigurationExtension {
     public class MinionConfiguration : WixExtension {
 
 
-         //Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
-        [CustomAction]
-        public static ActionResult Uninstall_incl_Config_DECAC(Session session) {
-            // Do NOT keep config
-            // In fact keep nothing
-            session.Log("...Begin Uninstall_incl_Config_DECAC");
-            PurgeDir(session, "");  // this means to Purge c:\salt\
-            session.Log("...End Uninstall_incl_Config_DECAC");
-            return ActionResult.Success;
-        }
-
-
-        [CustomAction]
-        public static ActionResult Uninstall_excl_Config_DECAC(Session session) {
-            // DO keep config
-            //Selectively delete the var folder.         
-            // We move the 2 directories out of var, delete var, and move back
-            session.Log("...Begin Uninstall_excl_Config_DECAC");
-            PurgeDir(session, @"bin");
-            // move parts from var into safety
-            string safedir = @"c:\salt\_tmp_swap_space\";
-            if (Directory.Exists(safedir)) { Directory.Delete(safedir); }
-            Directory.CreateDirectory(safedir);
-            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", true, safedir);
-            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", true, safedir);
-            // purge var
-            PurgeDir(session, @"var");
-            // move back
-            Directory.CreateDirectory(@"c:\salt\var\cache\salt\minion"); // Directory.Move cannot create dirs
-            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", false, safedir);
-            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", false, safedir);
-            Directory.Delete(safedir);
-
-            // log
-            session.Log("...End Uninstall_excl_Config_DECAC");
-            return ActionResult.Success;
-        }
-
-
-        private static void PurgeDir(Session session, string dir_below_salt_root) {
-            String abs_dir = @"c:\salt\" + dir_below_salt_root; //TODO use root_dir
-            String root_dir = "";
-            root_dir = session.CustomActionData["root_dir"];
-
-            if (Directory.Exists(abs_dir)) {
-                session.Log("PurgeDir:: about to Directory.delete " + abs_dir);
-                Directory.Delete(abs_dir, true);
-                session.Log("PurgeDir:: ...OK");
-            } else {
-                session.Log("PurgeDir:: no Directory " + abs_dir);
-            }
-
-            // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied . Read only!
-            MinionConfigurationUtilities.shellout(session, @"rmdir /s /q " + abs_dir);
-        }
-
-
         [CustomAction]
         public static ActionResult ReadConfig_IMCAC(Session session) {
-        /*
-         * When installatioin starts,there might be a previous installation.
-         * From the previous installation, we read only two properties, that we present in the installer:
-          *  - master
-          *  - id
-          *  
-          *  This function reads these two properties from 
-          *   - the 2 msi properties:
-          *     - MASTER
-          *     - MINION_ID		    
-          *   - files from a provious installations: 
-          *     - the number of file the function searches depend on CONFIGURATION_TYPE
-          *   - dependend on CONFIGURATION_TYPE, default values can be:
-          *     - master = "salt"
-          *     - id = %hostname%
-          *  
-          *  
-          *  This function writes its results in the 2 msi properties:
-          *   - MASTER
-          *   - MINION_ID
-          *   
-          *   A GUI installation will show these msi properties because this function is called before the GUI.
-          *   
-          */
+            /*
+             * When installatioin starts,there might be a previous installation.
+             * From the previous installation, we read only two properties, that we present in the installer:
+              *  - master
+              *  - id
+              *  
+              *  This function reads these two properties from 
+              *   - the 2 msi properties:
+              *     - MASTER
+              *     - MINION_ID		    
+              *   - files from a provious installations: 
+              *     - the number of file the function searches depend on CONFIGURATION_TYPE
+              *   - dependend on CONFIGURATION_TYPE, default values can be:
+              *     - master = "salt"
+              *     - id = %hostname%
+              *  
+              *  
+              *  This function writes its results in the 2 msi properties:
+              *   - MASTER
+              *   - MINION_ID
+              *   
+              *   A GUI installation will show these msi properties because this function is called before the GUI.
+              *   
+              */
             session.Log("...Begin ReadConfig_IMCAC");
             String master_from_previous_installation = "";
             String id_from_previous_installation = "";
             // Read master and id from MINION_CONFIGFILE
-            read_master_and_id_from_file(session, session["MINION_CONFIGFILE"], ref master_from_previous_installation, ref id_from_previous_installation);
+            read_master_and_id_from_file_IMCAC(session, session["MINION_CONFIGFILE"], ref master_from_previous_installation, ref id_from_previous_installation);
             // Read master and id from minion.d/*.conf 
             string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_IMCAC(session);
             if (Directory.Exists(MINION_CONFIGDIR)) {
                 var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
                 foreach (var conf_file in conf_files) {
                     if (conf_file.Equals("_schedule.conf")) { continue; }            // skip _schedule.conf
-                    read_master_and_id_from_file(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
+                    read_master_and_id_from_file_IMCAC(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
                 }
             }
 
@@ -204,6 +147,89 @@ namespace MinionConfigurationExtension {
         }
 
 
+        private static void read_master_and_id_from_file_IMCAC(Session session, String configfile, ref String ref_master, ref String ref_id) {
+            session.Log("...searching master and id in " + configfile);
+            bool configExists = File.Exists(configfile);
+            session.Log("......file exists " + configExists);
+            if (!configExists) { return; }
+            session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
+            string[] configLines = File.ReadAllLines(configfile);
+            Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
+            foreach (string line in configLines) {
+                if (r.IsMatch(line)) {
+                    Match m = r.Match(line);
+                    string key = m.Groups[1].ToString();
+                    string value = m.Groups[2].ToString();
+                    //session.Log("...ANY KEY " + key + " " + value);
+                    if (key == "master") {
+                        ref_master = value;
+                        session.Log("......master " + ref_master);
+                    }
+                    if (key == "id") {
+                        ref_id = value;
+                        session.Log("......id " + ref_id);
+                    }
+                }
+            }
+        }
+
+
+        //Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
+        [CustomAction]
+        public static ActionResult Uninstall_incl_Config_DECAC(Session session) {
+            // Do NOT keep config
+            // In fact keep nothing
+            session.Log("...Begin Uninstall_incl_Config_DECAC");
+            PurgeDir(session, "");  // this means to Purge c:\salt\
+            session.Log("...End Uninstall_incl_Config_DECAC");
+            return ActionResult.Success;
+        }
+
+
+        [CustomAction]
+        public static ActionResult Uninstall_excl_Config_DECAC(Session session) {
+            // DO keep config
+            //Selectively delete the var folder.         
+            // We move the 2 directories out of var, delete var, and move back
+            session.Log("...Begin Uninstall_excl_Config_DECAC");
+            PurgeDir(session, @"bin");
+            // move parts from var into safety
+            string safedir = @"c:\salt\_tmp_swap_space\";
+            if (Directory.Exists(safedir)) { Directory.Delete(safedir); }
+            Directory.CreateDirectory(safedir);
+            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", true, safedir);
+            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", true, safedir);
+            // purge var
+            PurgeDir(session, @"var");
+            // move back
+            Directory.CreateDirectory(@"c:\salt\var\cache\salt\minion"); // Directory.Move cannot create dirs
+            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", false, safedir);
+            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", false, safedir);
+            Directory.Delete(safedir);
+
+            // log
+            session.Log("...End Uninstall_excl_Config_DECAC");
+            return ActionResult.Success;
+        }
+
+
+        private static void PurgeDir(Session session, string dir_below_salt_root) {
+            String abs_dir = @"c:\salt\" + dir_below_salt_root; //TODO use root_dir
+            String root_dir = "";
+            root_dir = session.CustomActionData["root_dir"];
+
+            if (Directory.Exists(abs_dir)) {
+                session.Log("PurgeDir:: about to Directory.delete " + abs_dir);
+                Directory.Delete(abs_dir, true);
+                session.Log("PurgeDir:: ...OK");
+            } else {
+                session.Log("PurgeDir:: no Directory " + abs_dir);
+            }
+
+            // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied . Read only!
+            MinionConfigurationUtilities.shellout(session, @"rmdir /s /q " + abs_dir);
+        }
+
 
         [CustomAction]
         public static ActionResult del_NSIS_DECAC(Session session) {
@@ -248,33 +274,6 @@ namespace MinionConfigurationExtension {
             }
             session.Log("...End del_NSIS_DECAC");
             return ActionResult.Success;
-        }
-
-
-        private static void read_master_and_id_from_file(Session session, String configfile, ref String ref_master, ref String ref_id) {
-            session.Log("...searching master and id in " + configfile);
-            bool configExists = File.Exists(configfile);
-            session.Log("......file exists " + configExists);
-            if (!configExists) { return; }
-            session.Message(InstallMessage.Progress, new Record(2, 1));  // Who is reading this?
-            string[] configLines = File.ReadAllLines(configfile);
-            Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
-            foreach (string line in configLines) {
-                if (r.IsMatch(line)) {
-                    Match m = r.Match(line);
-                    string key = m.Groups[1].ToString();
-                    string value = m.Groups[2].ToString();
-                    //session.Log("...ANY KEY " + key + " " + value);
-                    if (key == "master") {
-                        ref_master = value;
-                        session.Log("......master " + ref_master);
-                    }
-                    if (key == "id") {
-                        ref_id = value;
-                        session.Log("......id " + ref_id);
-                    }
-                }
-            }
         }
 
 
@@ -457,9 +456,6 @@ def id_function():
             }
             File.WriteAllLines(MINION_CONFIGFILE, configLines_out);
         }
-
-
-
 
 
         private static bool replace_in_file_DECAC(Session session, string config_file, string pattern, string replacement) {
