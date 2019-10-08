@@ -75,8 +75,8 @@ If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` 
 
 Example `MINION_CONFIG="a: A,b: B"` results in:
 
-  a: A
-  b: B
+    a: A
+    b: B
 
 ### `MINION_ID_FUNCTION`
 
@@ -84,15 +84,15 @@ The minion ID can be set by a user defined module function.
 
 If `MINION_ID_FUNCTION` is set, the installer creates module file `c:\salt\var\cache\salt\minion\extmods\modules\id_function.py` with the content
 
-  import socket
-    def id_function():
-      return MINION_ID_FUNCTION
+    import socket
+      def id_function():
+        return MINION_ID_FUNCTION
 
 Example `MINION_ID_FUNCTION=socket.gethostname()` results in:
 
-  import socket
-    def id_function():
-      return socket.gethostname()
+    import socket
+      def id_function():
+        return socket.gethostname()
 
 Remember to create the same file as `/sr/salt/_modules/id_function.py` on your server, so that `saltutil.sync_all` will keep the file on the minion.
 
@@ -232,9 +232,6 @@ The C# code is needed to manipulate the configuration files.
 To achieve an atomic installation (either installed or the prior state is restored), all changes (filesystem and registry) must be manipulated by WiX code.
 
 ### Directory structure
-
-
-
 
 - msbuild.proj: main MSbuild file.
 - msbuild.d/: contains MSbuild resource files:
