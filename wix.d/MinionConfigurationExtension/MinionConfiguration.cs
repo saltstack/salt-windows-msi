@@ -6,18 +6,16 @@ using System.IO;
 using System.Text.RegularExpressions;
 
 // Formatting convention
-// Visual Studio
-//   Tools/Options/Text Editor/C#/Tabs                  --> Smart, 4, Insert spaces
-//   Tools/Options/Text Editor/C#/Formatting/New Liness --> None
+//     Visual Studio
+//         Tools/Options/Text Editor/C#/Tabs                  --> Smart, 4, Insert spaces
+//         Tools/Options/Text Editor/C#/Formatting/New Liness --> None
 
 
 namespace MinionConfigurationExtension {
     public class MinionConfiguration : WixExtension {
 
 
-        /*
-         * Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
-         */
+         //Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
         [CustomAction]
         public static ActionResult Uninstall_incl_Config_DECAC(Session session) {
             // Do NOT keep config
@@ -29,18 +27,11 @@ namespace MinionConfigurationExtension {
         }
 
 
-
         [CustomAction]
         public static ActionResult Uninstall_excl_Config_DECAC(Session session) {
             // DO keep config
-            /* Selectively delete the var folder.
-       * 
-       * Directories in var regarded as config:
-         c:\salt\var\cache\salt\minion\extmods\
-         c:\salt\var\cache\salt\minion\files\
-         
-         We move the 2 directories out of var, delete var, and move back
-      */
+            //Selectively delete the var folder.         
+            // We move the 2 directories out of var, delete var, and move back
             session.Log("...Begin Uninstall_excl_Config_DECAC");
             PurgeDir(session, @"bin");
             // move parts from var into safety
@@ -82,7 +73,7 @@ namespace MinionConfigurationExtension {
             }
             if (Directory.Exists(abs_to)) {
                 session.Log("....!I must first delete the TO directory " + abs_to);
-                shellout(session, @"rmdir /s /q " + abs_to);
+                MinionConfigurationUtilities.shellout(session, @"rmdir /s /q " + abs_to);
             }
             // Now move
             try {
@@ -91,10 +82,9 @@ namespace MinionConfigurationExtension {
                 Directory.Move(abs_from, abs_to);
                 session.Log(".........ok");
             } catch (Exception ex) {
-                just_ExceptionLog(@"...moving failed", session, ex);
+                MinionConfigurationUtilities.just_ExceptionLog(@"...moving failed", session, ex);
             }
         }
-
 
 
         private static void PurgeDir(Session session, string dir_below_salt_root) {
@@ -111,9 +101,8 @@ namespace MinionConfigurationExtension {
             }
 
             // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied . Read only!
-            shellout(session, @"rmdir /s /q " + abs_dir);
+            MinionConfigurationUtilities.shellout(session, @"rmdir /s /q " + abs_dir);
         }
-
 
 
         [CustomAction]
@@ -159,7 +148,7 @@ namespace MinionConfigurationExtension {
             // Read master and id from MINION_CONFIGFILE   
             read_master_and_id_from_file(session, session["MINION_CONFIGFILE"], ref master_from_previous_installation, ref id_from_previous_installation);
             // Read master and id from minion.d/*.conf 
-            string MINION_CONFIGDIR = getConfigdDirectoryLocation_IMCAC(session);
+            string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_IMCAC(session);
             if (Directory.Exists(MINION_CONFIGDIR)) {
                 var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
                 foreach (var conf_file in conf_files) {
@@ -182,14 +171,14 @@ namespace MinionConfigurationExtension {
             session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
 
             // config types 1-4
-            if (session["CONFIG_TYPE"] == "Existing") {           //  1 / 4
+            if (session["CONFIG_TYPE"] == "Existing") {                  //    1 / 4
                 /* Nothing to do:
                  *  -the installer will lay down the default.
                  *  - a msi property is applied if passed
                  */
             }
 
-            if (session["CONFIG_TYPE"] == "Custom") {                    // 2 / 4
+            if (session["CONFIG_TYPE"] == "Custom") {                    //    2 / 4
                 /* Nothing to do:
                  *  -the installer will lay down the default.
                  *  - a msi property is applied if passed
@@ -198,7 +187,7 @@ namespace MinionConfigurationExtension {
                  */
             }
 
-            if (session["CONFIG_TYPE"] == "Default") {               // 3 / 4
+            if (session["CONFIG_TYPE"] == "Default") {                  //    3 / 4
                 /* Overwrite the existing config if present with the default config for salt. 
                  * Default is to use the existing config if present. 
                  * If /master and/or /minion-name is passed, those values will be used to update the new default config. 
@@ -219,7 +208,7 @@ namespace MinionConfigurationExtension {
             }
 
 
-            if (session["CONFIG_TYPE"] == "New") {              // 4 / 4
+            if (session["CONFIG_TYPE"] == "New") {                 //    4 / 4
                 /* If the msi property has value #, this is our convention for "unset"
                  * This means the user has not set the value on commandline (GUI comes later)
                  * If the msi property has value different from # "unset", the user has set the master
@@ -280,25 +269,18 @@ namespace MinionConfigurationExtension {
         }
 
         // Leaves the Config
+        /*
+         * If NSIS is installed:
+         *   remove salt-minion service, 
+         *   remove registry
+         *   remove files, except /salt/conf and /salt/var
+         *   
+         *   Instead of the aboce, MAYBE one could use \salt\uninst.exe and preserve the 2 directories by moving them into safety first. 
+         *   This would be cleaner code
+        */
         [CustomAction]
         public static ActionResult del_NSIS_DECAC(Session session) {
             session.Log("...Begin del_NSIS_DECAC");
-            if (!delete_NSIS_not_using_uninst_DECAC(session)) return ActionResult.Failure;
-            session.Log("...End del_NSIS_DECAC");
-            return ActionResult.Success;
-        }
-
-        private static bool delete_NSIS_not_using_uninst_DECAC(Session session) {
-            /*
-             * If NSIS is installed:
-             *   remove salt-minion service, 
-             *   remove registry
-             *   remove files, except /salt/conf and /salt/var
-             *   
-             *   Instead of the aboce, MAYBE one could use \salt\uninst.exe and preserve the 2 directories by moving them into safety first. 
-             *   This would be cleaner code
-            */
-            session.Log("...Begin delete_NSIS_files");
             RegistryKey reg = Registry.LocalMachine;
             // ?When this is under    SOFTWARE\WoW6432Node
             string Salt_uninstall_regpath64 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
@@ -312,23 +294,23 @@ namespace MinionConfigurationExtension {
             session.Log("delete_NSIS_files:: NSIS_is_installed32 = " + NSIS_is_installed32);
             if (NSIS_is_installed64 || NSIS_is_installed32) {
                 session.Log("delete_NSIS_files:: Going to stop service salt-minion ...");
-                shellout(session, "sc stop salt-minion");
+                MinionConfigurationUtilities.shellout(session, "sc stop salt-minion");
                 session.Log("delete_NSIS_files:: Going to delete service salt-minion ...");
-                shellout(session, "sc delete salt-minion"); // shellout waits, but does sc? Does this work?
+                MinionConfigurationUtilities.shellout(session, "sc delete salt-minion"); // shellout waits, but does sc? Does this work?
 
                 session.Log("delete_NSIS_files:: Going to delete ARP registry64 entry for salt-minion ...");
-                try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
+                try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception ex) { MinionConfigurationUtilities.just_ExceptionLog("", session, ex); }
                 session.Log("delete_NSIS_files:: Going to delete ARP registry32 entry for salt-minion ...");
-                try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
+                try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception ex) { MinionConfigurationUtilities.just_ExceptionLog("", session, ex); }
 
                 session.Log("delete_NSIS_files:: Going to delete files ...");
-                try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
-                try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
-                try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception ex) { just_ExceptionLog("", session, ex); }
+                try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception ex) { MinionConfigurationUtilities.just_ExceptionLog("", session, ex); }
+                try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception ex) { MinionConfigurationUtilities.just_ExceptionLog("", session, ex); }
+                try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception ex) { MinionConfigurationUtilities.just_ExceptionLog("", session, ex); }
                 try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
             }
-            session.Log("...End delete_NSIS_files");
-            return true;
+            session.Log("...End del_NSIS_DECAC");
+            return ActionResult.Success;
         }
 
 
@@ -414,14 +396,14 @@ namespace MinionConfigurationExtension {
 
         private static void save_id_function_DECAC(Session session) {
             session.Log(@"...save_id_function_DECAC");
-            string minion_id_function = lookup_DECAC(session, "minion_id_function");
+            string minion_id_function = MinionConfigurationUtilities.get_property_DECAC(session, "minion_id_function");
             if (minion_id_function.Length > 0) {
                 string filepath = @"c:\salt\var\cache\salt\minion\extmods\modules";
                 string filename = @"id_function.py";
                 string filecontent = @"import socket
 def id_function():
     return " + minion_id_function;
-                Writeln_file(session, filepath, filename, filecontent);
+                MinionConfigurationUtilities.Writeln_file(session, filepath, filename, filecontent);
             }
         }
 
@@ -430,33 +412,25 @@ def id_function():
                 Backup_configuration_files_from_previous_installation(session);
                 // lay down a custom config passed via the command line
                 string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session.CustomActionData["minion_configfile"]));
-                Write_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
+                MinionConfigurationUtilities.Write_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
             }
         }
 
 
         private static void save_config_DECAC(Session session) {
             session.Log(@"...save_config_DECAC");
-            string kwargs_in_commata = lookup_DECAC(session, "minion_config");
+            string kwargs_in_commata = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
             if (kwargs_in_commata.Length > 0) {
                 string lines = kwargs_in_commata.Replace(",", Environment.NewLine);
-                Writeln_file(session, @"C:\salt\conf", "minion", lines);
+                MinionConfigurationUtilities.Writeln_file(session, @"C:\salt\conf", "minion", lines);
             }
-        }
-
-        private static string lookup_DECAC(Session session, string key) {
-            session.Log("...CustomActionData key {0}", key);
-            string val = session.CustomActionData[key];
-            session.Log("...CustomActionData val {0}", val);
-            session.Log("...CustomActionData len {0}", val.Length);
-            return val;
         }
 
         private static bool replace_Saltkey_in_previous_configuration_DECAC(Session session, string SaltKey, ref string CustomActionData_value) {
             bool replaced = false;
 
             session.Log("...replace_Saltkey_in_previous_configuration_DECAC Key   " + SaltKey);
-            CustomActionData_value = lookup_DECAC(session, SaltKey);
+            CustomActionData_value = MinionConfigurationUtilities.get_property_DECAC(session, SaltKey);
             if (SaltKey == "zmq_filtering" && CustomActionData_value == "1") {
                 CustomActionData_value = "True";
                 session.Log("...changing zmq_filtering from 1 to " + CustomActionData_value);
@@ -488,8 +462,8 @@ def id_function():
          */
         private static bool replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement) {
             bool replaced_in_any_file = false;
-            string MINION_CONFIGFILE = getConfigFileLocation_DECAC(session);
-            string MINION_CONFIGDIR = getConfigdDirectoryLocation_DECAC(session);
+            string MINION_CONFIGFILE = MinionConfigurationUtilities.getConfigFileLocation_DECAC(session);
+            string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_DECAC(session);
 
             replaced_in_any_file |= replace_in_file_DECAC(session, MINION_CONFIGFILE, pattern, replacement);
 
@@ -510,10 +484,10 @@ def id_function():
 
 
         static private void append_to_config_DECAC(Session session, string key, string value) {
-            string MINION_CONFIGDIR = getConfigdDirectoryLocation_DECAC(session);
+            string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_DECAC(session);
             if (session.CustomActionData["config_type"] == "New") {
                 //CONFIG_TYPE New creates a minion.d/*.conf file
-                Writeln_file(session, MINION_CONFIGDIR, key + ".conf", key + ": " + value);
+                MinionConfigurationUtilities.Writeln_file(session, MINION_CONFIGDIR, key + ".conf", key + ": " + value);
             } else {
                 // Shane: CONFIG_TYPES 1-3 change only the MINION_CONFIGFILE, not the minion.d/*.conf files, because the admin knows what he is doing.
                 insert_value_after_comment_or_end_in_minionconfig_file(session, key, value);
@@ -522,7 +496,7 @@ def id_function():
 
 
         static private void insert_value_after_comment_or_end_in_minionconfig_file(Session session, string key, string value) {
-            string MINION_CONFIGFILE = getConfigFileLocation_DECAC(session);
+            string MINION_CONFIGFILE = MinionConfigurationUtilities.getConfigFileLocation_DECAC(session);
             string[] configLines_in = File.ReadAllLines(MINION_CONFIGFILE);
             string[] configLines_out = new string[configLines_in.Length + 1];
             int configLines_out_index = 0;
@@ -546,16 +520,7 @@ def id_function():
         }
 
 
-        private static void Write_file(Session session, string path, string filename, string filecontent) {
-            System.IO.Directory.CreateDirectory(path);  // Ensures that the path exists
-            File.WriteAllText(path + "\\" + filename, filecontent);       //  throws an Exception if path does not exist
-            session.Log(@"...created " + path + "\\" + filename);
-        }
 
-
-        private static void Writeln_file(Session session, string path, string filename, string filecontent) {
-            Write_file(session, path, filename, filecontent + Environment.NewLine);
-        }
 
 
         private static bool replace_in_file_DECAC(Session session, string config_file, string pattern, string replacement) {
@@ -584,86 +549,14 @@ def id_function():
             return replaced || found;
         }
 
-        private static void shellout(Session session, string s) {
-            // This is a handmade shellout routine
-            session.Log("...shellout(" + s + ")");
-            try {
-                System.Diagnostics.Process process = new System.Diagnostics.Process();
-                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-                startInfo.FileName = "cmd.exe";
-                startInfo.Arguments = "/C " + s;
-                process.StartInfo = startInfo;
-                process.Start();
-                process.WaitForExit();
-            } catch (Exception ex) {
-                just_ExceptionLog("shellout tried " + s, session, ex);
-            }
-        }
-
-
-        private static string getConfigFileLocation_DECAC(Session session) {
-            // DECAC means you must access data helper properties at session.CustomActionData[*]
-            return session.CustomActionData["root_dir"] + "conf\\minion";
-        }
-
-
-        private static string getConfigdDirectoryLocation_DECAC(Session session) {
-            // DECAC means you must access data helper properties at session.CustomActionData[*]
-            return session.CustomActionData["root_dir"] + "conf\\minion.d";
-        }
-
-
-        private static string getConfigdDirectoryLocation_IMCAC(Session session) {
-            // IMCAC means ou can directly access msi properties at session[*]
-            // session["INSTALLFOLDER"] ends with a backslash, e.g. C:\salt\ 
-            return session["INSTALLFOLDER"] + "conf\\minion.d";
-        }
-
-        private static void just_ExceptionLog(string description, Session session, Exception ex) {
-            session.Log(" ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ");
-            session.Log(description);
-            session.Log("Exception: {0}", ex.Message.ToString());
-            session.Log(ex.StackTrace.ToString());
-        }
-
 
         private static void Backup_configuration_files_from_previous_installation(Session session) {
             session.Log("...Backup_configuration_files_from_previous_installation");
             string timestamp_bak = "-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".bak";
             session.Log("...timestamp_bak = " + timestamp_bak);
-            Move_file(session, @"C:\salt\conf\minion", timestamp_bak);
-            Move_file(session, @"C:\salt\conf\minion_id", timestamp_bak);
-            Move_dir(session, @"C:\salt\conf\minion.d", timestamp_bak);
-        }
-
-        private static void Move_file(Session session, string ffn, string timestamp_bak) {
-            string target = ffn + timestamp_bak;
-            session.Log("...Move_file?   " + ffn);
-
-            if (File.Exists(ffn)) {
-                session.Log("...Move_file!   " + ffn);
-                if (File.Exists(target)) {
-                    session.Log("...target exists   " + target);
-                } else {
-                    File.Move(ffn, target);
-                }
-            }
-        }
-
-
-        private static void Move_dir(Session session, string ffn, string timestamp_bak) {
-            string target = ffn + timestamp_bak;
-            session.Log("...Move_dir?   " + ffn);
-
-            if (Directory.Exists(ffn)) {
-                session.Log("...Move_dir!   " + ffn);
-                if (Directory.Exists(target)) {
-                    session.Log("...target exists   " + target);
-                } else {
-                    Directory.Move(ffn, ffn + timestamp_bak);
-                }
-            }
+            MinionConfigurationUtilities.Move_file(session, @"C:\salt\conf\minion", timestamp_bak);
+            MinionConfigurationUtilities.Move_file(session, @"C:\salt\conf\minion_id", timestamp_bak);
+            MinionConfigurationUtilities.Move_dir(session, @"C:\salt\conf\minion.d", timestamp_bak);
         }
     }
 }
