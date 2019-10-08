@@ -205,18 +205,18 @@ namespace MinionConfigurationExtension {
 
 
 
-        // Leaves the Config
-        /*
-         * If NSIS is installed:
-         *   remove salt-minion service, 
-         *   remove registry
-         *   remove files, except /salt/conf and /salt/var
-         *   
-         *   Instead of the aboce, MAYBE one could use \salt\uninst.exe and preserve the 2 directories by moving them into safety first. 
-         *   This would be cleaner code
-        */
         [CustomAction]
         public static ActionResult del_NSIS_DECAC(Session session) {
+            // Leaves the Config
+            /*
+             * If NSIS is installed:
+             *   remove salt-minion service, 
+             *   remove registry
+             *   remove files, except /salt/conf and /salt/var
+             *   
+             *   Instead of the aboce, MAYBE one could use \salt\uninst.exe and preserve the 2 directories by moving them into safety first. 
+             *   This would be cleaner code
+            */
             session.Log("...Begin del_NSIS_DECAC");
             RegistryKey reg = Registry.LocalMachine;
             // ?When this is under    SOFTWARE\WoW6432Node
@@ -277,19 +277,20 @@ namespace MinionConfigurationExtension {
             }
         }
 
-        /*
-         * This function must leave the config files according to the CONFIG_TYPE's 1-4
-         * This function is deferred (_DECAC)
-         * This function runs after the msi has created the c:\salt\conf\minion file, which is a comment-only text.
-         * If there was a previous install, there could be many config files.
-         * The previous install c:\salt\conf\minion file could contain non-comments.
-         * One of the non-comments could be master.
-         * It could be that this installer has a different master.
-         * 
-         */
-        // Must have this signature or cannot uninstall not even write to the log
+
         [CustomAction]
         public static ActionResult WriteConfig_DECAC(Session session) {
+            /*
+             * This function must leave the config files according to the CONFIG_TYPE's 1-4
+             * This function is deferred (_DECAC)
+             * This function runs after the msi has created the c:\salt\conf\minion file, which is a comment-only text.
+             * If there was a previous install, there could be many config files.
+             * The previous install c:\salt\conf\minion file could contain non-comments.
+             * One of the non-comments could be master.
+             * It could be that this installer has a different master.
+             * 
+             */
+            // Must have this signature or cannot uninstall not even write to the log
             string zmq_filtering = "";
             string master = "";
             string id = "";
@@ -389,15 +390,16 @@ def id_function():
         }
 
 
-        /*
-         * "All config" files means:
-         *   conf/minion
-         *   conf/minion.d/*.conf           (only for New)
-         *
-         * MAYBE this function could input a dictionary of key/value pairs, because it reopens all config files over and over.
-         *
-         */
+
         private static bool replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement) {
+            /*
+             * "All config" files means:
+             *   conf/minion
+             *   conf/minion.d/*.conf           (only for New)
+             *
+             * MAYBE this function could input a dictionary of key/value pairs, because it reopens all config files over and over.
+             *
+             */
             bool replaced_in_any_file = false;
             string MINION_CONFIGFILE = MinionConfigurationUtilities.getConfigFileLocation_DECAC(session);
             string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_DECAC(session);
