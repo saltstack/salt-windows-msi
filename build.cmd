@@ -3,7 +3,7 @@
 :: WISE STUDIO perceives the 64bit msi as 32bit msi.
 :: Explicitly adding Platform
 :: Platform should be x64 but this causes msbuild errror, therefor amd64
-::     C:\git\salt-windows-msi\wix.sln.metaproj : error MSB4126: Die angegebene Projektmappenkonfiguration "Release|x64" ist ung�ltig. [C:\git\salt-windows-msi\wix.sln]
+::     C:\git\salt-windows-msi\wix.sln.metaproj : error MSB4126: Die angegebene Projektmappenkonfiguration "Release|x64" ist ungültig. [C:\git\salt-windows-msi\wix.sln]
 :: SuperOrca shows no difference between msi without Platformm and msi with Platform=amd64
 
 if '%1'=='' (
@@ -20,9 +20,9 @@ if '%1'=='32' (
   goto :ok
 )
 
-echo wrong argument 
-echo    ybuild         == 64bit
-echo    ybuild 32      == 32bit
+echo FATAL wrong argument. Only allowed value is 32
+echo    build         == 64bit
+echo    build 32      == 32bit
 goto :eof
 
 :ok
@@ -64,6 +64,25 @@ if not %errorLevel%==0 (
   goto eof
 )
 
+:: Detecting NSIS build output Python 2...
+set saltpythonversion=0
+dir C:\git\salt\pkg\windows\installer\Salt-Minion*Py2*.exe >nul 2>&1
+if %errorLevel%==0 (
+  set saltpythonversion=2
+)
+dir C:\git\salt\pkg\windows\installer\Salt-Minion*Py3*.exe >nul 2>&1
+if %errorLevel%==0 (
+  set saltpythonversion=3
+)
+if %saltpythonversion%==0 (
+  echo FATAL Cannot determine Python 2 or 3
+  echo       There is neither C:\git\salt\pkg\windows\installer\Salt-Minion*Py2*.exe 
+  echo                nor     C:\git\salt\pkg\windows\installer\Salt-Minion*Py3*.exe
+  goto eof
+) else (
+  echo Found Python %saltpythonversion%
+)
+
 :: msbuild
 set msbuildpath="%ProgramFiles(x86)%"\MSBuild\14.0\Bin
 dir %msbuildpath% >nul 2>&1
@@ -75,7 +94,7 @@ if not %errorLevel%==0 (
 
 :: decoy version values to understand the relationship between msbuild and WiX...
 @echo on
-call %msbuildpath%\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%salt_targetplatform% /p:Platform=%salt_platform% /p:DisplayVersion=2020.1.1 /p:InternalVersion=20.1.1.100
+call %msbuildpath%\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%salt_targetplatform% /p:Platform=%salt_platform% /p:DisplayVersion=2020.1.1 /p:InternalVersion=20.1.1.100 /p:PythonVersion=%saltpythonversion%
 @echo off
 
 dir                          wix.d\MinionMSI\bin\Release\*.msi

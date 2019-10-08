@@ -93,6 +93,7 @@ Current Defaults:
     ******************         DisplayVersion: $(DisplayVersion)
     ******************        InternalVersion: $(InternalVersion)
     ******************           BUILD_NUMBER: $(BUILD_NUMBER)
+    ******************          PythonVersion: $(PythonVersion)
   " />
 
     <MSBuild Projects="%(Wix.Identity)" Properties="$(SolutionProperties)" />

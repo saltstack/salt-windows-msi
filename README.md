@@ -236,7 +236,7 @@ To achieve an atomic installation (either installed or the prior state is restor
 - msbuild.d/: contains MSbuild resource files:
   - BuildDistFragment.targets: find files (from the extracted distribution?).
   - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable for bundle.
-  - Minion.Common.targets: set version and platform parameters.
+  - Minion.Common.targets: set version and platform parameters, set the file base-name of the msi.
 - salt-windows-msi.sln: Visual Studio solution file, included in msbuild.proj.
 - wix.d/: installer sources:
   - MinionConfigurationExtension/: C# for custom actions:
