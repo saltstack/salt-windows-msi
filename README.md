@@ -85,14 +85,14 @@ The minion ID can be set by a user defined module function.
 If `MINION_ID_FUNCTION` is set, the installer creates module file `c:\salt\var\cache\salt\minion\extmods\modules\id_function.py` with the content
 
     import socket
-      def id_function():
-        return MINION_ID_FUNCTION
+    def id_function():
+      return MINION_ID_FUNCTION
 
 Example `MINION_ID_FUNCTION=socket.gethostname()` results in:
 
     import socket
-      def id_function():
-        return socket.gethostname()
+    def id_function():
+      return socket.gethostname()
 
 Remember to create the same file as `/sr/salt/_modules/id_function.py` on your server, so that `saltutil.sync_all` will keep the file on the minion.
 
