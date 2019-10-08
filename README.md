@@ -71,11 +71,11 @@ You can set a new master public key with `MASTER_KEY`, but you must convert it i
 
 ### `MINION_CONFIG`
 
-If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with the content
+If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with the content. To include whitespace, use double quotes around.
 
-Example `MINION_CONFIG="a: A,b: B` results in:
+Example `MINION_CONFIG="a: A,b: B"` results in:
 
-	a: A
+  a: A
   b: B
 
 ### `MINION_ID_FUNCTION`
@@ -84,15 +84,15 @@ The minion ID can be set by a user defined module function.
 
 If `MINION_ID_FUNCTION` is set, the installer creates module file `c:\salt\var\cache\salt\minion\extmods\modules\id_function.py` with the content
 
-	import socket
+  import socket
     def id_function():
-	    return MINION_ID_FUNCTION
+      return MINION_ID_FUNCTION
 
 Example `MINION_ID_FUNCTION=socket.gethostname()` results in:
 
-	import socket
+  import socket
     def id_function():
-	    return socket.gethostname()
+      return socket.gethostname()
 
 Remember to create the same file as `/sr/salt/_modules/id_function.py` on your server, so that `saltutil.sync_all` will keep the file on the minion.
 
