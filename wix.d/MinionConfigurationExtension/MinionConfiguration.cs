@@ -174,9 +174,9 @@ namespace MinionConfigurationExtension {
         }
 
 
-        //Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
         [CustomAction]
         public static ActionResult Uninstall_incl_Config_DECAC(Session session) {
+            //Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
             // Do NOT keep config
             // In fact keep nothing
             session.Log("...Begin Uninstall_incl_Config_DECAC");
