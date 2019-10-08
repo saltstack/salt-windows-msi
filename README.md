@@ -204,7 +204,7 @@ then execute
 
 ### Step 2: build the msi installer
 
-You need the exe installer.
+Execute
 
     cd c:\git\salt-windows-msi
     build_env.cmd

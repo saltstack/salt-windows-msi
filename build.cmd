@@ -3,7 +3,7 @@
 :: WISE STUDIO perceives the 64bit msi as 32bit msi.
 :: Explicitly adding Platform
 :: Platform should be x64 but this causes msbuild errror, therefor amd64
-::     C:\git\salt-windows-msi\wix.sln.metaproj : error MSB4126: Die angegebene Projektmappenkonfiguration "Release|x64" ist ungültig. [C:\git\salt-windows-msi\wix.sln]
+::     C:\git\salt-windows-msi\wix.sln.metaproj : error MSB4126: Die angegebene Projektmappenkonfiguration "Release|x64" ist ungï¿½ltig. [C:\git\salt-windows-msi\wix.sln]
 :: SuperOrca shows no difference between msi without Platformm and msi with Platform=amd64
 
 if '%1'=='' (
@@ -38,6 +38,20 @@ if not %errorLevel%==0 (
 dir "C:\git\salt\.git" >nul 2>&1
 if not %errorLevel%==0 (
   echo FATAL failure: This script needs the Salt repository  in "C:\git\salt\"
+  goto eof
+)
+
+:: Checking if we can determine Salt Version...
+echo We are going to build version...
+C:\Python27\python \git\salt\salt\version.py 
+if not %errorLevel%==0 (
+  echo FATAL failure: This script needs to execute C:\Python27\python \git\salt\salt\version.py
+  goto eof
+)
+echo We are going to build msi internal version...
+C:\Python27\python \git\salt\salt\version.py msi
+if not %errorLevel%==0 (
+  echo FATAL failure: This script needs to execute C:\Python27\python \git\salt\salt\version.py
   goto eof
 )
 
