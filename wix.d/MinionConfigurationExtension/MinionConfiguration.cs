@@ -74,42 +74,31 @@ namespace MinionConfigurationExtension {
 
         [CustomAction]
         public static ActionResult ReadConfig_IMCAC(Session session) {
-            /*
-             * We always call because we cannot know who installed (nsis or msi)
-             * 
-             */
-            session.Log("...Begin ReadConfig_IMCAC");
-            determine_master_and_id_IMCAC(session);
-            session.Log("...End ReadConfig_IMCAC");
-            return ActionResult.Success;
-        }
-
-
         /*
          * When installatioin starts,there might be a previous installation.
          * From the previous installation, we read only two properties, that we present in the installer:
-         *  - master
-         *  - id
-         *  
-         *  This function reads these two properties from 
-         *   - the 2 msi properties:
-         *     - MASTER
-         *     - MINION_ID		    
-         *   - files from a provious installations: 
-         *     - the number of file the function searches depend on CONFIGURATION_TYPE
-         *   - dependend on CONFIGURATION_TYPE, default values can be:
-         *     - master = "salt"
-         *     - id = %hostname%
-         *  
-         *  
-         *  This function writes its results in the 2 msi properties:
-         *   - MASTER
-         *   - MINION_ID
-         *   
-         *   A GUI installation will show these msi properties because this function is called before the GUI.
-         *   
-         */
-        private static void determine_master_and_id_IMCAC(Session session) {
+          *  - master
+          *  - id
+          *  
+          *  This function reads these two properties from 
+          *   - the 2 msi properties:
+          *     - MASTER
+          *     - MINION_ID		    
+          *   - files from a provious installations: 
+          *     - the number of file the function searches depend on CONFIGURATION_TYPE
+          *   - dependend on CONFIGURATION_TYPE, default values can be:
+          *     - master = "salt"
+          *     - id = %hostname%
+          *  
+          *  
+          *  This function writes its results in the 2 msi properties:
+          *   - MASTER
+          *   - MINION_ID
+          *   
+          *   A GUI installation will show these msi properties because this function is called before the GUI.
+          *   
+          */
+            session.Log("...Begin ReadConfig_IMCAC");
             String master_from_previous_installation = "";
             String id_from_previous_installation = "";
             // Read master and id from MINION_CONFIGFILE
@@ -210,7 +199,11 @@ namespace MinionConfigurationExtension {
                 Directory.CreateDirectory(master_public_key_path);
                 File.WriteAllText(master_public_key_filename, new_master_pub_key);
             }
+            session.Log("...End ReadConfig_IMCAC");
+            return ActionResult.Success;
         }
+
+
 
         // Leaves the Config
         /*
