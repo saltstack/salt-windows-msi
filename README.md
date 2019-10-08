@@ -80,7 +80,7 @@ Example `MINION_CONFIG="a: A,b: B"` results in:
 
 ### `MINION_ID_FUNCTION`
 
-The minion ID can be set by a user defined module function.
+The minion ID can be set by a user defined module function ([Further reading](https://github.com/saltstack/salt/pull/41619)).
 
 If `MINION_ID_FUNCTION` is set, the installer creates module file `c:\salt\var\cache\salt\minion\extmods\modules\id_function.py` with the content
 
@@ -96,7 +96,6 @@ Example `MINION_ID_FUNCTION=socket.gethostname()` results in:
 
 Remember to create the same file as `/sr/salt/_modules/id_function.py` on your server, so that `saltutil.sync_all` will keep the file on the minion.
 
-[Further reading](https://github.com/saltstack/salt/pull/41619)
 
 ### `CONFIG_TYPE` 
 
