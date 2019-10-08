@@ -181,74 +181,31 @@ namespace MinionConfigurationExtension {
             session.Log("...MASTER      msi property  =" + session["MASTER"]);
             session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
 
-            /* config types 
-             * https://docs.saltstack.com/en/latest/topics/installation/windows.html#silent-installer-options
-             * 
-             * There are 4 scenarios the installer tries to account for:
-1. existing-config (default)
-2. custom-config
-3. default-config
-4. new-config
-             */
-
-
-            if (session["CONFIG_TYPE"] == "Existing") {
-                /* ------------------------------------
-                 *      1 / 4
-                 * ------------------------------------
-                 * 
-                 * 
-This setting makes no changes to the existing config and just upgrades/downgrades salt. 
-Makes for easy upgrades. Just run the installer with a silent option. 
-If there is no existing config, then the default is used and `master` and `minion id` are applied if passed.
+            // config types 1-4
+            if (session["CONFIG_TYPE"] == "Existing") {           //  1 / 4
+                /* Nothing to do:
+                 *  -the installer will lay down the default.
+                 *  - a msi property is applied if passed
                  */
-
-                // Nothing to do: 
-                //  - the installer will lay down the default.
-                //  - a msi property is applied if passed
             }
 
-            if (session["CONFIG_TYPE"] == "Custom") {
-                /* ----------------------------------
-                 *      2 / 4
-                 * ----------------------------------
-                 * 
-This setting will lay down a custom config passed via the command line. Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
-1. `minion` config renamed to `minion-<timestamp>.bak`
-2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
-3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
-Then the custom config is laid down by the installer... and `master` and `minion id` should be applied to the custom config if passed.
+            if (session["CONFIG_TYPE"] == "Custom") {                    // 2 / 4
+                /* Nothing to do:
+                 *  -the installer will lay down the default.
+                 *  - a msi property is applied if passed
+                 * Work is done in WriteConfig_DECAC()
+                 * The custom config file must overwrite whatever the installer saves, so we cannot write now.
                  */
-
-                // Nothing to now: 
-                //  - the installer will lay down the default.
-                //  - a msi property is applied if passed
-
-                // Work in done in WriteConfig_DECAC()
-                // The custom config file must overwrite whatever the installer saves, so we cannot write now.
             }
 
-
-
-            if (session["CONFIG_TYPE"] == "Default") {
-                /* ----------------------------------
-                 *        3 / 4
-                 * ----------------------------------
-                 * Overwrite the existing config if present with the default config for salt. 
+            if (session["CONFIG_TYPE"] == "Default") {               // 3 / 4
+                /* Overwrite the existing config if present with the default config for salt. 
                  * Default is to use the existing config if present. 
                  * If /master and/or /minion-name is passed, those values will be used to update the new default config. 
-                 
-Default
-
-This setting will reset config to be the default config contained in the pkg. 
-Therefore, all existing config files should be backed up
-1. `minion` config renamed to `minion-<timestamp>.bak`
-2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
-3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
-Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
+                 * 
+                 *  Would be more logical in WriteConfig, but here is easier and no harm
                  */
 
-                // More logical in WriteConfig, but here is easier and no harm
                 Backup_configuration_files_from_previous_installation(session);
 
                 if (session["MASTER"] == "#") {
@@ -262,16 +219,13 @@ Then the default config file is laid down by the installer... settings for `mast
             }
 
 
-            if (session["CONFIG_TYPE"] == "New") {
-                /* -------------------------------
-                 *       4 / 4
-                 * -------------------------------
+            if (session["CONFIG_TYPE"] == "New") {              // 4 / 4
+                /* If the msi property has value #, this is our convention for "unset"
+                 * This means the user has not set the value on commandline (GUI comes later)
+                 * If the msi property has value different from # "unset", the user has set the master
+                 * msi propery has precedence over kept config 
+                 * Only if msi propery is unset, set value of previous installation
                  */
-                // If the msi property has value #, this is our convention for "unset"
-                // This means the user has not set the value on commandline (GUI comes later)
-                // If the msi property has value different from # "unset", the user has set the master
-                // msi propery has precedence over kept config 
-                // Only if msi propery is unset, set value of previous installation
 
                 /////////////////master
                 if (session["MASTER"] == "#") {
@@ -299,8 +253,7 @@ Then the default config file is laid down by the installer... settings for `mast
                 }
             }
 
-
-            // More logical in WriteConfig, but here is easier and no harm because there is no public master key in the installer.
+            // Would be more logical in WriteConfig, but here is easier and no harm because there is no public master key in the installer.
             // Save the salt-master public key 
             var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
             var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
@@ -325,7 +278,6 @@ Then the default config file is laid down by the installer... settings for `mast
                 File.WriteAllText(master_public_key_filename, new_master_pub_key);
             }
         }
-
 
         // Leaves the Config
         [CustomAction]
