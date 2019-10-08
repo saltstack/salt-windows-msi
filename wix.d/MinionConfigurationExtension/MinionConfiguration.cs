@@ -38,52 +38,19 @@ namespace MinionConfigurationExtension {
             string safedir = @"c:\salt\_tmp_swap_space\";
             if (Directory.Exists(safedir)) { Directory.Delete(safedir); }
             Directory.CreateDirectory(safedir);
-            movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", true, safedir);
-            movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", true, safedir);
+            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", true, safedir);
+            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", true, safedir);
             // purge var
             PurgeDir(session, @"var");
             // move back
             Directory.CreateDirectory(@"c:\salt\var\cache\salt\minion"); // Directory.Move cannot create dirs
-            movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", false, safedir);
-            movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", false, safedir);
+            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", false, safedir);
+            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", false, safedir);
             Directory.Delete(safedir);
 
             // log
             session.Log("...End Uninstall_excl_Config_DECAC");
             return ActionResult.Success;
-        }
-
-        private static void movedir_fromAbs_toRel(Session session, string abs_from0, string rel_tmp_dir, bool into_safety, string safedir) {
-            string abs_from;
-            string abs_to;
-            if (into_safety) {
-                abs_from = abs_from0;
-                abs_to = safedir + rel_tmp_dir;
-            } else {
-                abs_from = safedir + rel_tmp_dir;
-                abs_to = abs_from0;
-            }
-
-            session.Log("...We may need to move? does directory exist " + abs_from);
-            if (Directory.Exists(abs_from)) {
-                session.Log(".....yes");
-            } else {
-                session.Log(".....no");
-                return;
-            }
-            if (Directory.Exists(abs_to)) {
-                session.Log("....!I must first delete the TO directory " + abs_to);
-                MinionConfigurationUtilities.shellout(session, @"rmdir /s /q " + abs_to);
-            }
-            // Now move
-            try {
-                session.Log("...now move to " + abs_to);
-
-                Directory.Move(abs_from, abs_to);
-                session.Log(".........ok");
-            } catch (Exception ex) {
-                MinionConfigurationUtilities.just_ExceptionLog(@"...moving failed", session, ex);
-            }
         }
 
 

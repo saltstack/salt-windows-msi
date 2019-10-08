@@ -49,6 +49,42 @@ namespace MinionConfigurationExtension {
         }
 
 
+
+        public static void movedir_fromAbs_toRel(Session session, string abs_from0, string rel_tmp_dir, bool into_safety, string safedir) {
+            string abs_from;
+            string abs_to;
+            if (into_safety) {
+                abs_from = abs_from0;
+                abs_to = safedir + rel_tmp_dir;
+            } else {
+                abs_from = safedir + rel_tmp_dir;
+                abs_to = abs_from0;
+            }
+
+            session.Log("...We may need to move? does directory exist " + abs_from);
+            if (Directory.Exists(abs_from)) {
+                session.Log(".....yes");
+            } else {
+                session.Log(".....no");
+                return;
+            }
+            if (Directory.Exists(abs_to)) {
+                session.Log("....!I must first delete the TO directory " + abs_to);
+                shellout(session, @"rmdir /s /q " + abs_to);
+            }
+            // Now move
+            try {
+                session.Log("...now move to " + abs_to);
+
+                Directory.Move(abs_from, abs_to);
+                session.Log(".........ok");
+            } catch (Exception ex) {
+                just_ExceptionLog(@"...moving failed", session, ex);
+            }
+        }
+
+
+
         public static string get_property_DECAC(Session session, string key) {
             session.Log("...CustomActionData key {0}", key);
             string val = session.CustomActionData[key];
