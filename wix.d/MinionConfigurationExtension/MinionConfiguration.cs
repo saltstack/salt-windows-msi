@@ -295,8 +295,8 @@ namespace MinionConfigurationExtension {
              *   remove registry
              *   remove files, except /salt/conf and /salt/var
              *   
-                   *   I could use \salt\uninst.exe and preserve the 2 directories by moving them into safety first. 
-                   *   This would be much shorter and cleaner code
+             *   Instead of the aboce, MAYBE one could use \salt\uninst.exe and preserve the 2 directories by moving them into safety first. 
+             *   This would be cleaner code
             */
             session.Log("...Begin delete_NSIS_files");
             RegistryKey reg = Registry.LocalMachine;
@@ -358,8 +358,6 @@ namespace MinionConfigurationExtension {
             }
         }
 
-
-
         /*
          * This function must leave the config files according to the CONFIG_TYPE's 1-4
          * This function is deferred (_DECAC)
@@ -413,6 +411,7 @@ namespace MinionConfigurationExtension {
             return ActionResult.Success;
         }
 
+
         private static void save_id_function_DECAC(Session session) {
             session.Log(@"...save_id_function_DECAC");
             string minion_id_function = lookup_DECAC(session, "minion_id_function");
@@ -424,24 +423,11 @@ def id_function():
     return " + minion_id_function;
                 Writeln_file(session, filepath, filename, filecontent);
             }
-
         }
+
         private static void save_custom_config_file_if_config_type_demands_DECAC(Session session) {
             if (session.CustomActionData["config_type"] == "Custom") {
-                /* ----------------------------------
-                 *      2 / 4
-                 * ----------------------------------
-                 * 
-This setting will lay down a custom config passed via the command line. Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
-1. `minion` config renamed to `minion-<timestamp>.bak`
-2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
-3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
-Then the custom config is laid down by the installer... and `master` and `minion id` should be applied to the custom config if passed.
-                 */
-
-
                 Backup_configuration_files_from_previous_installation(session);
-
                 // lay down a custom config passed via the command line
                 string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session.CustomActionData["minion_configfile"]));
                 Write_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
@@ -477,7 +463,6 @@ Then the custom config is laid down by the installer... and `master` and `minion
             }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
-
             // pattern description
             // ^        start of line
             //          anything after the colon is ignored and would be removed 
@@ -535,9 +520,9 @@ Then the custom config is laid down by the installer... and `master` and `minion
             }
         }
 
+
         static private void insert_value_after_comment_or_end_in_minionconfig_file(Session session, string key, string value) {
             string MINION_CONFIGFILE = getConfigFileLocation_DECAC(session);
-
             string[] configLines_in = File.ReadAllLines(MINION_CONFIGFILE);
             string[] configLines_out = new string[configLines_in.Length + 1];
             int configLines_out_index = 0;
@@ -560,11 +545,13 @@ Then the custom config is laid down by the installer... and `master` and `minion
             File.WriteAllLines(MINION_CONFIGFILE, configLines_out);
         }
 
+
         private static void Write_file(Session session, string path, string filename, string filecontent) {
             System.IO.Directory.CreateDirectory(path);  // Ensures that the path exists
             File.WriteAllText(path + "\\" + filename, filecontent);       //  throws an Exception if path does not exist
             session.Log(@"...created " + path + "\\" + filename);
         }
+
 
         private static void Writeln_file(Session session, string path, string filename, string filecontent) {
             Write_file(session, path, filename, filecontent + Environment.NewLine);
@@ -572,8 +559,6 @@ Then the custom config is laid down by the installer... and `master` and `minion
 
 
         private static bool replace_in_file_DECAC(Session session, string config_file, string pattern, string replacement) {
-            /*
-       */
             bool replaced = false;
             bool found = false;
             session.Log("...replace_in_file_DECAC   config file    {0}", config_file);
@@ -622,6 +607,7 @@ Then the custom config is laid down by the installer... and `master` and `minion
             return session.CustomActionData["root_dir"] + "conf\\minion";
         }
 
+
         private static string getConfigdDirectoryLocation_DECAC(Session session) {
             // DECAC means you must access data helper properties at session.CustomActionData[*]
             return session.CustomActionData["root_dir"] + "conf\\minion.d";
@@ -664,6 +650,7 @@ Then the custom config is laid down by the installer... and `master` and `minion
                 }
             }
         }
+
 
         private static void Move_dir(Session session, string ffn, string timestamp_bak) {
             string target = ffn + timestamp_bak;
