@@ -67,6 +67,7 @@
     <Message Text="  ******************           DisplayVersion = $(DisplayVersion)"/>
     <Message Text="  ******************          InternalVersion = $(InternalVersion)"/>
     <Message Text="  ******************                  Version = $(Version)"/>
+    <Message Text="  ******************            PythonVersion = $(PythonVersion)"/>
 
     <!-- This is to prevent insane combinations of TargetPlatform and InstallerPlatform -->
     <!-- BEWARE This is not WiX, this is msbuild -->
@@ -77,10 +78,11 @@
                      or ('$(TargetPlatform)'=='amd64' and '$(InstallerPlatform)'=='x64'))"
            Text="TargetPlatform $(TargetPlatform) and InstallerPlatform $(InstallerPlatform) do not match" />
 
+    <!-- This is where the file base-name of the msi is set -->
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
-      <TargetName Condition="'$(TargetPlatform)'=='win32'">Salt-Minion-$(DisplayVersion)-32bit</TargetName>
-      <TargetName Condition="'$(TargetPlatform)'=='amd64'">Salt-Minion-$(DisplayVersion)-64bit</TargetName>
+      <TargetName Condition="'$(TargetPlatform)'=='win32'">Salt-Minion-$(DisplayVersion)-Py$(PythonVersion)-32bit</TargetName>
+      <TargetName Condition="'$(TargetPlatform)'=='amd64'">Salt-Minion-$(DisplayVersion)-Py$(PythonVersion)-64bit</TargetName>
     </PropertyGroup>
   </Target>
 
