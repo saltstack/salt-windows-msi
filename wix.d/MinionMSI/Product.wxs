@@ -99,6 +99,20 @@
       OR  (NOT ZMQ_FILTERING)      
       ]]>
     </Condition>
+    <Condition Message="MINION_ID_CACHING must not be [MINION_ID_CACHING]. Please use 1 or &quot;&quot; (two double quotes).">
+      <![CDATA[
+      Installed
+      OR  (MINION_ID_CACHING = 1)
+      OR  (NOT MINION_ID_CACHING)      
+      ]]>
+    </Condition>
+    <Condition Message="KEEP_CONFIG must not be [KEEP_CONFIG]. Please use 1 or &quot;&quot; (two double quotes).">
+      <![CDATA[
+      Installed
+      OR  (KEEP_CONFIG = 1)
+      OR  (NOT KEEP_CONFIG)      
+      ]]>
+    </Condition>
 
 
     <!--
@@ -234,8 +248,8 @@
       
       <!--  Remove 'lifetime' data on uninstall (and upgrade?) Lifetime data is mainly *.pyc files. -->
       <Custom Action='Uninstall_incl_Config_CADH'   
-              Before='Uninstall_incl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
-      <Custom Action='Uninstall_incl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "0")</Custom>
+              Before='Uninstall_incl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (NOT KEEP_CONFIG)</Custom>
+      <Custom Action='Uninstall_incl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (NOT KEEP_CONFIG)</Custom>
       
       <Custom Action='Uninstall_excl_Config_CADH'   
               Before='Uninstall_excl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>

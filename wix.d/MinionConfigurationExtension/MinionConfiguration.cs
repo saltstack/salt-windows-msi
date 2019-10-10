@@ -310,7 +310,7 @@ namespace MinionConfigurationExtension {
                 append_to_config_DECAC(session, "id", id);
             }
             if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_caching", ref minion_id_caching)) {
-                if (minion_id_caching != "1") {
+                if (minion_id_caching == "False") {
                     append_to_config_DECAC(session, "minion_id_caching", minion_id_caching);
                 }
             }
@@ -364,13 +364,18 @@ def id_function():
         }
 
         private static bool replace_Saltkey_in_previous_configuration_DECAC(Session session, string SaltKey, ref string CustomActionData_value) {
+            // Read SaltKey properties and convert some from 1 to True or to False
             bool replaced = false;
 
             session.Log("...replace_Saltkey_in_previous_configuration_DECAC Key   " + SaltKey);
             CustomActionData_value = MinionConfigurationUtilities.get_property_DECAC(session, SaltKey);
-            if (SaltKey == "zmq_filtering" && CustomActionData_value == "1") {
-                CustomActionData_value = "True";
-                session.Log("...changing zmq_filtering from 1 to " + CustomActionData_value);
+            if (SaltKey == "zmq_filtering") {
+                CustomActionData_value = (CustomActionData_value == "1") ? "True" : "False";
+                session.Log("...changed zmq_filtering to " + CustomActionData_value);
+            }
+            if (SaltKey == "minion_id_caching") {
+                CustomActionData_value = (CustomActionData_value == "1") ? "True" : "False";
+                session.Log("...changed zmq_filtering to " + CustomActionData_value);
             }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
