@@ -71,9 +71,9 @@ You can set a new master public key with `MASTER_KEY`, but you must convert it i
 
 ### `MINION_CONFIG`
 
-If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with the content. To include whitespace, use double quotes around. For line breaks, use ";".
+If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with the content. To include whitespace, use double quotes around. For line breaks, use "^".
 
-Example `MINION_CONFIG="a: A;b: B"` results in:
+Example `MINION_CONFIG="a: A^b: B"` results in:
 
     a: A
     b: B
