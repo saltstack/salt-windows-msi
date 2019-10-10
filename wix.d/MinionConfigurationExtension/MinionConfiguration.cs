@@ -73,11 +73,11 @@ namespace MinionConfigurationExtension {
                 /* Overwrite the existing config if present with the default config for salt. 
                  */
 
-                if (session["MASTER"] == "#") {
+                if (session["MASTER"] == "") {
                     session["MASTER"] = "salt";
                     session.Log("...MASTER set to salt because it was unset and CONFIG_TYPE=Default");
                 }
-                if (session["MINION_ID"] == "#") {
+                if (session["MINION_ID"] == "") {
                     session["MINION_ID"] = Environment.MachineName;
                     session.Log("...MINION_ID set to hostname because it was unset and CONFIG_TYPE=Default");
                 }
@@ -94,7 +94,7 @@ namespace MinionConfigurationExtension {
                  */
 
                 /////////////////master
-                if (session["MASTER"] == "#") {
+                if (session["MASTER"] == "") {
                     session.Log("...MASTER       kept config   =" + master_from_previous_installation);
                     if (master_from_previous_installation != "") {
                         session["MASTER"] = master_from_previous_installation;
@@ -106,7 +106,7 @@ namespace MinionConfigurationExtension {
                 }
 
                 ///////////////// minion id
-                if (session["MINION_ID"] == "#") {
+                if (session["MINION_ID"] == "") {
                     session.Log("...MINION_ID   kept config   =" + id_from_previous_installation);
                     if (id_from_previous_installation != "") {
                         session.Log("...MINION_ID set to kept config ");
@@ -122,7 +122,7 @@ namespace MinionConfigurationExtension {
             // Save the salt-master public key 
             var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
             var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
-            bool MASTER_KEY_set = session["MASTER_KEY"] != "#";
+            bool MASTER_KEY_set = session["MASTER_KEY"] != "";
             session.Log("...master key earlier config file exists = " + File.Exists(master_public_key_filename));
             session.Log("...master key msi property given         = " + MASTER_KEY_set);
             if (MASTER_KEY_set) {

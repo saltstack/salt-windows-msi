@@ -120,36 +120,29 @@
         Naming conventions:   https://docs.microsoft.com/en-us/windows/win32/msi/restrictions-on-property-names
         Public properties may be changed by the user and must be upper-case.
 
-        The value "#" is our convention for "unset". 
-        Alternatively, the msi property that is never set is unset, these are them:
+        On msi properties, logic expressions and checkboxes:
+          A msi property is false if and only if it is unset, undefined, missing, the empty string (msi properties are strings).
+          A checkbox is empty if and only if the relevant msi property is false.
+
+        These are the msi properties unset by default:
+           MASTER
+           MASTER_KEY
+           MINION_ID
            MINION_ID_FUNCTION
            MINION_ID_REMOVE_DOMAIN
            MINION_CONFIG
            ZMQ_FILTERING
-        
+           
         You *must* mention each msi property at the CADH helper or the DECAC function will crash:
-        A DECAC that looks up a not-listed-in CADH key crashes:
-          Example
+        (A DECAC that looks up a not-listed-in CADH key crashes).
+          Example:
             In the CADH:
               master=[MASTER];minion_id_function=[MINION_ID_FUNCTION]
             In the DECAC:
               session.CustomActionData["master"]      THIS IS OK
-              session.CustomActionData["mister"]      THIS WILL CRASH
-
-        On START_MINION and checkbox:
-        A checkbox is only empty if a property is undefined (missing).
-        You delete a property with "" on the commandline
-        When you say START_MINION="" on the commandline, the service will not start and the checkbox will empty.
-        When you say START_MINION=0 on the commandline, the service will not start, but the checkbox will be set.
-        When you say START_MINION=0 /qn on the commandline (no GUI), the service will not start.
-
-      Salt msi properties that need to be set before the minion starts for the first time.
-
+              session.CustomActionData["mister"]      THIS WILL CRASH           
     -->
 
-    <Property Id="MASTER"                   Value="#"                    />
-    <Property Id="MASTER_KEY"               Value="#"                    />
-    <Property Id="MINION_ID"                Value="#"                    />
     <Property Id="MINION_ID_CACHING"        Value="1"                    />
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
@@ -158,7 +151,7 @@
 
 
     <!-- 
-    Windows Installer msi properties              https://msdn.microsoft.com/en-us/library/windows/desktop/aa370905(v=vs.85).aspx 
+    Windows Installer msi properties              https://docs.microsoft.com/en-us/windows/win32/msi/property-reference
     
     Logging into %TEMP%\MSIxxxxx.LOG  
     All MsiLogging values 
