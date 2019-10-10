@@ -25,7 +25,7 @@ Example: set the master and its key:
 
 Example: uninstall and remove configuration
 
-> MsiExec.exe /X *.msi KEEP_CONFIG=0
+> MsiExec.exe /X *.msi KEEP_CONFIG=""
 
 ## Features
 
@@ -41,12 +41,12 @@ Minion-specific msi-properties:
  `MASTER_KEY`           |                         | The master public key. See below.
  `ZMQ_filtering`        |                         | Set to `1` if the master requires zmq_filtering.
  `MINION_ID`            | Hostname                | The minion id.
- `MINION_ID_CACHING`    | `1`                     | Set to `0` if the minion id shall be determined at each salt-minion service start.
+ `MINION_ID_CACHING`    | `1`                     | Set to `""` if the minion id shall be determined at each salt-minion service start.
  `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
  `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | Name of a custom config file in the same path as the installer or the full path.
  `MINION_CONFIG`        |                         | Written to the `minion` config file, lines are separated by comma. See below.
- `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service. (`START_MINION=""`)
- `KEEP_CONFIG`          | `1`                     | Set to `0` to remove configuration on uninstall.
+ `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service.
+ `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default` or `New`. See below.
  `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
