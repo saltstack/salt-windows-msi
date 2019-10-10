@@ -358,7 +358,7 @@ def id_function():
             session.Log(@"...save_config_DECAC");
             string kwargs_in_commata = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
             if (kwargs_in_commata.Length > 0) {
-                string lines = kwargs_in_commata.Replace(",", Environment.NewLine);
+                string lines = kwargs_in_commata.Replace(";", Environment.NewLine);
                 MinionConfigurationUtilities.Writeln_file(session, @"C:\salt\conf", "minion", lines);
             }
         }
