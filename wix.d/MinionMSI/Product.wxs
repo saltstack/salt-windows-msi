@@ -322,9 +322,17 @@
     <Icon Id="icon" SourceFile="$(var.dist)\..\installer\salt.ico" />
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
 
-    <!-- Dimensions of images must follow http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html  -->
+    <!--
+    Images:
+      - Dimensions of images must follow http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html
+      - WixUIDialogBmp must be transparent
+    Create imgLeft.png from panel.bmp:
+       Open paint3D:
+         - new image, ..., canvas options: Transparent canvas off, Resize image with canvas NO, Width 493 Height 312
+         - paste panel.bmp, move to the left, save as
+    -->
     <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
-    <WixVariable Id="WixUIDialogBmp" Value="imgLeft.jpg" />
+    <WixVariable Id="WixUIDialogBmp" Value="imgLeft.png" />
 
     <UIRef Id="WixUI_Minion" />                             <!-- Include WixUI_Minion.wxs in this directory -->
     
