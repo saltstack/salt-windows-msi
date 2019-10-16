@@ -2,7 +2,7 @@
 
 This project creates a Salt Minion msi installer using [WiX][WiX_link].
 
-The focus is on 64bit, unattended install, Python 2.
+The focus is on 64bit, unattended install.
 
 ## Introduction
 
