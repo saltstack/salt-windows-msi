@@ -17,7 +17,7 @@ MinimumVisualStudioVersion = 10.0.40219.1
 ```  
 The VisualStudioVersion: 14.0.25420.1 translates to VS2015 with Service Pack 3. This is available for download
 for free from https://visualstudio.microsoft.com/vs/older-downloads/ so long as you have a develop account. This
-is free for developers and does not expire. What this enables you to do is build the MSI using the build in Wix
+is free for developers and does not expire. What this enables you to do is build the MSI using the built-in Wix
 commands, all from within the IDE. Note that this requires:
  - [This](https://marketplace.visualstudio.com/items?itemName=WixToolset.WixToolsetVisualStudio2015Extension)
  extention 
