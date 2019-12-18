@@ -27,74 +27,65 @@ goto :eof
 
 :ok
 
-:: Detecting Python...
-dir "C:\python27\python.exe" >nul 2>&1
-if not %errorLevel%==0 (
-  echo FATAL failure: This script needs Python in "C:\python27\python.exe"
-  goto eof
-)
-
-:: Detecting Salt repository...
-dir "C:\git\salt\.git" >nul 2>&1
-if not %errorLevel%==0 (
-  echo FATAL failure: This script needs the Salt repository  in "C:\git\salt\"
-  goto eof
-)
-
-:: Checking if we can determine Salt Version...
-echo We are going to build version...
-C:\Python27\python \git\salt\salt\version.py 
-if not %errorLevel%==0 (
-  echo FATAL failure: This script needs to execute C:\Python27\python \git\salt\salt\version.py
-  goto eof
-)
-echo We are going to build msi internal version...
-C:\Python27\python \git\salt\salt\version.py msi
-if not %errorLevel%==0 (
-  echo FATAL failure: This script needs to execute C:\Python27\python \git\salt\salt\version.py
-  goto eof
-)
 
 :: Detecting NSIS build...
 set saltpythonexe=..\salt\pkg\windows\buildenv\bin\python.exe
 dir %saltpythonexe% >nul 2>&1
 if not %errorLevel%==0 (
   echo FATAL Missing %saltpythonexe%
-  echo       Have you build NSIS?  try  "cd ..\salt\pkg\windows"  and  "build.bat"
-  goto eof
+  echo       Have you build NSIS?  Try  "cd ..\salt\pkg\windows"  and  "build.bat"
+  goto :eof
 )
 
-:: Detecting NSIS build output Python 2...
+
+:: Detecting Salt Version...
+%saltpythonexe% ..\salt\salt\version.py >nul 2>&1
+if not %errorLevel%==0 (
+  echo FATAL cannot execute %saltpythonexe% ..\salt\salt\version.py
+  goto :eof
+)
+for /f "delims=" %%A in ('%saltpythonexe% ..\salt\salt\version.py') do set "SaltDisplayVersion=%%A"
+
+%saltpythonexe% ..\salt\salt\version.py msi >nul 2>&1
+if not %errorLevel%==0 (
+  echo FATAL cannot execute %saltpythonexe% ..\salt\salt\version.py msi
+  goto :eof
+)
+for /f "delims=" %%A in ('%saltpythonexe% ..\salt\salt\version.py msi') do set "SaltInternalVersion=%%A"
+echo Found Salt   %SaltDisplayVersion% (msi %SaltInternalVersion%)
+
+
+:: Detecting Python 2 or 3 from NSIS exe ...
 set saltpythonversion=0
-dir C:\git\salt\pkg\windows\installer\Salt-Minion*Py2*.exe >nul 2>&1
+dir ..\salt\pkg\windows\installer\Salt-Minion*Py2*.exe >nul 2>&1
 if %errorLevel%==0 (
   set saltpythonversion=2
 )
-dir C:\git\salt\pkg\windows\installer\Salt-Minion*Py3*.exe >nul 2>&1
+dir ..\salt\pkg\windows\installer\Salt-Minion*Py3*.exe >nul 2>&1
 if %errorLevel%==0 (
   set saltpythonversion=3
 )
 if %saltpythonversion%==0 (
   echo FATAL Cannot determine Python 2 or 3
-  echo       There is neither C:\git\salt\pkg\windows\installer\Salt-Minion*Py2*.exe 
-  echo                nor     C:\git\salt\pkg\windows\installer\Salt-Minion*Py3*.exe
-  goto eof
+  echo       There is neither ..\salt\pkg\windows\installer\Salt-Minion*Py2*.exe 
+  echo                nor     ..\salt\pkg\windows\installer\Salt-Minion*Py3*.exe
+  goto :eof
 ) else (
   echo Found Python %saltpythonversion%
 )
 
-:: msbuild
+:: Double check msbuild
 set msbuildpath="%ProgramFiles(x86)%"\MSBuild\14.0\Bin
 dir %msbuildpath% >nul 2>&1
 if not %errorLevel%==0 (
   echo FATAL Requires MSBuild 2015 from https://www.microsoft.com/en-in/download/details.aspx?id=48159
-  goto eof
+  goto :eof
 )
 
 
-:: decoy version values to understand the relationship between msbuild and WiX...
+:: Call msbuid
 @echo on
-call %msbuildpath%\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%salt_targetplatform% /p:Platform=%salt_platform% /p:DisplayVersion=2020.1.1 /p:InternalVersion=20.1.1.100 /p:PythonVersion=%saltpythonversion%
+call %msbuildpath%\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%salt_targetplatform% /p:Platform=%salt_platform% /p:DisplayVersion=%SaltDisplayVersion% /p:InternalVersion=%SaltInternalVersion% /p:PythonVersion=%saltpythonversion%
 @echo off
 
 dir                          wix.d\MinionMSI\bin\Release\*.msi
@@ -104,6 +95,15 @@ if '%1'=='32' (
   echo  ****** WARNING *******     The 32bit installer is untested
   echo   ****** WARNING *******
 )
+
+set "salt_targetplatform="
+set "salt_platform="
+set "salt_bitness="
+set "saltpythonexe="
+set "msbuildpath="
+set "SaltDisplayVersion%="
+set "SaltInternalVersion="
+set "saltpythonversion="
 
 
 :eof

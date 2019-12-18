@@ -28,8 +28,7 @@ commands, all from within the IDE. Note that this requires:
 The build client is where the msi installer is built.
 
 - 64bit Windows 10
-- Salt clone in `c:\git\salt\`
-- This clone in `c:\git\salt-windows-msi\`
+- The Git repositories `salt` and `salt-windows-msi`
 - .Net 3.5 SDK (for WiX)<sup>*</sup>
 - Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 SP2 in `c:\salt_msi_resources\`<sup>**</sup>
 - Microsoft_VC140_CRT_x64.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
@@ -49,7 +48,7 @@ Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items
 
 Execute
 
-    cd c:\git\salt\pkg\windows
+    cd c:\dev\salt\pkg\windows
     git checkout v2018.3.4
     git checkout .
     git clean -fd
@@ -68,7 +67,7 @@ then execute
 
 Execute
 
-    cd c:\git\salt-windows-msi
+    cd c:\dev\salt-windows-msi
     build_env.cmd
     build.cmd
 
