@@ -32,8 +32,8 @@
     ================================================================================
        setVersionProperties
 
-        Queries git for salt DisplayVersion and InternalVersion 
-        These msbuild variable are sent to WiX by in two different manners:
+        Regarding DisplayVersion and InternalVersion:
+        These msbuild variables are sent to WiX by in two different manners:
            Output PropertyName
            DefineConstants magic
 
@@ -43,18 +43,7 @@
   -->
   <Target Name="setVersionProperties">
 
-    <!--  
-    ConsoleToMsBuild in Exec requires ToolsVersion="12.0" (Microsoft Build Tools 2013)
-     
-    Exec runs in MSBuildProjectDirectory
-    This depends on the target, it is      C:\git\salt-windows-msi\wix\MinionMSI       or    C:\git\salt-windows-msi
-    So MSBuildProjectDirectory is not very usefull.
-    Quirk: using hard coded path
-    Maybe abandon to get the version from within msbuild, and give it to msbuild as a parameter, as saxonww did.
-    -->
     <Message Text="  ****************** msbuild.d/Minion.Common.targets ***************************   "/>
-    <Exec Command="C:\Python27\python \git\salt\salt\version.py"     ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="DisplayVersion"  /></Exec>
-    <Exec Command="C:\Python27\python \git\salt\salt\version.py msi" ConsoleToMsBuild="true"><Output TaskParameter="ConsoleOutput" PropertyName="InternalVersion" /></Exec>
 
     <Error Condition="'$(DisplayVersion)'==''"  Text="DisplayVersion must be set" />
     <Error Condition="'$(InternalVersion)'==''" Text="InternalVersion must be set" />
