@@ -1,4 +1,8 @@
 @echo off
+::
+:: This Script creates the msi
+::
+::::::::::::::::::::::::::::::
 
 :: WISE STUDIO perceives the 64bit msi as 32bit msi.
 :: Explicitly adding Platform
@@ -74,6 +78,7 @@ if %saltpythonversion%==0 (
   echo Found Python %saltpythonversion%
 )
 
+
 :: Double check msbuild
 set msbuildpath="%ProgramFiles(x86)%"\MSBuild\14.0\Bin
 dir %msbuildpath% >nul 2>&1
@@ -88,14 +93,11 @@ if not %errorLevel%==0 (
 call %msbuildpath%\msbuild.exe msbuild.proj /nologo /t:wix /p:TargetPlatform=%salt_targetplatform% /p:Platform=%salt_platform% /p:DisplayVersion=%SaltDisplayVersion% /p:InternalVersion=%SaltInternalVersion% /p:PythonVersion=%saltpythonversion%
 @echo off
 
-dir                          wix.d\MinionMSI\bin\Release\*.msi
 
-if '%1'=='32' (
-  echo ****** WARNING *******
-  echo  ****** WARNING *******     The 32bit installer is untested
-  echo   ****** WARNING *******
-)
+echo  * * * WiX ended * * * 
+dir wix.d\MinionMSI\bin\Release\*.msi
 
+:: Remove environment variables
 set "salt_targetplatform="
 set "salt_platform="
 set "salt_bitness="
@@ -104,6 +106,5 @@ set "msbuildpath="
 set "SaltDisplayVersion%="
 set "SaltInternalVersion="
 set "saltpythonversion="
-
 
 :eof
