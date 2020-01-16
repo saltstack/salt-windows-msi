@@ -1,6 +1,8 @@
 ###
 ###  Downloads software to c:\salt_msi_resources
 ###
+Set-PSDebug -Strict
+Set-strictmode -version latest
 
 function Verify ($local_file, $SHA256) {
     if (-Not (Test-Path $local_file)) {
