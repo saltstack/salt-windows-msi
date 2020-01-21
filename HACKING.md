@@ -162,6 +162,13 @@ properties, and the current value of those properties:
 
 ### Other Notes
 
+The Windows installer restricts the maximum values of the [ProductVersion property](https://docs.microsoft.com/en-us/windows/win32/msi/productversion): 
+
+- major.minor.build 
+- `255.255.65535`
+
+Because of this restriction "Salt 2018.3.4" has ProductVersion `18.3.4`.
+
 [Wix-Setup-Samples](https://github.com/deepak-rathi/Wix-Setup-Samples)
 
 [Which Python version uses which MS VC CRT version](https://wiki.python.org/moin/WindowsCompilers)
