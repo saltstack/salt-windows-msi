@@ -50,6 +50,9 @@ Execute
 
     cd c:\dev\salt\pkg\windows
     git checkout v2018.3.4
+
+Repeat
+
     git checkout .
     git clean -fd
 
@@ -71,7 +74,9 @@ Execute
     build_env.cmd
     build.cmd
 
-You should see screen output containing:
+`build_env.cmd` will create a cache in `c:/salt_msi_resources`
+
+`build.cmd` should return output ending in:
 
     Build succeeded
       warning CNDL1150
@@ -79,14 +84,19 @@ You should see screen output containing:
         2 Warning(s)
         0 Error(s)
 
-To test, you may use one of `test*.cmd`.
+To test the msi installer, you may use one of `test*.cmd`.
 
 To read the most recent msi logfile, you may use `open_last_log_in_code.cmd`
 
-### Directory structure
+
+### Remark on atomicity 
 
 To achieve an atomic installation (either installed or the prior state is restored), all changes (filesystem and registry) must be manipulated by WiX code.
-The C# code is needed to manipulate the configuration files. 
+The C# code is only needed to manipulate the configuration files. 
+
+This means that any filesystem and registry change by C# is not atomic.
+
+### Directory structure
 
 - msbuild.proj: main MSbuild file.
 - msbuild.d/: contains MSbuild resource files:
