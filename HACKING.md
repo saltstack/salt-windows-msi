@@ -100,7 +100,7 @@ This means that any filesystem and registry change by C# is not atomic.
 
 - msbuild.proj: main MSbuild file.
 - msbuild.d/: contains MSbuild resource files:
-  - BuildDistFragment.targets: find files (from the extracted distribution?).
+  - BuildDistFragment.targets: find NSIS files, creates temporary file dist-$(TargetPlatform).wxs.
   - ~~DownloadVCRedist.targets~~: (ORPHANED) download Visual C++ redistributable for bundle.
   - Minion.Common.targets: set version and platform parameters, set the file base-name of the msi.
 - salt-windows-msi.sln: Visual Studio solution file, included in msbuild.proj.
@@ -109,7 +109,7 @@ This means that any filesystem and registry change by C# is not atomic.
     - MinionConfiguration.cs
   - ~~MinionEXE~~/: (ORPHANED) create a bundle.
   - MinionMSI/: create a msi:
-    - dist-$(TargetPlatform).wxs: files from NSIS.
+    - dist-$(TargetPlatform).wxs: (TEMPORARY FILE) NSIS-files, created by BuildDistFragment.targets
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
     - MinionMSI.wixproj: msbuild boilerplate.
     - Product.wxs: main file.
