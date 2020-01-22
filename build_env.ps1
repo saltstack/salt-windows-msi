@@ -59,9 +59,11 @@ $h = "0D36CFE6E9ABD7F530DBAA4A83841CDBEF9B2ADCB625614AF18208FDCD6B92A4"
 OptionallyDownloadAndVerify $f $u $h
 
 
-## You get WiX from https://wixtoolset.org/releases/
+## You get WiX from https://wixtoolset.org/releases
 ##
-## Wix 3.11.1 robmen released this on Dec 31, 2017
+## Wix 3.11.1  released Dec 31, 2017
+## Wix 3.11.2  released Sep 19, 2019 (Unneeded protection against maliciously crafted cabinet or zip files) 
+
 ##
 ## You must edit the hard reference to the WiX version in file
 ##          wix.d/MinionConfigurationExtension/MinionConfigurationExtension.csproj
@@ -75,7 +77,7 @@ if (Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\"{AA06E8
     $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
     $dotnet3enabled = $dotnet3state -Eq "Enabled"
     if (-Not ($dotnet3enabled)) {
-        "To use WiX 3.11 on Windows 10, you need to enable .Net Framework 3.5"
+        Write-Host -ForegroundColor Red "To use WiX 3.11 on Windows 10, you need to enable .Net Framework 3.5"
         Start-Process optionalfeatures -Wait -NoNewWindow
     }
     

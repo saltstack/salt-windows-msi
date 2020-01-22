@@ -132,15 +132,18 @@
            MINION_ID_REMOVE_DOMAIN
            MINION_CONFIG
            ZMQ_FILTERING
-           
-        You *must* mention each msi property at the CADH helper or the DECAC function will crash:
-        (A DECAC that looks up a not-listed-in CADH key crashes).
-          Example:
-            In the CADH:
-              master=[MASTER];minion_id_function=[MINION_ID_FUNCTION]
-            In the DECAC:
-              session.CustomActionData["master"]      THIS IS OK
-              session.CustomActionData["mister"]      THIS WILL CRASH           
+
+        On msi properties, use in custom actions:
+          DECAC means "Deferred cusmtom action in C#"
+          CADH  means "Custom action data helper"
+          You *must* mention each msi property at the CADH helper or the DECAC function will crash:
+          (A DECAC that tries to use a msi property not listed in its CADH crashes).
+            Example:
+              In the CADH:
+                master=[MASTER];minion_id_function=[MINION_ID_FUNCTION]
+              In the DECAC:
+                session.CustomActionData["master"]      THIS IS OK
+                session.CustomActionData["mister"]      THIS WILL CRASH           
     -->
 
     <Property Id="MINION_ID_CACHING"        Value="1"                    />

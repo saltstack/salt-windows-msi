@@ -9,10 +9,7 @@
     ================================================================================
   -->
   <PropertyGroup>
-    <!-- mkr TargetPlatform does what?! -->
-    <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
-    <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>
-    <!-- mkr
+    <!-- 
     An msi can only be for 32 or 64 bit.
     What to call "32 or 64 bit" depends on the context.
     There is Platform, TargetPlatform and InstallerPlatform. We ignore ProcessorArchitecture, which is unset.
@@ -20,6 +17,8 @@
     It seems that the InstallerPlatform property triggers the candle -arch parameter.
     It seems silly that I must set TargetPlatform from InstallerPlatform.
     -->
+    <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x86'">win32</TargetPlatform>
+    <TargetPlatform Condition="'$(TargetPlatform)'=='' AND '$(Platform)'=='x64'">amd64</TargetPlatform>
     <InstallerPlatform Condition="'$(TargetPlatform)'=='win32'">x86</InstallerPlatform>
     <InstallerPlatform Condition="'$(TargetPlatform)'=='amd64'">x64</InstallerPlatform>
 
