@@ -101,13 +101,13 @@ This means that any filesystem and registry change by C# is not atomic.
 - msbuild.proj: main MSbuild file.
 - msbuild.d/: contains MSbuild resource files:
   - BuildDistFragment.targets: find files (from the extracted distribution?).
-  - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable for bundle.
+  - ~~DownloadVCRedist.targets~~: (ORPHANED) download Visual C++ redistributable for bundle.
   - Minion.Common.targets: set version and platform parameters, set the file base-name of the msi.
 - salt-windows-msi.sln: Visual Studio solution file, included in msbuild.proj.
 - wix.d/: installer sources:
   - MinionConfigurationExtension/: C# for custom actions:
     - MinionConfiguration.cs
-  - MinionEXE/: (ORPHANED) create a bundle.
+  - ~~MinionEXE~~/: (ORPHANED) create a bundle.
   - MinionMSI/: create a msi:
     - dist-$(TargetPlatform).wxs: files from NSIS.
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
