@@ -100,24 +100,24 @@ This means that any filesystem and registry change by C# is not atomic.
 
 - msbuild.proj: main MSbuild file.
 - msbuild.d/: contains MSbuild resource files:
-  - BuildDistFragment.targets: find files (from the extracted distribution?).
-  - DownloadVCRedist.targets: (ORPHANED) download Visual C++ redistributable for bundle.
+  - BuildDistFragment.targets: find NSIS files, creates temporary file dist-$(TargetPlatform).wxs.
+  - ~~DownloadVCRedist.targets~~: (ORPHANED) download Visual C++ redistributable for bundle.
   - Minion.Common.targets: set version and platform parameters, set the file base-name of the msi.
 - salt-windows-msi.sln: Visual Studio solution file, included in msbuild.proj.
 - wix.d/: installer sources:
   - MinionConfigurationExtension/: C# for custom actions:
     - MinionConfiguration.cs
-  - MinionEXE/: (ORPHANED) create a bundle.
+  - ~~MinionEXE~~/: (ORPHANED) create a bundle.
   - MinionMSI/: create a msi:
-    - dist-$(TargetPlatform).wxs: found files (from the distribution zip file?).
+    - dist-$(TargetPlatform).wxs: (TEMPORARY FILE) NSIS-files, created by BuildDistFragment.targets
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
     - MinionMSI.wixproj: msbuild boilerplate.
-    - Product.wxs: main file, that e.g. includes the UI description.
+    - Product.wxs: main file.
+    - ProductUI.wxs: UI flow description.
+    - ProductUIsettings.wxs: Dialog for the master/minion properties.
     - service.wxs: salt-minion Windows Service using ssm.exe, the Salt Service Manager.
     - servicePython.wxs: (EXPERIMENTAL) salt-minion Windows Service
       - requires [saltminionservice](https://github.com/saltstack/salt/blob/167cdb344732a6b85e6421115dd21956b71ba25a/salt/utils/saltminionservice.py) or [winservice](https://github.com/saltstack/salt/blob/3fb24929c6ebc3bfbe2a06554367f8b7ea980f5e/salt/utils/winservice.py) [Removed](https://github.com/saltstack/salt/commit/8c01aacd9b4d6be2e8cf991e3309e2a378737ea0)
-    - SettingsCustomizationDlg.wxs: Dialog for the master/minion properties.
-    - WixUI_Minion.wxs: UI description, that includes the dialog.
 
 ### Naming conventions
 
@@ -150,12 +150,12 @@ If the new custom action should be exposed to the UI, additional changes
 are required:
 
 - SettingsCustomizatonDlg.wxs: There is room to add 1-2 more properties to this dialog.
-- WixUI_Minion.wxs: A &lt;ProgressText /&gt; entry providing a brief description of what the new action is doing.
+- ProductUI.wxs: A &lt;ProgressText /&gt; entry providing a brief description of what the new action is doing.
 
 If the new custom action requires its own dialog, these additional changes are required:
 
 - The new dialog file.
-- WixUI_Minion.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs.
+- ProductUI.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs.
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
@@ -171,6 +171,13 @@ properties, and the current value of those properties:
 > msbuild msbuild.proj /t:help
 
 ### Other Notes
+
+The Windows installer restricts the maximum values of the [ProductVersion property](https://docs.microsoft.com/en-us/windows/win32/msi/productversion): 
+
+- major.minor.build 
+- `255.255.65535`
+
+Because of this restriction "Salt 2018.3.4" has ProductVersion `18.3.4`.
 
 [Wix-Setup-Samples](https://github.com/deepak-rathi/Wix-Setup-Samples)
 

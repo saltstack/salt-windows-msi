@@ -337,7 +337,7 @@
     <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="imgLeft.png" />
 
-    <UIRef Id="WixUI_Minion" />                             <!-- Include WixUI_Minion.wxs in this directory -->
+    <UIRef Id="ProductUI" />                             <!-- Include ProductUI.wxs in this directory -->
     
     <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- Do not create cab files -->
     

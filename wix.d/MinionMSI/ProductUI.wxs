@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- This fragment is included by Product.wxs -->
   <Fragment>
-    <UI Id="WixUI_Minion">
+    <UI Id="ProductUI">
 
       <UIRef Id="WixUI_InstallDir" />
 
@@ -16,15 +16,15 @@
           Welcome
           EULA
           InstallDirDlg            == Destination Folder
-          SettingsCustomizationDlg == Hostname Specification
+          ProductUIsettings        == Hostname Specification
           VerifyReadyDlg           == Ready to install
        -->
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="SettingsCustomizationDlg" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
+      <Publish Dialog="InstallDirDlg"     Control="Next" Event="NewDialog" Value="ProductUIsettings" Order="4">WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID="1"</Publish>
 
-      <Publish Dialog="SettingsCustomizationDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
-      <Publish Dialog="SettingsCustomizationDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg">1</Publish>
+      <Publish Dialog="ProductUIsettings" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="ProductUIsettings" Control="Back" Event="NewDialog" Value="InstallDirDlg">1</Publish>
 
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="SettingsCustomizationDlg" Order="1">NOT Installed</Publish>
+      <Publish Dialog="VerifyReadyDlg"    Control="Back" Event="NewDialog" Value="ProductUIsettings" Order="1">NOT Installed</Publish>
 
       <ProgressText Action="WriteConfig_DECAC">Configuring minion</ProgressText>
     </UI>
