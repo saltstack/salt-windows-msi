@@ -112,11 +112,6 @@ Current Defaults:
       <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionMSI\bin\$(Configuration)\Salt-Minion-*-Setup.msi">
         <OutputType>wix</OutputType>
       </Artifacts>
-      <!--
-      <Artifacts Include="$(MSBuildProjectDirectory)\wix\MinionEXE\bin\$(Configuration)\Salt-Minion-*-Setup.exe">
-        <OutputType>wix</OutputType>
-      </Artifacts>
-      -->
     </ItemGroup>
     <Message Text="Copying %(Artifacts.Identity) to $(StagingDir)\%(OutputType)" />
     <Copy Condition="'$(StagingDir)'!=''" SourceFiles="@(Artifacts)" DestinationFolder="$(StagingDir)\%(Artifacts.OutputType)" />
