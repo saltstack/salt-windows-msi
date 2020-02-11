@@ -240,8 +240,9 @@ namespace MinionConfigurationExtension {
              *   remove registry
              *   remove files, except /salt/conf and /salt/var
              *   
-             *   Instead of the aboce, MAYBE one could use \salt\uninst.exe and preserve the 2 directories by moving them into safety first. 
+             *   Instead of the above, TODO use uninst.exe and preserve the 2 directories (by moving them into safety first?)
              *   This would be cleaner code
+             *      uninst /S  does leave the installdir while    uninst /s /DeleteInstallDir  delete the installdir, both silentyl
             */
             session.Log("...Begin del_NSIS_DECAC");
             RegistryKey reg = Registry.LocalMachine;
