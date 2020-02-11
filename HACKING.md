@@ -169,6 +169,12 @@ properties, and the current value of those properties:
 > msbuild msbuild.proj /t:help
 
 ### Other Notes
+Install sequences documentation:
+
+- [standard-actions-reference](https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference)
+- [suggested-installuisequence](https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installuisequence)
+- [suggested-installexecutesequence](https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence)
+- [other docs](https://www.advancedinstaller.com/user-guide/standard-actions.html)
 
 The Windows installer restricts the maximum values of the [ProductVersion property](https://docs.microsoft.com/en-us/windows/win32/msi/productversion): 
 
