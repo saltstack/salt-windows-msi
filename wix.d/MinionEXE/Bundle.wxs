@@ -15,19 +15,6 @@
     </BootstrapperApplicationRef>
 
 		<Chain>
-      <ExePackage
-        Id="vcredist"
-        DisplayName="Visual Studio 2008 C++ Redistributable (x86)"
-        SourceFile="$(var.redistname)"
-        Compressed="no"
-        DownloadUrl="$(var.redisturl)"
-        InstallCommand="/q"
-        PerMachine="yes"
-        Permanent="yes"
-        Cache="no"/>
-
-      <RollbackBoundary />
-
       <MsiPackage
         Id="MainPackage"
         DisplayInternalUI="yes"

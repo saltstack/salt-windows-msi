@@ -18,6 +18,8 @@
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <DefineConstants>Debug</DefineConstants>
+    <WixVariables>
+    </WixVariables>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -54,6 +56,8 @@
   <ItemGroup>
     <Content Include="packages.config" />
   </ItemGroup>
+  <!-- Import our targets BEFORE the WiX ones so the dist fragment is picked up -->
+  <Import Project="..\..\msbuild.d\BuildDistFragment.targets" />
   <Import Project="$(WixTargetsPath)" />
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.
