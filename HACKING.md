@@ -42,7 +42,7 @@ The build client is where the msi installer is built.
 
 Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items?itemName=WixToolset.WiXToolset)
 
-### Step 1: build the exe installer
+### Step 1: build the Nullsoft (NSIS) exe installer
 
 [Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
 
@@ -74,7 +74,7 @@ Execute
     build_env.cmd
     build.cmd
 
-`build_env.cmd` will create a cache in `c:/salt_msi_resources`
+`build_env.cmd` will create a cache in `c:\salt_msi_resources`
 
 `build.cmd` should return output ending in:
 
@@ -84,7 +84,7 @@ Execute
         2 Warning(s)
         0 Error(s)
 
-To test the msi installer, you may use one of `test*.cmd`.
+To run the msi installer, you may use one of `install*.cmd` to test, one of `test*.cmd`.
 
 To read the most recent msi logfile, you may use `open_last_log_in_code.cmd`
 
@@ -106,6 +106,7 @@ This means that any filesystem and registry change by C# is not atomic.
 - wix.d/: installer sources:
   - MinionConfigurationExtension/: C# for custom actions:
     - MinionConfiguration.cs
+  - MinionEXE/: create an exe. (TODO)
   - MinionMSI/: create a msi:
     - dist-$(TargetPlatform).wxs: (TEMPORARY FILE) NSIS-files, created by BuildDistFragment.targets
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.

@@ -4,7 +4,7 @@
     ================================================================================
       Note: $(Platform) is the PROJECT platform, not the SOLUTION platform. If
             building in Visual Studio, this won't detect amd64 unless your build
-            configuration sets the x64 platform for MinionMSI, or
+            configuration sets the x64 platform for MinionMSI and MinionEXE, or
             you set TargetPlatform as a project variable in Visual Studio somewhere.
     ================================================================================
   -->

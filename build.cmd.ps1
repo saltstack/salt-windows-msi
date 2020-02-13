@@ -20,7 +20,7 @@ if (-not ($displayversion -match '^[\d\.]{6,18}$')) {
   Write-Host -ForegroundColor Red $displayversion is not a version
   exit(1)
 }
-if (-not ($internalversion -match '^\d\d\.[\d]{1,2}\.[\d]{1,2}$')) {
+if (-not ($internalversion -match '^\d\d\.[\d]{1,3}\.[\d]{1,3}\.*[\d]{0,3}$')) {
   Write-Host -ForegroundColor Red $internalversion is not a valid msi version
   exit(1)
 }
