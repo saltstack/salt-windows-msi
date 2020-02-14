@@ -106,7 +106,6 @@ This means that any filesystem and registry change by C# is not atomic.
 - wix.d/: installer sources:
   - MinionConfigurationExtension/: C# for custom actions:
     - MinionConfiguration.cs
-  - MinionEXE/: create an exe. (TODO)
   - MinionMSI/: create a msi:
     - dist-$(TargetPlatform).wxs: (TEMPORARY FILE) NSIS-files, created by BuildDistFragment.targets
     - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.

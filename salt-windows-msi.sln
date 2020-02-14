@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinionConfigurationExtensio
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MinionMSI", "wix.d\MinionMSI\MinionMSI.wixproj", "{A48B4B19-4787-4C37-984B-64E5F557F687}"
 EndProject
-Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "MinionEXE", "wix.d\MinionEXE\MinionEXE.wixproj", "{5257C9D8-3610-4568-A145-D8F461283636}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{609A10D6-3585-4E9F-ACE4-C9130DF617EB}"
 	ProjectSection(SolutionItems) = preProject
 		msbuild.d\BuildDistFragment.targets = msbuild.d\BuildDistFragment.targets
@@ -42,14 +40,6 @@ Global
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Release|amd64.Build.0 = Release|x64
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Release|win32.ActiveCfg = Release|x86
 		{A48B4B19-4787-4C37-984B-64E5F557F687}.Release|win32.Build.0 = Release|x86
-		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|amd64.ActiveCfg = Debug|x86
-		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|amd64.Build.0 = Debug|x86
-		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|win32.ActiveCfg = Debug|x86
-		{5257C9D8-3610-4568-A145-D8F461283636}.Debug|win32.Build.0 = Debug|x86
-		{5257C9D8-3610-4568-A145-D8F461283636}.Release|amd64.ActiveCfg = Release|x64
-		{5257C9D8-3610-4568-A145-D8F461283636}.Release|amd64.Build.0 = Release|x64
-		{5257C9D8-3610-4568-A145-D8F461283636}.Release|win32.ActiveCfg = Release|x86
-		{5257C9D8-3610-4568-A145-D8F461283636}.Release|win32.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
