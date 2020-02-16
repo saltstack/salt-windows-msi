@@ -69,40 +69,38 @@
 
     -->
     <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
-      <![CDATA[
-      Installed 
+      Installed
       OR  (MsiNTProductType = 1) AND (VersionNT >= 601)
       OR  (MsiNTProductType = 2) AND (VersionNT >= 602)
       OR  (MsiNTProductType = 3) AND (VersionNT >= 602)
-      ]]>
     </Condition>
-    <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB"><![CDATA[Installed OR (PhysicalMemory > 125)]]></Condition>
-    <Condition Message="Installation requires Administrator privileges">             <![CDATA[Privileged]]>                         </Condition>
+    <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">Installed OR (PhysicalMemory > 125)</Condition>
+    <Condition Message="Installation requires Administrator privileges">             Privileged                         </Condition>
 
     <!-- Block installation when the user uses deprecated properties  -->
-    <Condition Message="Please rename MASTER_HOSTNAME to MASTER"           ><![CDATA[Installed OR NOT MASTER_HOSTNAME]]>     </Condition>
-    <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        ><![CDATA[Installed OR NOT MINION_HOSTNAME]]>     </Condition>
-    <Condition Message="Please rename START_MINION_SERVICE to START_MINION"><![CDATA[Installed OR NOT START_MINION_SERVICE]]></Condition>
+    <Condition Message="Please rename MASTER_HOSTNAME to MASTER"           >Installed OR NOT MASTER_HOSTNAME     </Condition>
+    <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        >Installed OR NOT MINION_HOSTNAME     </Condition>
+    <Condition Message="Please rename START_MINION_SERVICE to START_MINION">Installed OR NOT START_MINION_SERVICE</Condition>
 
     <!-- Block installation when the user uses wrong property values -->
     <Condition Message="CONFIG_TYPE must not be '[CONFIG_TYPE]'. Please use 'Existing', 'Custom', 'Default' or 'New'.">
       Installed
-      OR  (CONFIG_TYPE = "Existing")
-      OR  (CONFIG_TYPE = "Custom")
-      OR  (CONFIG_TYPE = "Default")
-      OR  (CONFIG_TYPE = "New")
+      OR (CONFIG_TYPE = "Existing")
+      OR (CONFIG_TYPE = "Custom")
+      OR (CONFIG_TYPE = "Default")
+      OR (CONFIG_TYPE = "New")
     </Condition>
     <Condition Message='START_MINION must not be [START_MINION]. Please use 1 or "" (two double quotes).'>
-      Installed OR  (START_MINION = 1) OR  (NOT START_MINION)
+      (START_MINION = 1) OR NOT START_MINION OR Installed
     </Condition>
     <Condition Message='ZMQ_FILTERING must not be [ZMQ_FILTERING]. Please use 1 or "" (two double quotes).'>
-      Installed OR  (ZMQ_FILTERING = 1) OR  (NOT ZMQ_FILTERING)
+      (ZMQ_FILTERING = 1) OR NOT ZMQ_FILTERING OR Installed
     </Condition>
     <Condition Message='MINION_ID_CACHING must not be [MINION_ID_CACHING]. Please use 1 or "" (two double quotes).'>
-      Installed OR  (MINION_ID_CACHING = 1) OR  (NOT MINION_ID_CACHING)
+      (MINION_ID_CACHING = 1) OR NOT MINION_ID_CACHING OR Installed
     </Condition>
     <Condition Message='KEEP_CONFIG must not be [KEEP_CONFIG]. Please use 1 or "" (two double quotes).'>
-      Installed OR  (KEEP_CONFIG = 1) OR  (NOT KEEP_CONFIG)
+      (KEEP_CONFIG = 1) OR NOT KEEP_CONFIG OR Installed
     </Condition>
     <Condition Message='NSIS Salt Minion unexpected uninstall  [NSIS_UNINSTALLSTRING]'>
       NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe" OR NOT NSIS_UNINSTALLSTRING) OR Installed
