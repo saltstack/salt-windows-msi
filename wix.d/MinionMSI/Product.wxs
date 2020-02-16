@@ -42,26 +42,28 @@
 
     <!--
       Conditionally block installation
-      
+
       Quote from https://wixtoolset.org/documentation/manual/v3/xsd/wix/condition.html
-         "The condition is specified in the inner text of the element. "
-      
+         The condition is specified in the inner text of the element.
+
       Quotes from    https://www.firegiant.com/wix/tutorial/com-expression-syntax-miscellanea/expression-syntax
-            "Properties in expressions"
-            "PROPERTY This will evaluate to true if the property has been set and has any value, even if this value is false or 0."
-            "NOT PROPERTY This will evaluate to true if the property has not been set at all."
-            
+            >> left ends with right
+            Properties in expressions:
+              PROPERTY     This will evaluate to true if the property has been set and has any value, even if this value is false or 0.
+              NOT PROPERTY This will evaluate to true if the property has not been set at all.
 
       On the XML CDATA Section
       Quotes from https://www.firegiant.com/wix/tutorial/com-expression-syntax-miscellanea/expression-syntax
-         "you have to be cautious when you use angle brackets that can be mistaken for an opening or closing character of an XML tag"
-         "The safest approach would be to wrap everything"      
-         
-      I found that I *must* use the CDATA section even around simple properties.
-      
+         you have to be cautious when you use angle brackets that can be mistaken for an opening or closing character of an XML tag
+         The safest approach would be to wrap everything
+
+      I found that I must use the CDATA section even around simple properties, but no >=
+
       Properties:
        - MsiNTProductType:  1=Workstation  2=Domain controller  3=Server
-       - VersionNT:         https://msdn.microsoft.com/library/aa370556.aspx
+       - VersionNT:
+           Windows  7=601   https://msdn.microsoft.com/library/aa370556.aspx
+           Windows 10=603   https://support.microsoft.com/en-us/help/3202260/versionnt-value-for-windows-10-and-windows-server-2016
        - PhysicalMemory     https://docs.microsoft.com/en-us/windows/desktop/Msi/physicalmemory
       From the how-to http://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/block_install_on_os.html
 
@@ -113,7 +115,16 @@
       OR  (NOT KEEP_CONFIG)      
       ]]>
     </Condition>
-
+    <Condition Message="NSIS Salt Minion unexpected uninstall  [NSIS_UNINSTALLSTRING]">
+      <![CDATA[
+      NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe" OR NOT NSIS_UNINSTALLSTRING) OR Installed
+      ]]>
+    </Condition>
+    <Condition Message="NSIS Salt Minion unexpected version  [NSIS_DISPLAYVERSION]">
+      <![CDATA[
+      NOT Installed AND (NSIS_DISPLAYVERSION << "v" OR NOT NSIS_DISPLAYVERSION) OR Installed
+      ]]>
+    </Condition>
 
     <!--
       Set default values for Salt msi properties
@@ -190,9 +201,43 @@
      -->
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
 
+    <!-- Properties of a NSIS Salt-minion
+      Are in the 32bit WoW registry
+      https://wixtoolset.org/documentation/manual/v3/xsd/wix/registrysearch.html
+    -->
+    <Property           Id="NSIS_UNINSTALLSTRING">
+        <RegistrySearch Id="NSIS_UNINSTALLSTRING"
+            Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="no" />
+    </Property>
+        <Property       Id="NSIS_DISPLAYVERSION">
+        <RegistrySearch Id="NSIS_DISPLAYVERSION"
+            Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="no" />
+    </Property>
+    <!-- Properties for Custom actions
+       We uninstall a NSIS Salt-minion v2017.5 or newer with a deferred Quiet Execution Custom Action
+       The WixQuietExec check aborts the installer if errorlevels != 0
+       https://wixtoolset.org/documentation/manual/v3/customactions/qtexec.html
+       https://wixtoolset.org/documentation/manual/v3/xsd/wix/customaction.html
+       NSIS Salt Minion v2017.5 added parameters to uninst.exe
+       uninst /S                    leaves the installdir
+       uninst /S /DeleteInstallDir  deletes the installdir, both silently
+       uninst /s is not /S
+    -->
+    <Property     Id="whereexe" Value='C:\Windows\System32\where.exe'/>
+    <CustomAction Id="uninst_NSIS_DECAH"  Property="uninst_NSIS_DECAX"  Value='"[NSIS_UNINSTALLSTRING]" /S'/>
+    <CustomAction Id="learn_uninst_DECAH" Property="learn_uninst_DECAX" Value='"[whereexe]" whoami'/>
+    <CustomAction Id="uninst_NSIS_DECAX"  BinaryKey="WixCA" DllEntry="WixQuietExec" Execute="deferred" Return="check" Impersonate="no"/>
+    <CustomAction Id="learn_uninst_DECAX" BinaryKey="WixCA" DllEntry="WixQuietExec" Execute="deferred" Return="check" Impersonate="no"/>
+    <!--  These IMCAX serve to test the conditions for DECAX  -->
+    <CustomAction Property="WixQuietExecCmdLine" Id="learn_old_NSIS_IMCAH"  Value='"[whereexe]" whoami'/>
+    <CustomAction Property="WixQuietExecCmdLine" Id="learn_new_NSIS_IMCAH"  Value='"[whereexe]" whoami'/>
+    <CustomAction Property="WixQuietExecCmdLine" Id="learn_always_IMCAH"    Value='"[whereexe]" whoami'/>
+    <CustomAction DllEntry="WixQuietExec"        Id="learn_new_NSIS_IMCAX" BinaryKey="WixCA"  Execute="immediate" Return="check"/>
+    <CustomAction DllEntry="WixQuietExec"        Id="learn_old_NSIS_IMCAX" BinaryKey="WixCA"  Execute="immediate" Return="check"/>
+    <CustomAction DllEntry="WixQuietExec"        Id="learn_always_IMCAX"   BinaryKey="WixCA"  Execute="immediate" Return="check"/>
 
     <!-- Sequences
-      An msi in no linear program.
+      An msi is no linear program.
       To understand when custom actions will be executed, one must look at the condition within the tag and Before/After:
 
       On custom action conditions:
@@ -206,42 +251,49 @@
 
       From "Standard actions" https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference
           RemoveFiles            https://docs.microsoft.com/en-us/windows/win32/msi/removefiles-action
-          RemoveExistingProducts https://docs.microsoft.com/en-us/windows/win32/msi/removeexistingproducts-action
+          RemoveExistingProducts https://docs.microsoft.com/en-us/windows/win32/msi/removeexistingproducts-action  DISKUSSION WHEN IS HERE
           MigrateFeatureStates
           InstallInitialize
-        
-    
+
+      You get error LGHT0204 when  After or Before are wrong. Example:
+        del_NSIS_DECAC is a in-script custom action.  It must be sequenced between InstallInitialize and InstallFinalize in the InstallExecuteSequence
+
         Notes on ReadConfig_IMCAC:
-          Note 1: 
+          Note 1:
             Problem: INSTALLFOLDER was not set in ReadConfig_IMCAC
             Solution:
             ReadConfig_IMCAC must not be called BEFORE FindRelatedProducts, but BEFORE MigrateFeatureStates because
-            INSTALLFOLDER in only set in CostFinalize, which comes after FindRelatedProducts 
+            INSTALLFOLDER in only set in CostFinalize, which comes after FindRelatedProducts
             Maybe one could call ReadConfig_IMCAC AFTER FindRelatedProducts
           Note 2:
-            ReadConfig_IMCAC is in both InstallUISequence and InstallExecuteSequence, 
+            ReadConfig_IMCAC is in both InstallUISequence and InstallExecuteSequence,
             but because it is declared Execute='firstSequence', it will not be repeated in InstallExecuteSequence if it has been called in InstallUISequence.
       -->
-    
-    
-    
-    <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * * *  -->
-      
-      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'        >NOT Installed</Custom>
-      
-      <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
-      
-    </InstallUISequence>
-    
-    
-    
-    <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * * * * * * * * * * * * * *  -->
-      
-      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'        >NOT Installed</Custom>
 
-      <!-- del_NSIS_DECAC is a in-script custom action.  It must be sequenced between InstallInitialize and InstallFinalize in the InstallExecuteSequence  -->
-      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'            >NOT Installed</Custom>
-      
+    <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
+
+      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
+      <!-- NSIS properties are not set if NSIS is not installed. These IMCAX serves to test the condition-->
+      <Custom Action='learn_new_NSIS_IMCAH'        Before='learn_new_NSIS_IMCAX'    />
+      <Custom Action='learn_old_NSIS_IMCAH'        Before='learn_old_NSIS_IMCAX'    />
+      <Custom Action='learn_always_IMCAH'          Before='learn_always_IMCAX'      />
+      <Custom Action="learn_new_NSIS_IMCAX"        Before='MigrateFeatureStates'     >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND     (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action="learn_old_NSIS_IMCAX"        Before='MigrateFeatureStates'     >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND NOT (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action="learn_always_IMCAX"          Before='MigrateFeatureStates'    />
+
+      <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
+
+    </InstallUISequence>
+
+    <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * *  -->
+
+      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
+      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'        >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND NOT (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action="uninst_NSIS_DECAH"           Before='uninst_NSIS_DECAX'      />
+      <Custom Action="uninst_NSIS_DECAX"           Before='ProcessComponents'       >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND     (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action='learn_uninst_DECAH'          Before='learn_uninst_DECAX'     />
+      <Custom Action="learn_uninst_DECAX"          Before='ProcessComponents'       >NOT Installed</Custom>
+
       <!--  Remove 'lifetime' data on uninstall (and upgrade?) Lifetime data is mainly *.pyc files. -->
       <Custom Action='Uninstall_incl_Config_CADH'   
               Before='Uninstall_incl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (NOT KEEP_CONFIG)</Custom>
