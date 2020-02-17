@@ -165,6 +165,7 @@ For example, you will need to use them if you wish to:
 Microsoft provides official C++ compilers called Visual C++, you can find them bundled with Visual Studio.
 
 Which Microsoft Visual C++ compiler to use with a specific Python version?
+
 |Python     | VC++        | Visual Studio
 |---        |---          |
 |  2.7      | VC90_CRT    | 2008
