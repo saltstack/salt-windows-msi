@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- see Product.wxs.comments.txt for more comments -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
-    xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
->
+xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
   <Product
       Manufacturer = "SaltStack, Inc."
@@ -13,6 +11,7 @@
       Language     = "1033">
     <Package InstallScope="perMachine"  InstallerVersion="300" Compressed="yes"/>
 
+    <!-- Conditions for installation -->
     <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
       Installed
       OR  (MsiNTProductType = 1) AND (VersionNT >= 601)
@@ -22,12 +21,10 @@
     <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">Installed OR (PhysicalMemory > 125)</Condition>
     <Condition Message="Installation requires Administrator privileges">             Privileged                         </Condition>
 
-    <!-- Block installation when the user uses deprecated properties  -->
     <Condition Message="Please rename MASTER_HOSTNAME to MASTER"           >Installed OR NOT MASTER_HOSTNAME     </Condition>
     <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        >Installed OR NOT MINION_HOSTNAME     </Condition>
     <Condition Message="Please rename START_MINION_SERVICE to START_MINION">Installed OR NOT START_MINION_SERVICE</Condition>
 
-    <!-- Block installation when the user uses wrong property values -->
     <Condition Message="CONFIG_TYPE must not be '[CONFIG_TYPE]'. Please use 'Existing', 'Custom', 'Default' or 'New'.">
       Installed
       OR (CONFIG_TYPE = "Existing")
@@ -54,6 +51,16 @@
       <![CDATA[NOT Installed AND (NSIS_DISPLAYVERSION << "v" OR NOT NSIS_DISPLAYVERSION) OR Installed]]>
     </Condition>
 
+    <!--
+        Properties unset by default:
+           MASTER
+           MASTER_KEY
+           MINION_ID
+           MINION_ID_FUNCTION
+           MINION_ID_REMOVE_DOMAIN
+           MINION_CONFIG
+           ZMQ_FILTERING
+    -->
     <Property Id="MINION_ID_CACHING"        Value="1"                    />
     <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
@@ -67,13 +74,9 @@
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
+    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"/>
 
-    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"        /> <!-- Note that this is the name of the property, not its value -->
-
-    <!-- Properties of a NSIS Salt-minion
-      Are in the 32bit WoW registry
-      https://wixtoolset.org/documentation/manual/v3/xsd/wix/registrysearch.html
-    -->
+    <!-- Properties of a previous NSIS Salt-minion Are in the 32bit WoW registry -->
     <Property           Id="NSIS_UNINSTALLSTRING">
         <RegistrySearch Id="NSIS_UNINSTALLSTRING"
             Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="no" />
@@ -82,22 +85,14 @@
         <RegistrySearch Id="NSIS_DISPLAYVERSION"
             Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="no" />
     </Property>
-    <!-- Properties for Custom actions
-       We uninstall a NSIS Salt-minion v2017.5 or newer with a deferred Quiet Execution Custom Action
-       The WixQuietExec check aborts the installer if errorlevels != 0
-       https://wixtoolset.org/documentation/manual/v3/customactions/qtexec.html
-       https://wixtoolset.org/documentation/manual/v3/xsd/wix/customaction.html
-       NSIS Salt Minion v2017.5 added parameters to uninst.exe
-       uninst /S                    leaves the installdir
-       uninst /S /DeleteInstallDir  deletes the installdir, both silently
-       uninst /s is not /S
-    -->
+
+    <!-- Properties for Custom actions  -->
     <CustomAction Id="uninst_NSIS_DECAH"      Property="uninst_NSIS_DECAX"     Value='"[NSIS_UNINSTALLSTRING]" /S'/>
+    <CustomAction Id="uninst_NSIS_DECAX"      DllEntry="WixQuietExec"          Execute="deferred" Return="check" BinaryKey="WixCA" Impersonate="no"/>
+    <!--  These serve to test the conditions  -->
     <Property     Id="whereexe"                                                Value='C:\Windows\System32\where.exe'/>
     <CustomAction Id="learn_uninst_DECAH"     Property="learn_uninst_DECAX"    Value='"[whereexe]" whoami'/>
-    <CustomAction Id="uninst_NSIS_DECAX"      DllEntry="WixQuietExec"          Execute="deferred" Return="check" BinaryKey="WixCA" Impersonate="no"/>
     <CustomAction Id="learn_uninst_DECAX"     DllEntry="WixQuietExec"          Execute="deferred" Return="check" BinaryKey="WixCA" Impersonate="no"/>
-    <!--  These IMCAX serve to test the conditions for DECAX  -->
     <CustomAction Id="learn_old_NSIS_IMCAH"   Property="WixQuietExecCmdLine"   Value='"[whereexe]" whoami'/>
     <CustomAction Id="learn_new_NSIS_IMCAH"   Property="WixQuietExecCmdLine"   Value='"[whereexe]" whoami'/>
     <CustomAction Id="learn_always_IMCAH"     Property="WixQuietExecCmdLine"   Value='"[whereexe]" whoami'/>
@@ -107,7 +102,6 @@
 
 
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
-
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
       <!-- NSIS properties are not set if NSIS is not installed. These IMCAX serves to test the condition-->
       <Custom Action='learn_new_NSIS_IMCAH'        Before='learn_new_NSIS_IMCAX'    />
@@ -118,11 +112,9 @@
       <Custom Action="learn_always_IMCAX"          Before='MigrateFeatureStates'    />
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
-
     </InstallUISequence>
 
     <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * *  -->
-
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
       <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'        >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND NOT (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
       <Custom Action="uninst_NSIS_DECAH"           Before='uninst_NSIS_DECAX'      />
@@ -139,30 +131,17 @@
               Before='Uninstall_excl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
       <Custom Action='Uninstall_excl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
 
-
       <Custom Action='WriteConfig_CADH'
               Before='WriteConfig_DECAC'                                                >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'           After='InstallFiles'                 >NOT Installed</Custom>
 
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
+    </InstallExecuteSequence>   <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  -->
 
-    </InstallExecuteSequence>
 
-    
-    
-    <!-- http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
-    <!-- Delete a folder recursivly -->
-    <!-- Inspiration 1: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts -->
-    <!-- Inspiration 2: http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/   Simple Remember Pattern SRP-->
-    <!-- Learn: Condition with KEEP_CONFIG is useless on Components and on Features -->
-    <!-- SRP pattern
-       We cannot recursivly delete the var folder because it contains the cache, we regard as configuration and optionally keep.
-         It is the task of Uninstall_excl_Config_DECAC to selectivly delete the var folder
-        The use of the SRP Pattern is limited.
-    -->
 
     <!--     SRP: the Property that we'll remember  -->
     <Property Id="BINFOLDER">
@@ -179,26 +158,6 @@
 
 
     <DirectoryRef Id="TARGETDIR">
-      <!-- 
-      Quote from https://wiki.python.org/moin/WindowsCompilers
-        Even though Python is an interpreted language, you may need to install Windows C++ compilers in some cases.
-        For example, you will need to use them if you wish to:
-         - Install a non-pure Python package from sources with Pip (if there is no Wheel package provided).
-         - Compile a Cython or Pyrex file.
-
-      Explicit list of cases which need the C++ runtime:
-        - TODO/unknown
-
-      Microsoft provides official C++ compilers called Visual C++, you can find them bundled with Visual Studio.
-
-      Which Microsoft Visual C++ compiler to use with a specific Python version?
-      Python     | VC++        | Visual Studio
-        2.7      | VC90_CRT    | 2008
-        3.5-8    | VC140_CRT   | 2015
-
-      The msi incorporates the VC*_CRT as merge modules (*.msm), following the how-to:
-        https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html
-      -->
       <Merge Id="MSM_VC90_CRT_64" SourceFile="c:\salt_msi_resources\Microsoft_VC90_CRT_x86_x64.msm" DiskId="1" Language="0"/>
     </DirectoryRef>
 
@@ -213,81 +172,39 @@
     <Icon Id="icon" SourceFile="$(var.dist)\..\installer\salt.ico" />
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
 
-    <!--
-    Images:
-      - Dimensions of images must follow http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html
-      - WixUIDialogBmp must be transparent
-    Create imgLeft.png from panel.bmp:
-       Open paint3D:
-         - new image, ..., canvas options: Transparent canvas off, Resize image with canvas NO, Width 493 Height 312
-         - paste panel.bmp, move to the left, save as
-    -->
+
     <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="imgLeft.png" />
 
-    <UIRef Id="ProductUI" />                             <!-- Include ProductUI.wxs in this directory -->
-    
+    <UIRef Id="ProductUI" />                             <!-- Includes ProductUI.wxs in this directory -->
+
     <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- Do not create cab files -->
-    
   </Product>
+
 
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir"> <!-- Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
       <Directory Id="INSTALLFOLDER" Name="salt" >
         <Directory Id="CONFFOLDER" Name="conf" />
-        <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->        
+        <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->
         <Directory Id="BINFOLDER"  Name="bin" />
         <Directory Id="VARFOLDER"  Name="var" />
       </Directory>
     </Directory>
 
-    <!-- populate properties witch localised WixQueryOsWellKnownSID http://wixtoolset.org/documentation/manual/v3/customactions/osinfo.html -->
+    <!-- Set permissions of the install folder with WixQueryOsWellKnownSID -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
-
     <Component Id="InstallfolderPermissions"  Directory="INSTALLFOLDER" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
-      <CreateFolder> <!-- like mkdir, the folder will not be created if present. -->
-        <!--
-          Function win_verify_env()  in  salt/slt/utils/verify.py sets permissions on each start of the salt-minion services.
-          The installer must create the folder with the same permissions, so you keep sets of permissions in sync.
-
-          The Permission element(s) below replace any present permissions,
-          except NT AUTHORITY\SYSTEM:(OI)(CI)(F), which seems to be the basis.
-          Therefore, you don't need to specify User="[WIX_ACCOUNT_LOCALSYSTEM]"  GenericAll="yes"
-
-          Use icacls to test the result:
-            C:\>icacls salt
-            salt BUILTIN\Administrators:(OI)(CI)(F)
-                 NT AUTHORITY\SYSTEM:(OI)(CI)(F)
-            ~~ read ~~
-            (object inherit)(container inherit)(full access)
-
-            C:\>icacls salt\bin\include
-            salt\bin\include BUILTIN\Administrators:(I)(OI)(CI)(F)
-                             NT AUTHORITY\SYSTEM:(I)(OI)(CI)(F)
-                             w7h64\Markus:(I)(OI)(CI)(F)
-            ~~ read ~~
-            (permission inherited from parent container)(object inherit)(container inherit)(full access)
-
-          Maybe even the Administrator group full access is "basis", so there is no result of the instruction,
-          I leave it for clarity, and potential future use.
-          -->
+      <CreateFolder>
         <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
       </CreateFolder>
     </Component>
   </Fragment>
-  
-  <!-- From the "Default WiX Project Template" -->
+
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <ComponentGroupRef Id="dist"    />       <!-- Include dist-amd64.wxs in this directory -->
-      <ComponentGroupRef Id="service" /> 
-      <!-- experimental, does not (yet) work.
-           Intended to replace nssm (ssm) with the Windows method of starting a service.
-           Maybe, nssm (ssm) cannot be replaced, because it indefineiy starts the salt-minion python exe over and over again,
-           whereas the Windows method only starts an exe only a limited time and then stops.
-           Also goto BuildDistFragment.xsl and remove python.exe
-      <ComponentRef Id="servicePython" />
-      -->
+      <ComponentGroupRef Id="dist"    />       <!-- Includes dist-amd64.wxs in this directory -->
+      <ComponentGroupRef Id="service" />       <!-- Includes service.wxs in this directory -->
       <ComponentRef Id="InstallfolderPermissions" />
     </ComponentGroup>
   </Fragment>
