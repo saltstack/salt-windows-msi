@@ -167,7 +167,7 @@ Microsoft provides official C++ compilers called Visual C++, you can find them b
 Which Microsoft Visual C++ compiler to use with a specific Python version?
 
 |Python     | VC++        | Visual Studio
-|---        |---          |
+|---        |---          |---
 |  2.7      | VC90_CRT    | 2008
 |  3.5-8    | VC140_CRT   | 2015
 
