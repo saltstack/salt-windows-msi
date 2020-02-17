@@ -115,10 +115,13 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     </InstallUISequence>
 
     <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * *  -->
+    <!--  Unfortunately, uninst.exe /S returns immediately (300 ms) with a successful errorcode 0.
+          If a future version of uninst.exe /S will return only after it finished uninstalling,
+          the conditions above can replace NSIS_UNINST_EXE_RETURNS_ONLY_AFTER_ITS_WORK . -->
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'        >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND NOT (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'        >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") </Custom>
       <Custom Action="uninst_NSIS_DECAH"           Before='uninst_NSIS_DECAX'      />
-      <Custom Action="uninst_NSIS_DECAX"           Before='ProcessComponents'       >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND     (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action="uninst_NSIS_DECAX"           Before='ProcessComponents'       >NSIS_UNINST_EXE_RETURNS_ONLY_AFTER_ITS_WORK</Custom>
       <Custom Action='learn_uninst_DECAH'          Before='learn_uninst_DECAX'     />
       <Custom Action="learn_uninst_DECAX"          Before='ProcessComponents'       >NOT Installed</Custom>
 
