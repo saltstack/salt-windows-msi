@@ -43,8 +43,7 @@ Minion-specific msi-properties:
  `MINION_ID`            | Hostname                | The minion id.
  `MINION_ID_CACHING`    | `1`                     | Set to `""` if the minion id shall be determined at each salt-minion service start.
  `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
- `MINION_CONFIGFILE`    | `C:\salt\conf\minion`   | Name of a custom config file in the same path as the installer or the full path.
- `MINION_CONFIG`        |                         | Written to the `minion` config file, lines are separated by comma. See below.
+ `MINION_CONFIG`        |                         | Content to be written into the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service.
  `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default` or `New`. See below.
