@@ -47,6 +47,7 @@ Minion-specific msi-properties:
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service.
  `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default` or `New`. See below.
+ `CUSTOM_CONFIG`        |                         | __NOT IMPLEMENTED (yet)__
  `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
 These files and directories are regarded as config and kept:
@@ -56,9 +57,9 @@ These files and directories are regarded as config and kept:
 - c:\salt\var\cache\salt\minion\extmods\
 - c:\salt\var\cache\salt\minion\files\
 
-Master and id are read from 
+Master and id are read from
  - file `C:\salt\conf\minion`
- - files `C:\salt\conf\minion.d\*.conf`
+ - If `CONFIG_TYPE=New` then addionally from files `C:\salt\conf\minion.d\*.conf`
 
 You can set a new master with `MASTER`. This will overrule the master in a kept configuration.
 
