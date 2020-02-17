@@ -151,37 +151,42 @@ http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html
 
 ## VC++ for Python
 
-      Why does the Salt-Minion needs the C++ runtime:
-        - TODO/unknown/???
+Why does the Salt-Minion needs the C++ runtime:
 
-      Quote from https://wiki.python.org/moin/WindowsCompilers
-        Even though Python is an interpreted language, you may need to install Windows C++ compilers in some cases.
-        For example, you will need to use them if you wish to:
-         - Install a non-pure Python package from sources with Pip (if there is no Wheel package provided).
-         - Compile a Cython or Pyrex file.
+  - TODO/unknown/???
 
-      Microsoft provides official C++ compilers called Visual C++, you can find them bundled with Visual Studio.
+Quote from [PythonWiki](https://wiki.python.org/moin/WindowsCompilers): 
+Even though Python is an interpreted language, you may need to install Windows C++ compilers in some cases.
+For example, you will need to use them if you wish to:
 
-      Which Microsoft Visual C++ compiler to use with a specific Python version?
-      Python     | VC++        | Visual Studio
-        2.7      | VC90_CRT    | 2008
-        3.5-8    | VC140_CRT   | 2015
+- Install a non-pure Python package from sources with Pip (if there is no Wheel package provided).
+- Compile a Cython or Pyrex file.
 
-      The msi incorporates the VC*_CRT as merge modules (*.msm), following the how-to:
-        https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html
+Microsoft provides official C++ compilers called Visual C++, you can find them bundled with Visual Studio.
+
+Which Microsoft Visual C++ compiler to use with a specific Python version?
+|Python     | VC++        | Visual Studio
+|---        |---          |
+|  2.7      | VC90_CRT    | 2008
+|  3.5-8    | VC140_CRT   | 2015
+
+Merge modules (*.msm) are msi 'library' databases that can be included ('merged') into a (single) msi databases.
+
+The msi incorporates the VC*_CRT as merge modules (*.msm), following the [how-to](https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html)
 
 
 ## Images
+Images:
 
-    
-    Images:
-      - Dimensions of images must follow http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html
-      - WixUIDialogBmp must be transparent
-    Create imgLeft.png from panel.bmp:
-       Open paint3D:
-         - new image, ..., canvas options: Transparent canvas off, Resize image with canvas NO, Width 493 Height 312
-         - paste panel.bmp, move to the left, save as
-    
+- Dimensions of images must follow [WiX rules](http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html)
+- WixUIDialogBmp must be transparent
+
+Create imgLeft.png from panel.bmp:
+
+- Open paint3D:
+  - new image, ..., canvas options: Transparent canvas off, Resize image with canvas NO, Width 493 Height 312
+  - paste panel.bmp, move to the left, save as
+
 
 
 ## Note on Create folder
@@ -222,7 +227,3 @@ http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html
 
 [doc](http://wixtoolset.org/documentation/manual/v3/customactions/osinfo.html)
 
-
-
-## Else 
-Merge modules (*.msm) are msi 'library' databases that can be included ('merged') into a (single) msi databases.
