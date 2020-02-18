@@ -177,7 +177,7 @@
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"/>
     <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"/>
     <Property Id="ROOTDRIVE"                Value="C:\"/>
-    <Property Id="ARPPRODUCTICON"           Value="icon"/>
+    <Property Id="ARPPRODUCTICON"           Value="icon.ico" />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
@@ -322,7 +322,7 @@
       </Feature>
     </Feature>
 
-    <Icon Id="icon" SourceFile="$(var.dist)\..\installer\salt.ico" />
+    <Icon Id="icon.ico" SourceFile="salt.ico" />
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
 
     <!--

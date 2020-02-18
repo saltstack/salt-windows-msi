@@ -16,14 +16,14 @@ if (-not ($?)) {exit(1)}
 $internalversion = & $pythonexe ..\salt\salt\version.py msi 
 if (-not ($?)) {exit(1)}
 
-if (-not ($displayversion -match '^[\d\.]{6,18}$')) {
-  Write-Host -ForegroundColor Red $displayversion is not a version
-  exit(1)
-}
-if (-not ($internalversion -match '^\d\d\.[\d]{1,2}\.[\d]{1,2}$')) {
-  Write-Host -ForegroundColor Red $internalversion is not a valid msi version
-  exit(1)
-}
+#if (-not ($displayversion -match '^[\d\.]{6,18}$')) {
+#  Write-Host -ForegroundColor Red $displayversion is not a version
+#  exit(1)
+#}
+#if (-not ($internalversion -match '^\d\d\.[\d]{1,2}\.[\d]{1,2}$')) {
+#  Write-Host -ForegroundColor Red $internalversion is not a valid msi version
+#  exit(1)
+#}
 Write-Host -ForegroundColor Green "Found Salt $displayversion (msi $internalversion)"
 
 
@@ -38,15 +38,16 @@ if ($salt_targetplatform -eq 0) {
 Write-Host -ForegroundColor Green "Found target platform ($salt_targetplatform)"
 
 
-# Detecting Python 2 or 3 from NSIS exe ...
-$saltpythonversion=0
-if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py2*.exe) {$saltpythonversion=2}
-if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py3*.exe) {$saltpythonversion=3}
-if ($saltpythonversion -eq 0) {
-  $saltpythonversion = 2
-  Write-Host -ForegroundColor Red "Cannot determine Python 2 or 3"
-  exit(1)
-} 
+$saltpythonversion = 3
+## Detecting Python 2 or 3 from NSIS exe ...
+#$saltpythonversion=0
+#if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py2*.exe) {$saltpythonversion=2}
+#if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py3*.exe) {$saltpythonversion=3}
+#if ($saltpythonversion -eq 0) {
+#  $saltpythonversion = 2
+#  Write-Host -ForegroundColor Red "Cannot determine Python 2 or 3"
+#  exit(1)
+#}
 Write-Host -ForegroundColor Green "Found Python $saltpythonversion"
 
 
