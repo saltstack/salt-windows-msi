@@ -115,7 +115,9 @@ On the upgrade custom action condition:
 |  Not Installed        | there is no previous version with the same UpgradeCode
 |  REMOVE ~= "ALL"      | Uninstall
 
-[Standard actions](https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference)
+[Custom action introduction](https://docs.microsoft.com/en-us/archive/blogs/alexshev/from-msi-to-wix-part-5-custom-actions-introduction)
+
+[Standard actions reference](https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference)
 
 You get error LGHT0204 when  After or Before are wrong. Example:
 
