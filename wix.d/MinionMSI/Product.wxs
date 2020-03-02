@@ -78,7 +78,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"/>
 
-    <!-- Properties of a previous NSIS Salt-minion Are in the 32bit WoW registry -->
+    <!-- Assumption NSIS writes always (32 and 64 bit Salt-minion) into the 32bit WoW registry -->
     <Property           Id="NSIS_UNINSTALLSTRING">
         <RegistrySearch Id="NSIS_UNINSTALLSTRING"
             Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="no" />
@@ -89,8 +89,11 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     </Property>
 
     <!-- Properties for Custom actions  -->
-    <CustomAction Id="uninst_NSIS_DECAH"      Property="uninst_NSIS_DECAX"     Value='"[NSIS_UNINSTALLSTRING]" /S'/>
-    <CustomAction Id="uninst_NSIS_DECAX"      DllEntry="WixQuietExec"          Execute="deferred" Return="check" BinaryKey="WixCA" Impersonate="no"/>
+    <!-- Assumption NSIS only installs into fixed C:\salt.  -->
+    <CustomAction Id="uninst_NSIS1_DECAH"      Property="uninst_NSIS1_DECAX"   Value='start /WAIT /D"C:\salt" uninst.exe "/S _?=C:\salt"'/>
+    <CustomAction Id="uninst_NSIS1_DECAX"      DllEntry="WixQuietExec"         Execute="deferred" Return="check" BinaryKey="WixCA" Impersonate="no"/>
+    <CustomAction Id="uninst_NSIS2_DECAH"      Property="uninst_NSIS2_DECAX"   Value='del C:\salt\uninst.exe'/>
+    <CustomAction Id="uninst_NSIS2_DECAX"      DllEntry="WixQuietExec"         Execute="deferred" Return="check" BinaryKey="WixCA" Impersonate="no"/>
     <!--  These serve to test the conditions  -->
     <Property     Id="whereexe"                                                Value='C:\Windows\System32\where.exe'/>
     <CustomAction Id="learn_uninst_DECAH"     Property="learn_uninst_DECAX"    Value='"[whereexe]" whoami'/>
@@ -102,6 +105,12 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <CustomAction Id="learn_old_NSIS_IMCAX"   DllEntry="WixQuietExec"          Execute="immediate" Return="check" BinaryKey="WixCA"/>
     <CustomAction Id="learn_always_IMCAX"     DllEntry="WixQuietExec"          Execute="immediate" Return="check" BinaryKey="WixCA"  />
 
+    <!-- Preparation when NSIS not only installs into fixed C:\salt.    Chop off \uninst.exe (11 characters) from NSIS_UNINSTALLSTRING -->
+    <CustomAction Id="get_NSIS_uninstalldir_IMCAX" Script="vbscript">
+      NSIS_UNINSTALLSTRING = Session.Property("NSIS_UNINSTALLSTRING")
+      NSIS_uninstalldir = Left(NSIS_UNINSTALLSTRING, Len(NSIS_UNINSTALLSTRING) - 11)
+      Session.Property("NSIS_uninstalldir") = NSIS_uninstalldir
+    </CustomAction>
 
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
@@ -109,21 +118,20 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       <Custom Action='learn_new_NSIS_IMCAH'        Before='learn_new_NSIS_IMCAX'    />
       <Custom Action='learn_old_NSIS_IMCAH'        Before='learn_old_NSIS_IMCAX'    />
       <Custom Action='learn_always_IMCAH'          Before='learn_always_IMCAX'      />
-      <Custom Action="learn_new_NSIS_IMCAX"        Before='MigrateFeatureStates'     >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND     (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
       <Custom Action="learn_old_NSIS_IMCAX"        Before='MigrateFeatureStates'     >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND NOT (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action="learn_new_NSIS_IMCAX"        Before='MigrateFeatureStates'     >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND     (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
       <Custom Action="learn_always_IMCAX"          Before='MigrateFeatureStates'    />
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
 
     <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * *  -->
-    <!--  Unfortunately, uninst.exe /S returns immediately (300 ms) with a successful errorcode 0.
-          If a future version of uninst.exe /S will return only after it finished uninstalling,
-          the conditions above can replace NSIS_UNINST_EXE_RETURNS_ONLY_AFTER_ITS_WORK . -->
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'        >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") </Custom>
-      <Custom Action="uninst_NSIS_DECAH"           Before='uninst_NSIS_DECAX'      />
-      <Custom Action="uninst_NSIS_DECAX"           Before='ProcessComponents'       >NSIS_UNINST_EXE_RETURNS_ONLY_AFTER_ITS_WORK</Custom>
+      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'        >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND NOT (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action="uninst_NSIS1_DECAH"          Before='uninst_NSIS1_DECAX'     />
+      <Custom Action="uninst_NSIS1_DECAX"          Before='uninst_NSIS2_DECAX'      >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND     (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
+      <Custom Action="uninst_NSIS2_DECAH"          Before='uninst_NSIS2_DECAX'     />
+      <Custom Action="uninst_NSIS2_DECAX"          Before='ProcessComponents'       >NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe") AND     (NSIS_DISPLAYVERSION >= "v2017.5")</Custom>
       <Custom Action='learn_uninst_DECAH'          Before='learn_uninst_DECAX'     />
       <Custom Action="learn_uninst_DECAX"          Before='ProcessComponents'       >NOT Installed</Custom>
 
