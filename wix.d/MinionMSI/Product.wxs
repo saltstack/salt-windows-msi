@@ -53,6 +53,11 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
                                OR (NSIS_DISPLAYVERSION << "30") OR NOT NSIS_DISPLAYVERSION) OR Installed]]>
     </Condition>
 
+    <!-- Testing if the salt-minion service start after NSIS uninst.exe /S  -->
+    <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION] or set testing_salt_msi_uninstalls_exe=1 for testing to uninstall the Nullsoft-exe instelled Salt Minion'>
+      NOT (NSIS_UNINSTALLSTRING >> "uninst.exe") OR %testing_salt_msi_uninstalls_exe
+    </Condition>
+
     <!--
         Properties unset by default:
            MASTER
