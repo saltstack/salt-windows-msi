@@ -191,3 +191,21 @@ Because of this restriction "Salt 2018.3.4" has ProductVersion `18.3.4`.
 - Python 3.6 = VC CRT 14.0 = VS 2017
 
 Distutils contains bin/Lib/distutils/command/bdist_msi.py, which probably does not work.
+
+
+### From upgrade code to uninstallstring
+
+UpgradeCode  `FC6FB3A2-65DE-41A9-AD91-D10A402BD641`
+
+Shuffled UpgradeCode `2A3BF6CFED569A14DA191DA004B26D14`
+
+From `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UpgradeCodes\2A3BF6CFED569A14DA191DA004B26D14`
+
+Get Shuffeld Productcode `7C762CE78079ADA429DEE9C2E746B3DE`
+
+Productcode `{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`
+
+
+In `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`
+
+Duplicated as UninstallString `MsiExec.exe /X{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`
