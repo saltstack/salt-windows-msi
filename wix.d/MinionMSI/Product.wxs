@@ -66,10 +66,10 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
            MINION_ID_FUNCTION
            MINION_ID_REMOVE_DOMAIN
            MINION_CONFIG
+           CUSTOM_CONFIG
            ZMQ_FILTERING
     -->
     <Property Id="MINION_ID_CACHING"        Value="1"                    />
-    <Property Id="MINION_CONFIGFILE"        Value="C:\salt\conf\minion"  />
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
     <Property Id="START_MINION"             Value="1"                    />
     <Property Id="KEEP_CONFIG"              Value="1"                    />

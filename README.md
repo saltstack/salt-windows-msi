@@ -47,7 +47,7 @@ Minion-specific msi-properties:
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service.
  `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default` or `New`. See below.
- `CUSTOM_CONFIG`        |                         | __NOT IMPLEMENTED (yet)__
+ `CUSTOM_CONFIG`        |                         | Name of a custom config file (TODO in the same path as the installer or) full path.
  `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
 
 These files and directories are regarded as config and kept:

@@ -44,9 +44,10 @@ namespace MinionConfigurationExtension {
             session.Log("...Begin ReadConfig_IMCAC");
             String master_from_previous_installation = "";
             String id_from_previous_installation = "";
-            // Read master and id from MINION_CONFIGFILE
-            read_master_and_id_from_file_IMCAC(session, session["MINION_CONFIGFILE"], ref master_from_previous_installation, ref id_from_previous_installation);
-            // Read master and id from minion.d/*.conf 
+            // Read master and id from main config file
+            string main_config = MinionConfigurationUtilities.getConfigFileLocation_IMCAC(session);
+            read_master_and_id_from_file_IMCAC(session, main_config, ref master_from_previous_installation, ref id_from_previous_installation);
+            // Read master and id from minion.d/*.conf
             string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_IMCAC(session);
             if (Directory.Exists(MINION_CONFIGDIR)) {
                 var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
@@ -346,10 +347,12 @@ def id_function():
         }
 
         private static void save_custom_config_file_if_config_type_demands_DECAC(Session session) {
-            if (session.CustomActionData["config_type"] == "Custom") {
+            if (session.CustomActionData["config_type"] == "Custom" &&
+            session.CustomActionData["custom_config"].Length > 0 &&
+            File.Exists(session.CustomActionData["custom_config"])) {
                 Backup_configuration_files_from_previous_installation(session);
                 // lay down a custom config passed via the command line
-                string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session.CustomActionData["minion_configfile"]));
+                string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session.CustomActionData["custom_config"]));
                 MinionConfigurationUtilities.Write_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
             }
         }

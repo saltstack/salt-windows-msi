@@ -104,6 +104,11 @@ namespace MinionConfigurationExtension {
         }
 
 
+        public static string getConfigFileLocation_IMCAC(Session session) {
+            return Path.Combine(session["INSTALLFOLDER"], @"conf\minion");
+        }
+
+
         public static string getConfigdDirectoryLocation_IMCAC(Session session) {
             return Path.Combine(session["INSTALLFOLDER"], @"conf\minion.d");
         }
