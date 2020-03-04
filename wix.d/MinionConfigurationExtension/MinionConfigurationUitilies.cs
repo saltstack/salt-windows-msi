@@ -94,20 +94,20 @@ namespace MinionConfigurationExtension {
 
         public static string getConfigFileLocation_DECAC(Session session) {
             // DECAC means you must access data helper properties at session.CustomActionData[*]
-            return session.CustomActionData["root_dir"] + "conf\\minion";
+            return Path.Combine(session.CustomActionData["root_dir"], @"conf\minion");
         }
 
 
         public static string getConfigdDirectoryLocation_DECAC(Session session) {
             // DECAC means you must access data helper properties at session.CustomActionData[*]
-            return session.CustomActionData["root_dir"] + "conf\\minion.d";
+            return Path.Combine(session.CustomActionData["root_dir"], @"conf\minion.d");
         }
 
 
         public static string getConfigdDirectoryLocation_IMCAC(Session session) {
             // IMCAC means ou can directly access msi properties at session[*]
-            // session["INSTALLFOLDER"] ends with a backslash, e.g. C:\salt\ 
-            return session["INSTALLFOLDER"] + "conf\\minion.d";
+            // session["INSTALLFOLDER"] could be C:\salt\
+            return Path.Combine(session["INSTALLFOLDER"], @"conf\minion.d");
         }
 
 
