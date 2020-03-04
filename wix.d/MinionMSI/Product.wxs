@@ -115,15 +115,9 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <CustomAction Id="learn_exec_IMCAX"        DllEntry="WixQuietExec"         Execute="immediate" Return="ignore"  BinaryKey="WixCA"  />
 
 
-    <!-- Preparation when NSIS not only installs into fixed path C:\salt.    Chop off uninst.exe (10 characters) from NSIS_UNINSTALLSTRING -->
+    <!-- Preparation when NSIS not only installs into fixed path C:\salt.    Remove uninst.exe from NSIS_UNINSTALLSTRING -->
     <CustomAction Id="get_NSIS_uninstdir_IMCAX" Script="vbscript">
-      NSIS_UNINSTALLSTRING = Session.Property("NSIS_UNINSTALLSTRING")
-      if (Len(NSIS_UNINSTALLSTRING) > 10) Then
-        nsis_uninstalldir = Left(NSIS_UNINSTALLSTRING, Len(NSIS_UNINSTALLSTRING) - 10)
-      else
-        nsis_uninstalldir = ""
-      end if
-      Session.Property("nsis_uninstalldir") = nsis_uninstalldir
+      Session.Property("nsis_uninstalldir") = Replace(Session.Property("NSIS_UNINSTALLSTRING"),"uninst.exe","")
     </CustomAction>
 
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
