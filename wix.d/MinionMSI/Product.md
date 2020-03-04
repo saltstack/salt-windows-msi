@@ -76,7 +76,7 @@ In the DECAC:
 
 
 
-### user interface 
+### user interface
 [WIXUI_INSTALLDIR](https://wixtoolset.org//documentation/manual/v3/wixui/dialog_reference/wixui_installdir.html)
 
 [customizing](http://www.dizzymonkeydesign.com/blog/misc/adding-and-customizing-dlgs-in-wix-3/)
@@ -85,9 +85,7 @@ In the DECAC:
 
 We uninstall a NSIS Salt-minion v2017.5 or newer with a deferred Quiet Execution Custom Action
 
-The WixQuietExec check aborts the installer if errorlevels != 0
-
-https://wixtoolset.org/documentation/manual/v3/customactions/qtexec.html
+[WixQuietExec](https://wixtoolset.org/documentation/manual/v3/customactions/qtexec.html)
 
 https://wixtoolset.org/documentation/manual/v3/xsd/wix/customaction.html
 
@@ -96,6 +94,21 @@ NSIS Salt Minion v2017.5 added parameters to uninst.exe
     uninst /S                    leaves the installdir
     uninst /S /DeleteInstallDir  deletes the installdir, both silently
     uninst /s is not /S
+
+
+uninst.exe _?= waits before returning:
+
+    MSI (s) (88:A4) [16:41:46:795]: Hello, I'm your 32bit Elevated Non-remapped custom action server.
+    WixQuietExec:  Entering WixQuietExec in C:\Windows\Installer\MSICED6.tmp, version 3.11.2318.0
+    WixQuietExec:  "C:\salt\uninst.exe" /S _?=C:\salt
+    MSI (s) (88:F0) [16:41:53:435]: Executing op: ActionStart(Name=uninst_NSIS2_DECAX,,)
+
+
+    MSI (s) (C4:00) [16:54:13:482]: Hello, I'm your 32bit Elevated Non-remapped custom action server.
+    WixQuietExec:  Entering WixQuietExec in C:\Windows\Installer\MSI33C4.tmp, version 3.11.2318.0
+    WixQuietExec:  "C:\salt\uninst.exe" /S _?=C:\salt
+    MSI (s) (C4:30) [16:54:19:701]: Executing op: ActionStart(Name=uninst_NSIS2_DECAX,,)
+
 
 ## Sequences
 An msi is no linear program.
@@ -107,7 +120,6 @@ On custom action conditions:
 
 On the upgrade custom action condition:
 
-
 |  Property   |  Comment  |
 | --- |  --- |
 |  UPGRADINGPRODUCTCODE | does not work
@@ -117,7 +129,13 @@ On the upgrade custom action condition:
 
 [Custom action introduction](https://docs.microsoft.com/en-us/archive/blogs/alexshev/from-msi-to-wix-part-5-custom-actions-introduction)
 
+## Standard action sequence
+
 [Standard actions reference](https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference)
+
+[Standard actions WiX default sequence](https://www.firegiant.com/wix/tutorial/events-and-actions/queueing-up/)
+
+[coding bee on Standard actions WiX default sequence](https://codingbee.net/wix/wix-the-installation-sequence)
 
 You get error LGHT0204 when  After or Before are wrong. Example:
 
