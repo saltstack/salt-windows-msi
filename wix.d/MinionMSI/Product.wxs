@@ -53,12 +53,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
                                OR (NSIS_DISPLAYVERSION << "30") OR NOT NSIS_DISPLAYVERSION) OR Installed]]>
     </Condition>
 
-    <!-- ISSUE: salt-minion service does not start after NSIS uninst.exe /S
-         workaround: user must uninstall NSIS  -->
-    <Condition Message='Please manually uninstall the Salt Minion [NSIS_DISPLAYVERSION]'>
-      NOT (NSIS_UNINSTALLSTRING >> "uninst.exe")
-    </Condition>
-
     <!--
         Properties unset by default:
            MASTER
