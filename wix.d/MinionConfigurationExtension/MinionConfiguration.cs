@@ -347,14 +347,32 @@ def id_function():
         }
 
         private static void save_custom_config_file_if_config_type_demands_DECAC(Session session) {
-            if (session.CustomActionData["config_type"] == "Custom" &&
-            session.CustomActionData["custom_config"].Length > 0 &&
-            File.Exists(session.CustomActionData["custom_config"])) {
-                Backup_configuration_files_from_previous_installation(session);
-                // lay down a custom config passed via the command line
-                string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(session.CustomActionData["custom_config"]));
-                MinionConfigurationUtilities.Write_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
+            session.Log("...save_custom_config_file_if_config_type_demands_DECAC");
+            string custom_config1 = session.CustomActionData["custom_config"];
+            string custom_config_final = "";
+            if (!(session.CustomActionData["config_type"] == "Custom" && custom_config1.Length > 0 )) {
+                return;
             }
+            if (File.Exists(custom_config1)) {
+                session.Log("...found custom_config1 " + custom_config1);
+                custom_config_final = custom_config1;
+            } else {
+                // try relative path
+                string directory_of_the_msi = session.CustomActionData["sourcedir"];
+                string custom_config2 = Path.Combine(directory_of_the_msi, custom_config1);
+                if (File.Exists(custom_config2)) {
+                    session.Log("...found custom_config2 " + custom_config2);
+                    custom_config_final = custom_config2;
+                } else {
+                    session.Log("...no custom_config1 " + custom_config1);
+                    session.Log("...no custom_config2 " + custom_config2);
+                    return;
+                }
+            }
+            Backup_configuration_files_from_previous_installation(session);
+            // lay down a custom config passed via the command line
+            string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(custom_config_final));
+            MinionConfigurationUtilities.Write_file(session, @"C:\salt\conf", "minion", content_of_custom_config_file);
         }
 
 
