@@ -63,7 +63,7 @@ Master and id are read from
 
 You can set a new master with `MASTER`. This will overrule the master in a kept configuration.
 
-You can set a new master public key with `MASTER_KEY`, after you must convert it into one line like so:
+You can set a new master public key with `MASTER_KEY`, after you converted it into one line like so:
 
 - Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
 - Remove linebreaks.
