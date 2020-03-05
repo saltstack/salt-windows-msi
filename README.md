@@ -1,19 +1,19 @@
 # Windows MSI installer build toolkit
 
-This project creates a Salt Minion msi installer using [WiX](http://wixtoolset.org).
+This creates a Salt Minion msi installer using [WiX](http://wixtoolset.org).
 
 The focus is on 64bit, unattended install.
 
 ## Introduction
 
-[Introduction on Windows installers](http://unattended.sourceforge.net/installers.php)
+[On Windows installers](http://unattended.sourceforge.net/installers.php)
 
 An msi installer allows unattended/silent installations, meaning without opening any window, while still providing
 customized values for e.g. master hostname, minion id, installation path, using the following generic command:
 
-> msiexec /i *.msi PROPERTY1=VALUE1 PROPERTY2=VALUE2 PROPERTY3="VALUE3a and 3b"
+> msiexec /i *.msi PROPERTY1=VALUE1 PROPERTY2=VALUE2 PROPERTY3="VALUE3a and 3b" PROPERTY4=""
 
-Values must be quoted when they contains whitespace, or to unset a property, as in `PROPERTY=""`
+Values must be quoted when they contains whitespace, or to unset a property, as in `PROPERTY4=""`
 
 Example: Set the master:
 
@@ -29,26 +29,26 @@ Example: uninstall and remove configuration
 
 ## Features
 
-- Creates a very verbose log file, by default named %TEMP%\MSIxxxxx.LOG, where xxxxx are 5 random lowercase letters and numbers. The name of the log can be specified with `msiexec /log example.log`
-- Upgrades NSIS installations
-- Change installation directory __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
+- Creates a very verbose log file, by default %TEMP%\MSIxxxxx.LOG, where xxxxx are 5 random lowercase letters or numbers. The name of the log can be specified with `msiexec /log example.log`
+- Upgrades NSIS installations __UNDER REVIEW__
 
-Minion-specific msi-properties:
+Salt Minion-specific msi-properties:
 
   Property              |  Default                | Comment
  ---------------------- | ----------------------- | ------
- `MASTER`               | `salt`                  | The master (name or IP). Only a single master. 
+ `MASTER`               | `salt`                  | The master (name or IP). Only a single master.
  `MASTER_KEY`           |                         | The master public key. See below.
  `ZMQ_filtering`        |                         | Set to `1` if the master requires zmq_filtering.
  `MINION_ID`            | Hostname                | The minion id.
  `MINION_ID_CACHING`    | `1`                     | Set to `""` if the minion id shall be determined at each salt-minion service start.
  `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
  `MINION_CONFIG`        |                         | Content to be written into the `minion` config file. See below.
- `START_MINION`         | `1`                     | Set to `""` to prevent the start of the salt-minion service.
+ `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
  `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default` or `New`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
- `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__
+ `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__  --- __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
+
 
 These files and directories are regarded as config and kept:
 
@@ -63,15 +63,14 @@ Master and id are read from
 
 You can set a new master with `MASTER`. This will overrule the master in a kept configuration.
 
-You can set a new master public key with `MASTER_KEY`, but you must convert it into one line:
+You can set a new master public key with `MASTER_KEY`, after you must convert it into one line like so:
 
 - Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
 - Remove linebreaks.
-- From the default public key file (458 bytes), the one-line key has 394 characters.
 
 ### `MINION_CONFIG`
 
-If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with the content. To include whitespace, use double quotes around. For line breaks, use "^".
+If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with it. For line breaks, use "^".
 
 Example `MINION_CONFIG="a: A^b: B"` results in:
 
@@ -97,7 +96,7 @@ Example `MINION_ID_FUNCTION=socket.gethostname()` results in:
 Remember to create the same file as `/sr/salt/_modules/id_function.py` on your server, so that `saltutil.sync_all` will keep the file on the minion.
 
 
-### `CONFIG_TYPE` 
+### `CONFIG_TYPE`
 
 There are 4 scenarios the installer tries to account for:
 
@@ -108,13 +107,13 @@ There are 4 scenarios the installer tries to account for:
 
 Existing
 
-This setting makes no changes to the existing config and just upgrades/downgrades salt. 
-Makes for easy upgrades. Just run the installer with a silent option. 
+This setting makes no changes to the existing config and just upgrades/downgrades salt.
+Makes for easy upgrades. Just run the installer with a silent option.
 If there is no existing config, then the default is used and `master` and `minion id` are applied if passed.
 
 Custom
 
-This setting will lay down a custom config passed via the command line. 
+This setting will lay down a custom config passed via the command line.
 Since we want to make sure the custom config is applied correctly, we'll need to back up any existing config.
 1. `minion` config renamed to `minion-<timestamp>.bak`
 2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
@@ -123,7 +122,7 @@ Then the custom config is laid down by the installer... and `master` and `minion
 
 Default
 
-This setting will reset config to be the default config contained in the pkg. 
+This setting will reset config to be the default config contained in the pkg.
 Therefore, all existing config files should be backed up
 1. `minion` config renamed to `minion-<timestamp>.bak`
 2. `minion_id` file renamed to `minion_id-<timestamp>.bak`
@@ -138,6 +137,4 @@ Each Salt property (MASTER, ZMQ_FILTERING or MINON_ID) given is changed in all p
 
 The target client is where the installer is deployed.
 
-- 64bit
-- Windows 7 (workstation), Server 2012 (domain controller), or higher.
-
+- Windows 7 (for workstations), Server 2012 (for domain controllers), or higher.
