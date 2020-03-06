@@ -200,7 +200,11 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir"> <!-- Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
       <Directory Id="INSTALLFOLDER" Name="salt" >
-        <Directory Id="CONFFOLDER" Name="conf" />
+        <Directory Id="CONFFOLDER" Name="conf" >
+          <Directory Id="SALT_CONF_PKI_FOLDER" Name="pki" >
+            <Directory Id="SALT_CONF_PKI_MINION_FOLDER" Name="minion" />
+          </Directory>
+        </Directory>
         <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->
         <Directory Id="BINFOLDER"  Name="bin" />
         <Directory Id="VARFOLDER"  Name="var" />
