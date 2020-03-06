@@ -120,12 +120,13 @@ namespace MinionConfigurationExtension {
             }
 
             // Would be more logical in WriteConfig, but here is easier and no harm because there is no public master key in the installer.
-            // Save the salt-master public key 
+            // Save the salt-master public key
             var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
             var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
             bool MASTER_KEY_set = session["MASTER_KEY"] != "";
             session.Log("...master key earlier config file exists = " + File.Exists(master_public_key_filename));
             session.Log("...master key msi property given         = " + MASTER_KEY_set);
+            session.Log("...master key msi MASTER_KEY             = " + session["MASTER_KEY"]);
             if (MASTER_KEY_set) {
                 String master_key_lines = "";   // Newline after 64 characters
                 int count_characters = 0;
