@@ -42,7 +42,7 @@ The build client is where the msi installer is built.
 
 Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items?itemName=WixToolset.WiXToolset)
 
-### Step 1: build the exe installer
+### Step 1: build the Nullsoft (NSIS) exe installer
 
 [Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
 
@@ -74,7 +74,7 @@ Execute
     build_env.cmd
     build.cmd
 
-`build_env.cmd` will create a cache in `c:/salt_msi_resources`
+`build_env.cmd` will create a cache in `c:\salt_msi_resources`
 
 `build.cmd` should return output ending in:
 
@@ -84,7 +84,7 @@ Execute
         2 Warning(s)
         0 Error(s)
 
-To test the msi installer, you may use one of `test*.cmd`.
+To run the msi installer, you may use one of `install*.cmd` to test, one of `test*.cmd`.
 
 To read the most recent msi logfile, you may use `open_last_log_in_code.cmd`
 
@@ -122,7 +122,7 @@ This means that any filesystem and registry change by C# is not atomic.
 Postfix  | Example                            | Meaning
 -------- | ---------------------------------- | -------
 `_IMCAC` | `ReadConfig_IMCAC`                 | Immediate custom action written in C#
-`_IMCAX` |                                    | Immediate custom action written in XML
+`_DECAX` | `uninst_NSIS_DECAX`                | Deferred custom action written in XML
 `_DECAC` | `Uninstall_excl_Config_DECAC`      | Deferred custom action written in C#
 `_CADH`  | `Uninstall_excl_Config_CADH`       | Custom action data helper (only for deferred custom action)
 
@@ -169,6 +169,12 @@ properties, and the current value of those properties:
 > msbuild msbuild.proj /t:help
 
 ### Other Notes
+Install sequences documentation:
+
+- [standard-actions-reference](https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference)
+- [suggested-installuisequence](https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installuisequence)
+- [suggested-installexecutesequence](https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence)
+- [other docs](https://www.advancedinstaller.com/user-guide/standard-actions.html)
 
 The Windows installer restricts the maximum values of the [ProductVersion property](https://docs.microsoft.com/en-us/windows/win32/msi/productversion): 
 
@@ -185,3 +191,21 @@ Because of this restriction "Salt 2018.3.4" has ProductVersion `18.3.4`.
 - Python 3.6 = VC CRT 14.0 = VS 2017
 
 Distutils contains bin/Lib/distutils/command/bdist_msi.py, which probably does not work.
+
+
+### From upgrade code to uninstallstring
+
+UpgradeCode  `FC6FB3A2-65DE-41A9-AD91-D10A402BD641`
+
+Shuffled UpgradeCode `2A3BF6CFED569A14DA191DA004B26D14`
+
+From `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UpgradeCodes\2A3BF6CFED569A14DA191DA004B26D14`
+
+Get Shuffeld Productcode `7C762CE78079ADA429DEE9C2E746B3DE`
+
+Productcode `{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`
+
+
+In `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`
+
+Duplicated as UninstallString `MsiExec.exe /X{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`

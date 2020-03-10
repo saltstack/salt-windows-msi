@@ -5,7 +5,9 @@ using System.IO;
 
 namespace MinionConfigurationExtension {
     public class MinionConfigurationUtilities : WixExtension {
-
+        //
+        // DECAC means you must access data helper properties at session.CustomActionData[*]
+        // IMCAC means ou can directly access msi properties at session[*]
 
         public static void Write_file(Session session, string path, string filename, string filecontent) {
             System.IO.Directory.CreateDirectory(path);  // Ensures that the path exists
@@ -93,21 +95,22 @@ namespace MinionConfigurationExtension {
 
 
         public static string getConfigFileLocation_DECAC(Session session) {
-            // DECAC means you must access data helper properties at session.CustomActionData[*]
-            return session.CustomActionData["root_dir"] + "conf\\minion";
+            return Path.Combine(session.CustomActionData["root_dir"], @"conf\minion");
         }
 
 
         public static string getConfigdDirectoryLocation_DECAC(Session session) {
-            // DECAC means you must access data helper properties at session.CustomActionData[*]
-            return session.CustomActionData["root_dir"] + "conf\\minion.d";
+            return Path.Combine(session.CustomActionData["root_dir"], @"conf\minion.d");
+        }
+
+
+        public static string getConfigFileLocation_IMCAC(Session session) {
+            return Path.Combine(session["INSTALLFOLDER"], @"conf\minion");
         }
 
 
         public static string getConfigdDirectoryLocation_IMCAC(Session session) {
-            // IMCAC means ou can directly access msi properties at session[*]
-            // session["INSTALLFOLDER"] ends with a backslash, e.g. C:\salt\ 
-            return session["INSTALLFOLDER"] + "conf\\minion.d";
+            return Path.Combine(session["INSTALLFOLDER"], @"conf\minion.d");
         }
 
 
