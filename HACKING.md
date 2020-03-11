@@ -209,3 +209,13 @@ Productcode `{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`
 In `HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`
 
 Duplicated as UninstallString `MsiExec.exe /X{7EC267C7-9708-4ADA-92ED-9E2C7E643BED}`
+
+### How to call version.py
+
+
+1) You must change into the salt git directory.
+2) You must have version.py from https://github.com/saltstack/salt/pull/56352 or later
+
+
+
+
