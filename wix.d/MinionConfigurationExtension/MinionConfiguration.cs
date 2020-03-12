@@ -66,12 +66,12 @@ namespace MinionConfigurationExtension {
                 session.Log("...no directory INSTALLFOLDER = " + session["INSTALLFOLDER"]);
             }
 
-            session.Log("...CONFIG_TYPE msi property  =" + session["CONFIG_TYPE"]);
-            session.Log("...MASTER      msi property  =" + session["MASTER"]);
-            session.Log("...MINION_ID   msi property  =" + session["MINION_ID"]);
+            session.Log("...CONFIG_TYPE msi property  = " + session["CONFIG_TYPE"]);
+            session.Log("...MASTER      msi property  = " + session["MASTER"]);
+            session.Log("...MINION_ID   msi property  = " + session["MINION_ID"]);
 
             if (session["CONFIG_TYPE"] == "Default") {
-                /* Overwrite the existing config if present with the default config for salt. 
+                /* Overwrite the existing config if present with the default config for salt.
                  */
 
                 if (session["MASTER"] == "") {
@@ -120,12 +120,13 @@ namespace MinionConfigurationExtension {
             }
 
             // Would be more logical in WriteConfig, but here is easier and no harm because there is no public master key in the installer.
-            // Save the salt-master public key 
-            var master_public_key_path = @"C:\salt\conf\pki\minion";  // TODO more flexible
-            var master_public_key_filename = master_public_key_path + "\\" + @"minion_master.pub";
+            // Save the salt-master public key
+            session.Log("...SALT_CONF_PKI_MINION_FOLDER           = " + session["SALT_CONF_PKI_MINION_FOLDER"]);
+            var master_public_key_filename = Path.Combine(session["SALT_CONF_PKI_MINION_FOLDER"], "minion_master.pub");
             bool MASTER_KEY_set = session["MASTER_KEY"] != "";
             session.Log("...master key earlier config file exists = " + File.Exists(master_public_key_filename));
             session.Log("...master key msi property given         = " + MASTER_KEY_set);
+            session.Log("...master key msi MASTER_KEY             = " + session["MASTER_KEY"]);
             if (MASTER_KEY_set) {
                 String master_key_lines = "";   // Newline after 64 characters
                 int count_characters = 0;
@@ -140,7 +141,10 @@ namespace MinionConfigurationExtension {
                   "-----BEGIN PUBLIC KEY-----" + Environment.NewLine +
                   master_key_lines + Environment.NewLine +
                   "-----END PUBLIC KEY-----";
-                Directory.CreateDirectory(master_public_key_path);
+                if (!Directory.Exists(session["SALT_CONF_PKI_MINION_FOLDER"])) {
+                    // The <Directory> declaration in Product.wxs does not create the folders
+                    Directory.CreateDirectory(session["SALT_CONF_PKI_MINION_FOLDER"]);
+                }
                 File.WriteAllText(master_public_key_filename, new_master_pub_key);
             }
             session.Log("...End ReadConfig_IMCAC");
