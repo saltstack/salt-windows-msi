@@ -15,11 +15,11 @@ if (-Not (Test-Path ..\salt)) {
 Push-Location ..\salt
 $displayversion = & git describe --tags --first-parent --match v[0-9]* --always
 Pop-Location
-[regex]$regexp = '(?:[^\d]+)?(?<major>[\d]{1,4})(?:\.(?<minor>[\d]{1,2}))?(?:\.(?<bugfix>[\d]{0,2}))?'
-$regmatch = $regexp.Match($displayversion)
-$major = $regmatch.groups["major"].ToString()
-$minor = $regmatch.groups["minor"]
-$bugfix = $regmatch.groups["bugfix"]
+[regex]$tagRE = '(?:[^\d]+)?(?<major>[\d]{1,4})(?:\.(?<minor>[\d]{1,2}))?(?:\.(?<bugfix>[\d]{0,2}))?'
+$tagREM = $tagRE.Match($displayversion)
+$major = $tagREM.groups["major"].ToString()
+$minor = $tagREM.groups["minor"]
+$bugfix = $tagREM.groups["bugfix"]
 if ([string]::IsNullOrEmpty($minor)) {$minor = 0}
 if ([string]::IsNullOrEmpty($bugfix)) {$bugfix = 0}
 # Assumption: major is a number
