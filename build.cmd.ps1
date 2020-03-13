@@ -17,9 +17,11 @@ $displayversion = & git describe --tags --first-parent --match v[0-9]* --always
 Pop-Location
 [regex]$tagRE = '(?:[^\d]+)?(?<major>[\d]{1,4})(?:\.(?<minor>[\d]{1,2}))?(?:\.(?<bugfix>[\d]{0,2}))?'
 $tagREM = $tagRE.Match($displayversion)
-$major = $tagREM.groups["major"].ToString()
-$minor = $tagREM.groups["minor"]
+$major  = $tagREM.groups["major"].ToString()
+$minor  = $tagREM.groups["minor"]
 $bugfix = $tagREM.groups["bugfix"]
+# Remove leading v from Git tag in a released display version (which only consists of digits and dots).
+$displayversion = $displayversion -replace '^v([\d.]+)$', '$1'
 if ([string]::IsNullOrEmpty($minor)) {$minor = 0}
 if ([string]::IsNullOrEmpty($bugfix)) {$bugfix = 0}
 # Assumption: major is a number
@@ -29,7 +31,7 @@ if ([convert]::ToInt32($major, 10) -ge 3000) {      # 3000 scheme
   $major2 = $major.substring(2)
   $internalversion = "$major1.$major2.$minor"
 } else {    # Year.Month.Bugfix scheme
-  $year = $major.substring(2)
+  $year  = $major.substring(2)
   $month = $minor
   $internalversion = "$year.$month.$bugfix"
 }
