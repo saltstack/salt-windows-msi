@@ -73,8 +73,8 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
     <Property Id="START_MINION"             Value="1"                    />
     <Property Id="KEEP_CONFIG"              Value="1"                    />
-    <Property Id="ARPHELPLINK"              Value="https://saltstack.com/support/"/>
-    <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com/community/"/>
+    <Property Id="ARPHELPLINK"              Value="https://support.saltstack.com"/>
+    <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com"/>
     <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"/>
     <Property Id="ROOTDRIVE"                Value="C:\"/>
     <Property Id="ARPPRODUCTICON"           Value="icon.ico" />
