@@ -11,8 +11,8 @@ namespace MinionConfigurationExtension {
 
         public static void Write_file(Session session, string path, string filename, string filecontent) {
             System.IO.Directory.CreateDirectory(path);  // Ensures that the path exists
-            File.WriteAllText(path + "\\" + filename, filecontent);       //  throws an Exception if path does not exist
-            session.Log(@"...created " + path + "\\" + filename);
+            File.WriteAllText(Path.Combine(path, filename), filecontent);       //  throws an Exception if path does not exist
+            session.Log(@"...Write_file " + Path.Combine(path, filename));
         }
 
 
