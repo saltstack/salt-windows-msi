@@ -14,13 +14,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-```  
+```
 The VisualStudioVersion: 14.0.25420.1 translates to VS2015 with Service Pack 3. This is available for download
 for free from https://visualstudio.microsoft.com/vs/older-downloads/ so long as you have a develop account. This
 is free for developers and does not expire. What this enables you to do is build the MSI using the built-in Wix
 commands, all from within the IDE. Note that this requires:
  - [This](https://marketplace.visualstudio.com/items?itemName=WixToolset.WixToolsetVisualStudio2015Extension)
- extention 
+ extention
 
 
 ## Build client requirements
@@ -49,22 +49,22 @@ Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items
 Execute
 
     cd c:\dev\salt\pkg\windows
-    git checkout v2018.3.4
+    git checkout v2019.2.3
 
 Repeat
 
-    git checkout .
-    git clean -fd
+   git clean -fd
+   git checkout .
 
 until `git status` returns
 
-    HEAD detached at v2018.3.4
+    HEAD detached at v2019.2.3
     nothing to commit, working tree clean
 
-then execute 
+then execute
 
     clean_env.bat
-    build.bat
+    build.bat Python=3
 
 ### Step 2: build the msi installer
 
@@ -176,18 +176,20 @@ Install sequences documentation:
 - [suggested-installexecutesequence](https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence)
 - [other docs](https://www.advancedinstaller.com/user-guide/standard-actions.html)
 
-The Windows installer restricts the maximum values of the [ProductVersion property](https://docs.microsoft.com/en-us/windows/win32/msi/productversion): 
+The Windows installer restricts the maximum values of the [ProductVersion property](https://docs.microsoft.com/en-us/windows/win32/msi/productversion):
 
-- major.minor.build 
+- major.minor.build
 - `255.255.65535`
 
-Because of this restriction "Salt 2018.3.4" has ProductVersion `18.3.4`.
+Because of this restriction, the builder generates an internal version:
+ - Salt 3012.1 becomes `30.12.1`
+ - Salt 2018.3.4 becomes `18.3.4`
 
 [Wix-Setup-Samples](https://github.com/deepak-rathi/Wix-Setup-Samples)
 
 [Which Python version uses which MS VC CRT version](https://wiki.python.org/moin/WindowsCompilers)
 
-- Python 2.7 = VC CRT 9.0 = VS 2008  
+- Python 2.7 = VC CRT 9.0 = VS 2008
 - Python 3.6 = VC CRT 14.0 = VS 2017
 
 Distutils contains bin/Lib/distutils/command/bdist_msi.py, which probably does not work.
