@@ -20,7 +20,7 @@ for free from https://visualstudio.microsoft.com/vs/older-downloads/ so long as 
 is free for developers and does not expire. What this enables you to do is build the MSI using the built-in Wix
 commands, all from within the IDE. Note that this requires:
  - [This](https://marketplace.visualstudio.com/items?itemName=WixToolset.WixToolsetVisualStudio2015Extension)
- extention
+ extension
 
 
 ## Build client requirements
