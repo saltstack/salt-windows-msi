@@ -74,6 +74,12 @@ In the DECAC:
     session.CustomActionData["master"]      THIS IS OK
     session.CustomActionData["mister"]      THIS WILL CRASH
 
+### Delete minion_id file
+Alternatives
+
+https://wixtoolset.org/documentation/manual/v3/xsd/wix/removefile.html
+
+https://stackoverflow.com/questions/7120238/wix-remove-config-file-on-install
 
 
 ### user interface

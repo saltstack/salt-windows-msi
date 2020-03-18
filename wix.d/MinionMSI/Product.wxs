@@ -119,6 +119,15 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <CustomAction Id="get_NSIS_uninstdir_IMCAX" Script="vbscript">
       Session.Property("nsis_uninstalldir") = Replace(Session.Property("NSIS_UNINSTALLSTRING"),"uninst.exe","")
     </CustomAction>
+    <!-- Delete minion_id file -->
+    <CustomAction Id="del_minion_id_file_IMCAX" Script="vbscript">
+      Set fso = CreateObject("Scripting.FileSystemObject")
+      conffolder = Session.Property("CONFFOLDER")
+      midf = fso.BuildPath(conffolder, "minion_id")
+      If fso.FileExists(midf) Then
+         fso.DeleteFile(midf)
+      End If
+    </CustomAction>
 
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
       <Custom Action="get_NSIS_uninstdir_IMCAX"    Before='LaunchConditions'         >NSIS_UNINSTALLSTRING</Custom>
@@ -132,6 +141,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * *  -->
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
       <Custom Action='del_NSIS_DECAC'               After='InstallInitialize'       >nsis_uninst_waits_not</Custom>
+      <Custom Action='del_minion_id_file_IMCAX'     After='InstallInitialize'       >DEL_MINION_ID_FILE</Custom>
       <Custom Action="uninst_NSIS1_DECAH"          Before='uninst_NSIS1_DECAX'     />
       <Custom Action="uninst_NSIS1_DECAX"          Before='uninst_NSIS2_DECAX'      >nsis_uninst_waits_yes</Custom>
       <Custom Action="uninst_NSIS2_DECAH"          Before='uninst_NSIS2_DECAX'     />
