@@ -45,7 +45,7 @@ Salt Minion-specific msi-properties:
  `MINION_CONFIG`        |                         | Content to be written into the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
  `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
- `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default` or `New`. See below.
+ `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
  `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__  --- __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
 
@@ -57,9 +57,8 @@ These files and directories are regarded as config and kept:
 - c:\salt\var\cache\salt\minion\extmods\
 - c:\salt\var\cache\salt\minion\files\
 
-Master and id are read from
- - file `C:\salt\conf\minion`
- - If `CONFIG_TYPE=New` then addionally from files `C:\salt\conf\minion.d\*.conf`
+Master and id are read from file `C:\salt\conf\minion`
+
 
 You can set a new master with `MASTER`. This will overrule the master in a kept configuration.
 
@@ -102,12 +101,11 @@ Remember to create the same file as `/sr/salt/_modules/id_function.py` on your s
 
 ### `CONFIG_TYPE`
 
-There are 4 scenarios the installer tries to account for:
+There are 3 scenarios the installer tries to account for:
 
 1. existing-config (default)
 2. custom-config
 3. default-config
-4. new-config
 
 Existing
 
@@ -133,9 +131,6 @@ Therefore, all existing config files should be backed up
 3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
 Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
 
-New
-
-Each Salt property (MASTER, ZMQ_FILTERING or MINON_ID) given is changed in all present config files or, if missing, added as a new file to the minion.d directory.
 
 ## Target client requirements
 

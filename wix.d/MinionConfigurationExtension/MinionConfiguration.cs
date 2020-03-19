@@ -286,7 +286,7 @@ namespace MinionConfigurationExtension {
         [CustomAction]
         public static ActionResult WriteConfig_DECAC(Session session) {
             /*
-             * This function must leave the config files according to the CONFIG_TYPE's 1-4
+             * This function must leave the config files according to the CONFIG_TYPE's 1-3
              * This function is deferred (_DECAC)
              * This function runs after the msi has created the c:\salt\conf\minion file, which is a comment-only text.
              * If there was a previous install, there could be many config files.
@@ -429,8 +429,8 @@ def id_function():
             string pattern = "^" + SaltKey + ":";
             string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
 
-            // Replace in all files
-            replaced = replace_pattern_in_all_config_files_DECAC(session, pattern, replacement);
+            // Replace in config file
+            replaced = replace_pattern_in_config_file_DECAC(session, pattern, replacement);
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
             session.Log(@"...replace_Saltkey_in_previous_configuration_DECAC found or replaces " + replaced.ToString());
@@ -438,46 +438,22 @@ def id_function():
         }
 
 
-        private static bool replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement) {
+        private static bool replace_pattern_in_config_file_DECAC(Session session, string pattern, string replacement) {
             /*
-             * "All config" files means:
-             *   conf/minion
-             *   conf/minion.d/*.conf           (only for New)
-             *
-             * MAYBE this function could input a dictionary of key/value pairs, because it reopens all config files over and over.
-             *
+             * config file means: conf/minion
              */
             bool replaced_in_any_file = false;
             string MINION_CONFIGFILE = MinionConfigurationUtilities.getConfigFileLocation_DECAC(session);
-            string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_DECAC(session);
 
             replaced_in_any_file |= replace_in_file_DECAC(session, MINION_CONFIGFILE, pattern, replacement);
 
-            // Shane wants that the installer changes only the MINION_CONFIGFILE, not the minion.d/*.conf files
-            if (session.CustomActionData["config_type"] == "New") {
-                // Go into the minion.d/ folder
-                if (Directory.Exists(MINION_CONFIGDIR)) {
-                    var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
-                    foreach (var conf_file in conf_files) {
-                        // skip _schedule.conf
-                        if (conf_file.EndsWith("_schedule.conf")) { continue; }
-                        replaced_in_any_file |= replace_in_file_DECAC(session, conf_file, pattern, replacement);
-                    }
-                }
-            }
             return replaced_in_any_file;
         }
 
 
         static private void append_to_config_DECAC(Session session, string key, string value) {
             string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_DECAC(session);
-            if (session.CustomActionData["config_type"] == "New") {
-                //CONFIG_TYPE New creates a minion.d/*.conf file
-                MinionConfigurationUtilities.Writeln_file(session, MINION_CONFIGDIR, key + ".conf", key + ": " + value);
-            } else {
-                // Shane: CONFIG_TYPES 1-3 change only the MINION_CONFIGFILE, not the minion.d/*.conf files, because the admin knows what he is doing.
-                insert_value_after_comment_or_end_in_minionconfig_file(session, key, value);
-            }
+            insert_value_after_comment_or_end_in_minionconfig_file(session, key, value);
         }
 
 
