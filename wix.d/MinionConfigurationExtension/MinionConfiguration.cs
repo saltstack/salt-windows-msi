@@ -293,7 +293,7 @@ namespace MinionConfigurationExtension {
              * The previous install c:\salt\conf\minion file could contain non-comments.
              * One of the non-comments could be master.
              * It could be that this installer has a different master.
-             * 
+             *
              */
             // Must have this signature or cannot uninstall not even write to the log
 
@@ -301,40 +301,37 @@ namespace MinionConfigurationExtension {
             if (minion_config.Length > 0) {
                 save_config_DECAC(session);
             } else {
-            string zmq_filtering = "";
-            string master = "";
-            string id = "";
-            string minion_id_caching = "";
-            string minion_id_remove_domain = "";
+                string zmq_filtering = "";
+                string master = "";
+                string id = "";
+                string minion_id_caching = "";
+                string minion_id_remove_domain = "";
 
-            session.Log(@"...WriteConfig_DECAC START");
+                session.Log(@"...WriteConfig_DECAC START");
 
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "zmq_filtering", ref zmq_filtering)) {
-                if (zmq_filtering == "True") {
-                    append_to_config_DECAC(session, "zmq_filtering", zmq_filtering);
+                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "zmq_filtering", ref zmq_filtering)) {
+                    if (zmq_filtering == "True") {
+                        append_to_config_DECAC(session, "zmq_filtering", zmq_filtering);
+                    }
                 }
-            }
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
-                append_to_config_DECAC(session, "master", master);
-            }
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "id", ref id)) {
-                append_to_config_DECAC(session, "id", id);
-            }
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_caching", ref minion_id_caching)) {
-                if (minion_id_caching == "False") {
-                    append_to_config_DECAC(session, "minion_id_caching", minion_id_caching);
+                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
+                    append_to_config_DECAC(session, "master", master);
                 }
-            }
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_remove_domain", ref minion_id_remove_domain)) {
-                if (minion_id_remove_domain != "") {
-                    append_to_config_DECAC(session, "minion_id_remove_domain", minion_id_remove_domain);
+                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "id", ref id)) {
+                    append_to_config_DECAC(session, "id", id);
                 }
-            }
-
-            save_id_function_DECAC(session);
-
-            save_custom_config_file_if_config_type_demands_DECAC(session);
-
+                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_caching", ref minion_id_caching)) {
+                    if (minion_id_caching == "False") {
+                        append_to_config_DECAC(session, "minion_id_caching", minion_id_caching);
+                    }
+                }
+                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_remove_domain", ref minion_id_remove_domain)) {
+                    if (minion_id_remove_domain != "") {
+                        append_to_config_DECAC(session, "minion_id_remove_domain", minion_id_remove_domain);
+                    }
+                }
+                save_id_function_DECAC(session);
+                save_custom_config_file_if_config_type_demands_DECAC(session);
             }
             session.Log(@"...WriteConfig_DECAC STOP");
             return ActionResult.Success;
@@ -408,6 +405,7 @@ def id_function():
             }
             session.Log(@"...save_config_DECAC END");
         }
+
 
         private static bool replace_Saltkey_in_previous_configuration_DECAC(Session session, string SaltKey, ref string CustomActionData_value) {
             // Read SaltKey properties and convert some from 1 to True or to False
