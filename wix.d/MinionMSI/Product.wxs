@@ -34,12 +34,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Condition Message='START_MINION must not be [START_MINION]. Please use 1 or "" (two double quotes).'>
       (START_MINION = 1) OR NOT START_MINION OR Installed
     </Condition>
-    <Condition Message='ZMQ_FILTERING must not be [ZMQ_FILTERING]. Please use 1 or "" (two double quotes).'>
-      (ZMQ_FILTERING = 1) OR NOT ZMQ_FILTERING OR Installed
-    </Condition>
-    <Condition Message='MINION_ID_CACHING must not be [MINION_ID_CACHING]. Please use 1 or "" (two double quotes).'>
-      (MINION_ID_CACHING = 1) OR NOT MINION_ID_CACHING OR Installed
-    </Condition>
     <Condition Message='KEEP_CONFIG must not be [KEEP_CONFIG]. Please use 1 or "" (two double quotes).'>
       (KEEP_CONFIG = 1) OR NOT KEEP_CONFIG OR Installed
     </Condition>
@@ -62,13 +56,9 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
            MASTER
            MASTER_KEY
            MINION_ID
-           MINION_ID_FUNCTION
-           MINION_ID_REMOVE_DOMAIN
            MINION_CONFIG
            CUSTOM_CONFIG
-           ZMQ_FILTERING
     -->
-    <Property Id="MINION_ID_CACHING"        Value="1"                    />
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
     <Property Id="START_MINION"             Value="1"                    />
     <Property Id="KEEP_CONFIG"              Value="1"                    />

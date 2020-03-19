@@ -38,11 +38,8 @@ Salt Minion-specific msi-properties:
  ---------------------- | ----------------------- | ------
  `MASTER`               | `salt`                  | The master (name or IP). Only a single master.
  `MASTER_KEY`           |                         | The master public key. See below.
- `ZMQ_filtering`        |                         | Set to `1` if the master requires zmq_filtering.
  `MINION_ID`            | Hostname                | The minion id.
- `MINION_ID_CACHING`    | `1`                     | Set to `""` if the minion id shall be determined at each salt-minion service start.
- `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
- `MINION_CONFIG`        |                         | Content to be written into the `minion` config file. See below.
+ `MINION_CONFIG`        |                         | Content to be written to the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
  `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
@@ -59,8 +56,7 @@ These files and directories are regarded as config and kept:
 
 Master and id are read from file `C:\salt\conf\minion`
 
-
-You can set a new master with `MASTER`. This will overrule the master in a kept configuration.
+You can set a new master with `MASTER`.
 
 You can set a new master public key with `MASTER_KEY`, after you converted it into one line like so:
 
@@ -79,24 +75,6 @@ Example `MINION_CONFIG="master: Anna^id: Ben"` results in:
 
     master: Anna
     id: Ben
-
-### `MINION_ID_FUNCTION`
-
-The minion ID can be set by a user defined module function ([Further reading](https://github.com/saltstack/salt/pull/41619)).
-
-If `MINION_ID_FUNCTION` is set, the installer creates module file `c:\salt\var\cache\salt\minion\extmods\modules\id_function.py` with the content
-
-    import socket
-    def id_function():
-      return MINION_ID_FUNCTION
-
-Example `MINION_ID_FUNCTION=socket.gethostname()` results in:
-
-    import socket
-    def id_function():
-      return socket.gethostname()
-
-Remember to create the same file as `/sr/salt/_modules/id_function.py` on your server, so that `saltutil.sync_all` will keep the file on the minion.
 
 
 ### `CONFIG_TYPE`
@@ -132,8 +110,6 @@ Therefore, all existing config files should be backed up
 Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
 
 
-## Target client requirements
-
-The target client is where the installer is deployed.
+## Client requirements
 
 - Windows 7 (for workstations), Server 2012 (for domain controllers), or higher.

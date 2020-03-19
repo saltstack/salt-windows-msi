@@ -67,7 +67,7 @@ Example:
 
 In the CADH:
 
-    master=[MASTER];minion_id_function=[MINION_ID_FUNCTION]
+    master=[MASTER];minion_id=[MINION_ID]
 
 In the DECAC:
 

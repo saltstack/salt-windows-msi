@@ -11,7 +11,6 @@
 
         <Control Id="MasterLabel"  Type="Text"       X="20"  Y="75"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Master (single hostname or IP address):" />
         <Control Id="MasterId"     Type="Edit"       X="20"  Y="90"  Width="190" Height="15" Property="MASTER" />
-        <Control Id="zmqfilterbox" Type="CheckBox"   X="220" Y="90"  Width="150" Height="15" Property="ZMQ_FILTERING" CheckBoxValue="1" Text="Master requires &amp;zmq_filtering"/>
 
         <Control Id="MinionLabel"  Type="Text"       X="20"  Y="120" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion:" />
         <Control Id="MinionId"     Type="Edit"       X="20"  Y="135" Width="190" Height="15" Property="MINION_ID" />

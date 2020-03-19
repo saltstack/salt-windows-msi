@@ -301,55 +301,23 @@ namespace MinionConfigurationExtension {
             if (minion_config.Length > 0) {
                 save_config_DECAC(session);
             } else {
-                string zmq_filtering = "";
                 string master = "";
                 string id = "";
-                string minion_id_caching = "";
-                string minion_id_remove_domain = "";
 
                 session.Log(@"...WriteConfig_DECAC START");
 
-                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "zmq_filtering", ref zmq_filtering)) {
-                    if (zmq_filtering == "True") {
-                        append_to_config_DECAC(session, "zmq_filtering", zmq_filtering);
-                    }
-                }
                 if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
                     append_to_config_DECAC(session, "master", master);
                 }
                 if (!replace_Saltkey_in_previous_configuration_DECAC(session, "id", ref id)) {
                     append_to_config_DECAC(session, "id", id);
                 }
-                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_caching", ref minion_id_caching)) {
-                    if (minion_id_caching == "False") {
-                        append_to_config_DECAC(session, "minion_id_caching", minion_id_caching);
-                    }
-                }
-                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_remove_domain", ref minion_id_remove_domain)) {
-                    if (minion_id_remove_domain != "") {
-                        append_to_config_DECAC(session, "minion_id_remove_domain", minion_id_remove_domain);
-                    }
-                }
-                save_id_function_DECAC(session);
                 save_custom_config_file_if_config_type_demands_DECAC(session);
             }
             session.Log(@"...WriteConfig_DECAC STOP");
             return ActionResult.Success;
         }
 
-
-        private static void save_id_function_DECAC(Session session) {
-            session.Log(@"...save_id_function_DECAC");
-            string minion_id_function = MinionConfigurationUtilities.get_property_DECAC(session, "minion_id_function");
-            if (minion_id_function.Length > 0) {
-                string filepath = @"c:\salt\var\cache\salt\minion\extmods\modules";
-                string filename = @"id_function.py";
-                string filecontent = @"import socket
-def id_function():
-    return " + minion_id_function;
-                MinionConfigurationUtilities.Writeln_file(session, filepath, filename, filecontent);
-            }
-        }
 
         private static void save_custom_config_file_if_config_type_demands_DECAC(Session session) {
             session.Log("...save_custom_config_file_if_config_type_demands_DECAC");
@@ -413,14 +381,6 @@ def id_function():
 
             session.Log("...replace_Saltkey_in_previous_configuration_DECAC Key   " + SaltKey);
             CustomActionData_value = MinionConfigurationUtilities.get_property_DECAC(session, SaltKey);
-            if (SaltKey == "zmq_filtering") {
-                CustomActionData_value = (CustomActionData_value == "1") ? "True" : "False";
-                session.Log("...changed zmq_filtering to " + CustomActionData_value);
-            }
-            if (SaltKey == "minion_id_caching") {
-                CustomActionData_value = (CustomActionData_value == "1") ? "True" : "False";
-                session.Log("...changed zmq_filtering to " + CustomActionData_value);
-            }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
             // pattern description
