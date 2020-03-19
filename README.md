@@ -42,6 +42,7 @@ Salt Minion-specific msi-properties:
  `MINION_ID`            | Hostname                | The minion id.
  `MINION_ID_CACHING`    | `1`                     | Set to `""` if the minion id shall be determined at each salt-minion service start.
  `DEL_MINION_ID_FILE`   |                         | Set to `1` if the `minion_id` file shall be deleted.
+ `DEL_MINION_D_FOLDER`  |                         | Set to `1` if the `minion.d` folder shall be deleted.
  `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
  `MINION_CONFIG`        |                         | Content to be written into the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
