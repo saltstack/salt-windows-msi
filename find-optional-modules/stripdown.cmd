@@ -1,1 +1,0 @@
-PowerShell -ExecutionPolicy RemoteSigned -File stripdown.ps1
