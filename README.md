@@ -41,8 +41,6 @@ Salt Minion-specific msi-properties:
  `ZMQ_filtering`        |                         | Set to `1` if the master requires zmq_filtering.
  `MINION_ID`            | Hostname                | The minion id.
  `MINION_ID_CACHING`    | `1`                     | Set to `""` if the minion id shall be determined at each salt-minion service start.
- `DEL_MINION_ID_FILE`   |                         | Set to `1` if the `minion_id` file shall be deleted.
- `DEL_MINION_D_FOLDER`  |                         | Set to `1` if the `minion.d` folder shall be deleted.
  `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
  `MINION_CONFIG`        |                         | Content to be written into the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
@@ -72,12 +70,16 @@ You can set a new master public key with `MASTER_KEY`, after you converted it in
 
 ### `MINION_CONFIG`
 
-If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with it. For line breaks, use "^".
+If `MINION_CONFIG` is set:
 
-Example `MINION_CONFIG="a: A^b: B"` results in:
+- Its content is written to file `c:\salt\conf\minion`, with `^` replaced by line breaks,
+- all `minion.d\*.conf` files are deleted,
+- the `minion_id` file is deleted.
 
-    a: A
-    b: B
+Example `MINION_CONFIG="master: Anna^id: Ben"` results in:
+
+    master: Anna
+    id: Ben
 
 ### `MINION_ID_FUNCTION`
 

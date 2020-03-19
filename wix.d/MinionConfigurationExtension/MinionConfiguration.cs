@@ -296,6 +296,11 @@ namespace MinionConfigurationExtension {
              * 
              */
             // Must have this signature or cannot uninstall not even write to the log
+
+            string minion_config = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
+            if (minion_config.Length > 0) {
+                save_config_DECAC(session);
+            } else {
             string zmq_filtering = "";
             string master = "";
             string id = "";
@@ -330,8 +335,7 @@ namespace MinionConfigurationExtension {
 
             save_custom_config_file_if_config_type_demands_DECAC(session);
 
-            save_config_DECAC(session);
-
+            }
             session.Log(@"...WriteConfig_DECAC STOP");
             return ActionResult.Success;
         }
@@ -380,13 +384,29 @@ def id_function():
         }
 
 
-        private static void save_config_DECAC(Session session) {
-            session.Log(@"...save_config_DECAC");
+        private static void save_config_DECAC(Session session) {    // and remove all other config
+            session.Log(@"...save_config_DECAC BEGIN");
             string kwargs_in_commata = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
             if (kwargs_in_commata.Length > 0) {
                 string lines = kwargs_in_commata.Replace("^", Environment.NewLine);
                 MinionConfigurationUtilities.Writeln_file(session, @"C:\salt\conf", "minion", lines);
+                // Remove minion_id
+                if (File.Exists(@"C:\salt\conf\minion_id")) {
+                    session.Log(@"...deleting  minion_id");
+                    File.Delete(@"C:\salt\conf\minion_id");
+                    session.Log(@"...deleted   minion_id");
+                }
+                // Remove minion.d\*.conf
+                if (Directory.Exists(@"C:\salt\conf\minion.d")) {
+                    var conf_files = System.IO.Directory.GetFiles(@"C:\salt\conf\minion.d", "*.conf");
+                    foreach (var conf_file in conf_files) {
+                        session.Log(@"...deleting  "+ conf_file);
+                        File.Delete(conf_file);
+                        session.Log(@"...deleted   "+ conf_file);
+                    }
+                }
             }
+            session.Log(@"...save_config_DECAC END");
         }
 
         private static bool replace_Saltkey_in_previous_configuration_DECAC(Session session, string SaltKey, ref string CustomActionData_value) {
