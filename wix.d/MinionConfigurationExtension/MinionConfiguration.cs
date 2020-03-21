@@ -296,16 +296,13 @@ namespace MinionConfigurationExtension {
              *
              */
             // Must have this signature or cannot uninstall not even write to the log
-
+            session.Log("...WriteConfig_DECAC BEGIN");
             string minion_config = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
             if (minion_config.Length > 0) {
                 apply_minion_config_DECAC(session, minion_config);
             } else {
                 string master = "";
                 string id = "";
-
-                session.Log(@"...WriteConfig_DECAC START");
-
                 if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
                     append_to_config_DECAC(session, "master", master);
                 }
@@ -314,7 +311,7 @@ namespace MinionConfigurationExtension {
                 }
                 save_custom_config_file_if_config_type_demands_DECAC(session);
             }
-            session.Log(@"...WriteConfig_DECAC STOP");
+            session.Log("...WriteConfig_DECAC END");
             return ActionResult.Success;
         }
 
