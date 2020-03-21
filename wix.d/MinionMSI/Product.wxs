@@ -137,7 +137,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
       <Custom Action='WriteConfig_CADH'
               Before='WriteConfig_DECAC'                                                >NOT Installed</Custom>
-      <Custom Action='WriteConfig_DECAC'           After='InstallFiles'                 >NOT Installed</Custom>
+      <Custom Action='WriteConfig_DECAC'           After='WriteIniValues'               >NOT Installed</Custom>
 
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
