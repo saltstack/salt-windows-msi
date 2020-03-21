@@ -350,24 +350,25 @@ namespace MinionConfigurationExtension {
 
 
         private static void save_config_DECAC(Session session) {    // and remove all other config
-            session.Log(@"...save_config_DECAC BEGIN");
-            string kwargs_in_commata = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
-            if (kwargs_in_commata.Length > 0) {
-                string lines = kwargs_in_commata.Replace("^", Environment.NewLine);
+            session.Log("...save_config_DECAC BEGIN");
+            string minion_config = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
+            if (minion_config.Length > 0) {
+                // Write conf/minion
+                string lines = minion_config.Replace("^", Environment.NewLine);
                 MinionConfigurationUtilities.Writeln_file(session, @"C:\salt\conf", "minion", lines);
-                // Remove minion_id
+                // Remove conf/minion_id
                 if (File.Exists(@"C:\salt\conf\minion_id")) {
                     session.Log(@"...deleting  minion_id");
                     File.Delete(@"C:\salt\conf\minion_id");
                     session.Log(@"...deleted   minion_id");
                 }
-                // Remove minion.d\*.conf
+                // Remove conf/minion.d\*.conf
                 if (Directory.Exists(@"C:\salt\conf\minion.d")) {
                     var conf_files = System.IO.Directory.GetFiles(@"C:\salt\conf\minion.d", "*.conf");
                     foreach (var conf_file in conf_files) {
-                        session.Log(@"...deleting  "+ conf_file);
+                        session.Log("...deleting  "+ conf_file);
                         File.Delete(conf_file);
-                        session.Log(@"...deleted   "+ conf_file);
+                        session.Log("...deleted   "+ conf_file);
                     }
                 }
             }
