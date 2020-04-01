@@ -11,8 +11,8 @@ namespace MinionConfigurationExtension {
 
         public static void Write_file(Session session, string path, string filename, string filecontent) {
             System.IO.Directory.CreateDirectory(path);  // Ensures that the path exists
-            File.WriteAllText(path + "\\" + filename, filecontent);       //  throws an Exception if path does not exist
-            session.Log(@"...created " + path + "\\" + filename);
+            File.WriteAllText(Path.Combine(path, filename), filecontent);       //  throws an Exception if path does not exist
+            session.Log(@"...Write_file " + Path.Combine(path, filename));
         }
 
 
@@ -86,10 +86,10 @@ namespace MinionConfigurationExtension {
 
 
         public static string get_property_DECAC(Session session, string key) {
-            session.Log("...CustomActionData key {0}", key);
+            session.Log("   ...CustomActionData key {0}", key);
             string val = session.CustomActionData[key];
-            session.Log("...CustomActionData val {0}", val);
-            session.Log("...CustomActionData len {0}", val.Length);
+            session.Log("   ...CustomActionData val {0}", val);
+            session.Log("   ...CustomActionData len {0}", val.Length);
             return val;
         }
 

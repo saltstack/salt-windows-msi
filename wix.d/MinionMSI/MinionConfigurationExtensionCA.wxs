@@ -41,7 +41,7 @@
          Actions must have C# Signature [CustomAction] public static ActionResult
     -->
     <!--  Terminology changes from msi to Salt. -->
-    <CustomAction Id="WriteConfig_CADH"            Property="WriteConfig_DECAC"             Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];zmq_filtering=[ZMQ_FILTERING];minion_id_caching=[MINION_ID_CACHING];minion_id_remove_domain=[MINION_ID_REMOVE_DOMAIN];config_type=[CONFIG_TYPE];minion_id_function=[MINION_ID_FUNCTION];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR]" />
+    <CustomAction Id="WriteConfig_CADH"            Property="WriteConfig_DECAC"             Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER]" />
     <CustomAction Id="Uninstall_incl_Config_CADH"  Property="Uninstall_incl_Config_DECAC"   Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
     <CustomAction Id="Uninstall_excl_Config_CADH"  Property="Uninstall_excl_Config_DECAC"   Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
     <!-- NICETOHAVE test if Uninstall_*_DECAC needs  master=[MASTER];id=[MINION_ID] -->

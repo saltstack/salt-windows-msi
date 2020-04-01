@@ -38,14 +38,11 @@ Salt Minion-specific msi-properties:
  ---------------------- | ----------------------- | ------
  `MASTER`               | `salt`                  | The master (name or IP). Only a single master.
  `MASTER_KEY`           |                         | The master public key. See below.
- `ZMQ_filtering`        |                         | Set to `1` if the master requires zmq_filtering.
  `MINION_ID`            | Hostname                | The minion id.
- `MINION_ID_CACHING`    | `1`                     | Set to `""` if the minion id shall be determined at each salt-minion service start.
- `MINION_ID_FUNCTION`   |                         | Set minion id by module function. See below
- `MINION_CONFIG`        |                         | Content to be written into the `minion` config file. See below.
+ `MINION_CONFIG`        |                         | Content to be written to the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
  `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
- `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default` or `New`. See below.
+ `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
  `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__  --- __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
 
@@ -57,11 +54,9 @@ These files and directories are regarded as config and kept:
 - c:\salt\var\cache\salt\minion\extmods\
 - c:\salt\var\cache\salt\minion\files\
 
-Master and id are read from
- - file `C:\salt\conf\minion`
- - If `CONFIG_TYPE=New` then addionally from files `C:\salt\conf\minion.d\*.conf`
+Master and id are read from file `C:\salt\conf\minion`
 
-You can set a new master with `MASTER`. This will overrule the master in a kept configuration.
+You can set a new master with `MASTER`.
 
 You can set a new master public key with `MASTER_KEY`, after you converted it into one line like so:
 
@@ -70,40 +65,25 @@ You can set a new master public key with `MASTER_KEY`, after you converted it in
 
 ### `MINION_CONFIG`
 
-If `MINION_CONFIG` is set, the installer creates the file `c:\salt\conf\minion` with it. For line breaks, use "^".
+If `MINION_CONFIG` is set:
 
-Example `MINION_CONFIG="a: A^b: B"` results in:
+- Its content is written to file `c:\salt\conf\minion`, with `^` replaced by line breaks,
+- all `minion.d\*.conf` files are deleted,
+- the `minion_id` file is deleted.
 
-    a: A
-    b: B
+Example `MINION_CONFIG="master: Anna^id: Ben"` results in:
 
-### `MINION_ID_FUNCTION`
-
-The minion ID can be set by a user defined module function ([Further reading](https://github.com/saltstack/salt/pull/41619)).
-
-If `MINION_ID_FUNCTION` is set, the installer creates module file `c:\salt\var\cache\salt\minion\extmods\modules\id_function.py` with the content
-
-    import socket
-    def id_function():
-      return MINION_ID_FUNCTION
-
-Example `MINION_ID_FUNCTION=socket.gethostname()` results in:
-
-    import socket
-    def id_function():
-      return socket.gethostname()
-
-Remember to create the same file as `/sr/salt/_modules/id_function.py` on your server, so that `saltutil.sync_all` will keep the file on the minion.
+    master: Anna
+    id: Ben
 
 
 ### `CONFIG_TYPE`
 
-There are 4 scenarios the installer tries to account for:
+There are 3 scenarios the installer tries to account for:
 
 1. existing-config (default)
 2. custom-config
 3. default-config
-4. new-config
 
 Existing
 
@@ -129,12 +109,7 @@ Therefore, all existing config files should be backed up
 3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
 Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
 
-New
 
-Each Salt property (MASTER, ZMQ_FILTERING or MINON_ID) given is changed in all present config files or, if missing, added as a new file to the minion.d directory.
-
-## Target client requirements
-
-The target client is where the installer is deployed.
+## Client requirements
 
 - Windows 7 (for workstations), Server 2012 (for domain controllers), or higher.

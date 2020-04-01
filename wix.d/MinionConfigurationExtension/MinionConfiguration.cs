@@ -286,69 +286,35 @@ namespace MinionConfigurationExtension {
         [CustomAction]
         public static ActionResult WriteConfig_DECAC(Session session) {
             /*
-             * This function must leave the config files according to the CONFIG_TYPE's 1-4
+             * This function must leave the config files according to the CONFIG_TYPE's 1-3
              * This function is deferred (_DECAC)
              * This function runs after the msi has created the c:\salt\conf\minion file, which is a comment-only text.
              * If there was a previous install, there could be many config files.
              * The previous install c:\salt\conf\minion file could contain non-comments.
              * One of the non-comments could be master.
              * It could be that this installer has a different master.
-             * 
+             *
              */
             // Must have this signature or cannot uninstall not even write to the log
-            string zmq_filtering = "";
-            string master = "";
-            string id = "";
-            string minion_id_caching = "";
-            string minion_id_remove_domain = "";
-
-            session.Log(@"...WriteConfig_DECAC START");
-
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "zmq_filtering", ref zmq_filtering)) {
-                if (zmq_filtering == "True") {
-                    append_to_config_DECAC(session, "zmq_filtering", zmq_filtering);
+            session.Log("...WriteConfig_DECAC BEGIN");
+            string minion_config = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
+            if (minion_config.Length > 0) {
+                apply_minion_config_DECAC(session, minion_config);
+            } else {
+                string master = "";
+                string id = "";
+                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
+                    append_to_config_DECAC(session, "master", master);
                 }
-            }
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
-                append_to_config_DECAC(session, "master", master);
-            }
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "id", ref id)) {
-                append_to_config_DECAC(session, "id", id);
-            }
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_caching", ref minion_id_caching)) {
-                if (minion_id_caching == "False") {
-                    append_to_config_DECAC(session, "minion_id_caching", minion_id_caching);
+                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "id", ref id)) {
+                    append_to_config_DECAC(session, "id", id);
                 }
+                save_custom_config_file_if_config_type_demands_DECAC(session);
             }
-            if (!replace_Saltkey_in_previous_configuration_DECAC(session, "minion_id_remove_domain", ref minion_id_remove_domain)) {
-                if (minion_id_remove_domain != "") {
-                    append_to_config_DECAC(session, "minion_id_remove_domain", minion_id_remove_domain);
-                }
-            }
-
-            save_id_function_DECAC(session);
-
-            save_custom_config_file_if_config_type_demands_DECAC(session);
-
-            save_config_DECAC(session);
-
-            session.Log(@"...WriteConfig_DECAC STOP");
+            session.Log("...WriteConfig_DECAC END");
             return ActionResult.Success;
         }
 
-
-        private static void save_id_function_DECAC(Session session) {
-            session.Log(@"...save_id_function_DECAC");
-            string minion_id_function = MinionConfigurationUtilities.get_property_DECAC(session, "minion_id_function");
-            if (minion_id_function.Length > 0) {
-                string filepath = @"c:\salt\var\cache\salt\minion\extmods\modules";
-                string filename = @"id_function.py";
-                string filecontent = @"import socket
-def id_function():
-    return " + minion_id_function;
-                MinionConfigurationUtilities.Writeln_file(session, filepath, filename, filecontent);
-            }
-        }
 
         private static void save_custom_config_file_if_config_type_demands_DECAC(Session session) {
             session.Log("...save_custom_config_file_if_config_type_demands_DECAC");
@@ -380,14 +346,34 @@ def id_function():
         }
 
 
-        private static void save_config_DECAC(Session session) {
-            session.Log(@"...save_config_DECAC");
-            string kwargs_in_commata = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
-            if (kwargs_in_commata.Length > 0) {
-                string lines = kwargs_in_commata.Replace("^", Environment.NewLine);
-                MinionConfigurationUtilities.Writeln_file(session, @"C:\salt\conf", "minion", lines);
+        private static void apply_minion_config_DECAC(Session session, string minion_config) {
+            // Precondition: parameter minion_config contains the content of the MINION_CONFI property and is not empty
+            // Remove all other config
+            session.Log("...apply_minion_config_DECAC BEGIN");
+            string conffolder           = MinionConfigurationUtilities.get_property_DECAC(session, "conffolder");
+            string minion_d_conf_folder = MinionConfigurationUtilities.get_property_DECAC(session, "minion_d_conf_folder");
+            // Write conf/minion
+            string lines = minion_config.Replace("^", Environment.NewLine);
+            MinionConfigurationUtilities.Writeln_file(session, conffolder, "minion", lines);
+            // Remove conf/minion_id
+            string minion_id = Path.Combine(conffolder, "minion_id");
+            session.Log("...searching " + minion_id);
+            if (File.Exists(minion_id)) {
+                File.Delete(minion_id);
+                session.Log("...deleted   " + minion_id);
             }
+            // Remove conf/minion.d/*.conf
+            session.Log("...searching *.conf in " + minion_d_conf_folder);
+            if (Directory.Exists(minion_d_conf_folder)) {
+                var conf_files = System.IO.Directory.GetFiles(minion_d_conf_folder, "*.conf");
+                foreach (var conf_file in conf_files) {
+                    File.Delete(conf_file);
+                    session.Log("...deleted   " + conf_file);
+                }
+            }
+            session.Log(@"...apply_minion_config_DECAC END");
         }
+
 
         private static bool replace_Saltkey_in_previous_configuration_DECAC(Session session, string SaltKey, ref string CustomActionData_value) {
             // Read SaltKey properties and convert some from 1 to True or to False
@@ -395,14 +381,6 @@ def id_function():
 
             session.Log("...replace_Saltkey_in_previous_configuration_DECAC Key   " + SaltKey);
             CustomActionData_value = MinionConfigurationUtilities.get_property_DECAC(session, SaltKey);
-            if (SaltKey == "zmq_filtering") {
-                CustomActionData_value = (CustomActionData_value == "1") ? "True" : "False";
-                session.Log("...changed zmq_filtering to " + CustomActionData_value);
-            }
-            if (SaltKey == "minion_id_caching") {
-                CustomActionData_value = (CustomActionData_value == "1") ? "True" : "False";
-                session.Log("...changed zmq_filtering to " + CustomActionData_value);
-            }
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
             // pattern description
@@ -411,8 +389,8 @@ def id_function():
             string pattern = "^" + SaltKey + ":";
             string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
 
-            // Replace in all files
-            replaced = replace_pattern_in_all_config_files_DECAC(session, pattern, replacement);
+            // Replace in config file
+            replaced = replace_pattern_in_config_file_DECAC(session, pattern, replacement);
 
             session.Message(InstallMessage.Progress, new Record(2, 1));
             session.Log(@"...replace_Saltkey_in_previous_configuration_DECAC found or replaces " + replaced.ToString());
@@ -420,46 +398,22 @@ def id_function():
         }
 
 
-        private static bool replace_pattern_in_all_config_files_DECAC(Session session, string pattern, string replacement) {
+        private static bool replace_pattern_in_config_file_DECAC(Session session, string pattern, string replacement) {
             /*
-             * "All config" files means:
-             *   conf/minion
-             *   conf/minion.d/*.conf           (only for New)
-             *
-             * MAYBE this function could input a dictionary of key/value pairs, because it reopens all config files over and over.
-             *
+             * config file means: conf/minion
              */
             bool replaced_in_any_file = false;
             string MINION_CONFIGFILE = MinionConfigurationUtilities.getConfigFileLocation_DECAC(session);
-            string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_DECAC(session);
 
             replaced_in_any_file |= replace_in_file_DECAC(session, MINION_CONFIGFILE, pattern, replacement);
 
-            // Shane wants that the installer changes only the MINION_CONFIGFILE, not the minion.d/*.conf files
-            if (session.CustomActionData["config_type"] == "New") {
-                // Go into the minion.d/ folder
-                if (Directory.Exists(MINION_CONFIGDIR)) {
-                    var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
-                    foreach (var conf_file in conf_files) {
-                        // skip _schedule.conf
-                        if (conf_file.EndsWith("_schedule.conf")) { continue; }
-                        replaced_in_any_file |= replace_in_file_DECAC(session, conf_file, pattern, replacement);
-                    }
-                }
-            }
             return replaced_in_any_file;
         }
 
 
         static private void append_to_config_DECAC(Session session, string key, string value) {
             string MINION_CONFIGDIR = MinionConfigurationUtilities.getConfigdDirectoryLocation_DECAC(session);
-            if (session.CustomActionData["config_type"] == "New") {
-                //CONFIG_TYPE New creates a minion.d/*.conf file
-                MinionConfigurationUtilities.Writeln_file(session, MINION_CONFIGDIR, key + ".conf", key + ": " + value);
-            } else {
-                // Shane: CONFIG_TYPES 1-3 change only the MINION_CONFIGFILE, not the minion.d/*.conf files, because the admin knows what he is doing.
-                insert_value_after_comment_or_end_in_minionconfig_file(session, key, value);
-            }
+            insert_value_after_comment_or_end_in_minionconfig_file(session, key, value);
         }
 
 
