@@ -13,7 +13,7 @@ if (-Not (Test-Path ..\salt)) {
   exit(1)
 }
 Push-Location ..\salt
-$displayversion = & git describe --tags --first-parent --match v[0-9]* --always
+$displayversion = & git describe
 Pop-Location
 [regex]$tagRE = '(?:[^\d]+)?(?<major>[\d]{1,4})(?:\.(?<minor>[\d]{1,2}))?(?:\.(?<bugfix>[\d]{0,2}))?'
 $tagREM = $tagRE.Match($displayversion)
