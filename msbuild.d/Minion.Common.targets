@@ -69,8 +69,8 @@
     <!-- This is where the file base-name of the msi is set -->
     <PropertyGroup>
       <DefineConstants>$(DefineConstants);DisplayVersion=$(DisplayVersion);InternalVersion=$(InternalVersion)</DefineConstants>
-      <TargetName Condition="'$(TargetPlatform)'=='win32'">Salt-Minion-$(DisplayVersion)-Py$(PythonVersion)-x86-Setup</TargetName>
-      <TargetName Condition="'$(TargetPlatform)'=='amd64'">Salt-Minion-$(DisplayVersion)-Py$(PythonVersion)-AMD64-Setup</TargetName>
+      <TargetName Condition="'$(TargetPlatform)'=='win32'">Salt-Minion-$(DisplayVersion)-Py$(PythonVersion)-x86</TargetName>
+      <TargetName Condition="'$(TargetPlatform)'=='amd64'">Salt-Minion-$(DisplayVersion)-Py$(PythonVersion)-AMD64</TargetName>
     </PropertyGroup>
   </Target>
 
