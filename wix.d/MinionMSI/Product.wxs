@@ -156,7 +156,8 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <DirectoryRef Id="BINFOLDER">
       <Component Id="CleanupBinFolder" Guid="*">
         <!--   SRP: the registry key that remembers our DIR and RemoveFolderEx must read from registry. -->
-        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="string" Value="[BINFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="BINFOLDER" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="string" Value="[BINFOLDER]" KeyPath="yes" />
+        <util:RemoveFolderEx On="uninstall" Property="BINFOLDER" />
       </Component>
     </DirectoryRef>
 
