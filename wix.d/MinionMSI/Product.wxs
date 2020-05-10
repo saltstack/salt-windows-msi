@@ -126,9 +126,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       <Custom Action="uninst_NSIS2_DECAH"          Before='uninst_NSIS2_DECAX'     />
       <Custom Action="uninst_NSIS2_DECAX"          Before='ProcessComponents'       >nsis_uninst_waits_yes</Custom>
 
-      <!-- Stop the service for  Uninstall_excl_Config_DECAC -->
-      <StopServices Sequence="1900">Installed</StopServices>
-
       <!--  Remove 'lifetime' data on uninstall (and upgrade?) Lifetime data is mainly *.pyc files. -->
       <Custom Action='Uninstall_incl_Config_CADH'
               Before='Uninstall_incl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (NOT KEEP_CONFIG)</Custom>
