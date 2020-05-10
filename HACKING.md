@@ -119,6 +119,9 @@ This means that any filesystem and registry change by C# is not atomic.
 
 ### Naming conventions
 
+Immediate custom actions serve initialization (before the install transaction starts)
+Deferred custom action are execution (within the installation transaction).
+
 Postfix  | Example                            | Meaning
 -------- | ---------------------------------- | -------
 `_IMCAC` | `ReadConfig_IMCAC`                 | Immediate custom action written in C#
