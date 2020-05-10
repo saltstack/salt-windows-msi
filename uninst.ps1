@@ -17,7 +17,18 @@ if (Test-Path $upgradecodeRegKey) {           # The scrambled product code is th
         # Format productcode with dashes and curly braces
         $productcode = $productcode.Insert(20,'-').Insert(16,'-').Insert(12,'-').Insert(8,'-')
         $productcode = "{$productcode}"
-        & msiexec /x $productcode /qb
+        $wdpref = Get-MpPreference       # Store WindowsDefenderPreferences 
+        if (-not $wdpref.DisableRealtimeMonitoring) {
+            Write-Host -ForegroundColor Yellow Pausing Virus Real-time protection
+            Set-MpPreference -DisableRealtimeMonitoring $true
+        }
+        Write-Host -ForegroundColor Yellow msiexec...
+        $msiexitcode = (Start-Process -FilePath "msiexec.exe" -ArgumentList "/x $productcode /qb" -Wait -Passthru).ExitCode
+        Write-Host -ForegroundColor Yellow "msiexec... exited with code $msiexitcode"
+        if (-not $wdpref.DisableRealtimeMonitoring) {
+            Write-Host -ForegroundColor Yellow Re-enabling Virus Real-time protection
+            Set-MpPreference -DisableRealtimeMonitoring $false
+        }
     } else {
         Write-Host -ForegroundColor Red Cannot uninstall
         exit(1)
