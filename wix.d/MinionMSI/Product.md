@@ -163,17 +163,6 @@ Notes on ReadConfig_IMCAC
 ## Don't allow downgrade
 http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html 
 
-## How to Delete a folder
-
-    Delete a folder recursivly
-    Inspiration 1: https://www.hass.de/content/wix-how-use-removefolderex-your-xml-scripts
-    Inspiration 2: http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/   Simple Remember Pattern SRP
-    Learn: Condition with KEEP_CONFIG is useless on Components and on Features
-    SRP pattern
-       We cannot recursivly delete the var folder because it contains the cache, we regard as configuration and optionally keep.
-         It is the task of Uninstall_excl_Config_DECAC to selectivly delete the var folder
-        The use of the SRP Pattern is limited.
-
 
 ## VC++ for Python
 

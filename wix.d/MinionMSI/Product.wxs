@@ -34,9 +34,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Condition Message='START_MINION must not be [START_MINION]. Please use 1 or "" (two double quotes).'>
       (START_MINION = 1) OR NOT START_MINION OR Installed
     </Condition>
-    <Condition Message='KEEP_CONFIG must not be [KEEP_CONFIG]. Please use 1 or "" (two double quotes).'>
-      (KEEP_CONFIG = 1) OR NOT KEEP_CONFIG OR Installed
-    </Condition>
     <Condition Message='NSIS Salt Minion unexpected uninstall instruction [NSIS_UNINSTALLSTRING]'>
       NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe" OR NOT NSIS_UNINSTALLSTRING) OR Installed
     </Condition>
@@ -58,10 +55,10 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
            MINION_ID
            MINION_CONFIG
            CUSTOM_CONFIG
+           REMOVE_CONFIG
     -->
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
     <Property Id="START_MINION"             Value="1"                    />
-    <Property Id="KEEP_CONFIG"              Value="1"                    />
     <Property Id="ARPHELPLINK"              Value="https://support.saltstack.com"/>
     <Property Id="ARPURLINFOABOUT"          Value="https://saltstack.com"/>
     <Property Id="ARPURLUPDATEINFO"         Value="https://docs.saltstack.com/en/latest/topics/releases/"/>
@@ -128,12 +125,12 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
       <!--  Remove 'lifetime' data on uninstall (and upgrade?) Lifetime data is mainly *.pyc files. -->
       <Custom Action='Uninstall_incl_Config_CADH'
-              Before='Uninstall_incl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (NOT KEEP_CONFIG)</Custom>
-      <Custom Action='Uninstall_incl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (NOT KEEP_CONFIG)</Custom>
+              Before='Uninstall_incl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND REMOVE_CONFIG</Custom>
+      <Custom Action='Uninstall_incl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND REMOVE_CONFIG</Custom>
 
       <Custom Action='Uninstall_excl_Config_CADH'
-              Before='Uninstall_excl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
-      <Custom Action='Uninstall_excl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (KEEP_CONFIG = "1")</Custom>
+              Before='Uninstall_excl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (NOT REMOVE_CONFIG)</Custom>
+      <Custom Action='Uninstall_excl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (NOT REMOVE_CONFIG)</Custom>
 
       <Custom Action='WriteConfig_CADH'
               Before='WriteConfig_DECAC'                                                >NOT Installed</Custom>

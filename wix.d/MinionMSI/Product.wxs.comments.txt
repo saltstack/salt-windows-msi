@@ -51,58 +51,5 @@
      So I can delete the attempt to write to the ini file.		
 		
 
- * * * * * * * * * * 
- * * * * * * * * * * 
-  Trying to not NUKE CONF
- * * * * * * * * * * 
- * * * * * * * * * * 
-		A component or a feature can only be uninstalled after it has been installed.
-		Optionally removing CONF means, if not, the component remains, the uninstall is uncomplete, the ARP entry remains, a second uninstall removes the ARP.
-		I looked for 3 days for a WiX way, not CS_CUSTOM_ACTION
-		  
-		
-		
-		      <!-- ComponentRef      Id="C.RemoveDataFolder"    / -->
-      <!--  http://stackoverflow.com/questions/14645401/msi-uninstall-does-not-remove-product-entry-in-program-features 
-      <Feature Id='CleanupConfFolderFeature' Level='0'>
-        <Condition Level="1">((NOT Installed) OR (REMOVE ~= "ALL")) AND (KEEP_CONFIG = "0")</Condition>			
-        <ComponentRef Id="CleanupConfFolder"  /> 
-      </Feature>
-      -->
-		    <!-- SRP: xxxxxxxxxxxxxxxx
-    <DirectoryRef Id="CONFFOLDER">
-      <Component Id="CleanupConfFolder" Guid="*">
-        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="ConfPath" Type="string" Value="[CONFFOLDER]" KeyPath="yes" /> <util:RemoveFolderEx On="uninstall" Property="CONFFOLDER" />
-      </Component>
-    </DirectoryRef>
-    <Property Id="CONFFOLDER">
-      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="ConfPath" Type="raw"  Id="CONFFOLDER_REGSEARCH" />
-    </Property>
-    -->
-		
-		
-		    <!--SOLUTION NOT NEIL BEGIN             http://stackoverflow.com/questions/8258009/wix-condition-on-property-not-working 
-    http://stackoverflow.com/questions/31306509/wix-set-property-from-registry-during-uninstall -->
-    
-
-    <Property Id="CONFFOLDER" Secure="yes">
-      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="ConfPath" Type="raw"  Id="CONFFOLDER_REGSEARCH" />
-    </Property>
-
-    <CustomAction Id="CA.SetDataFolder" Property="P.REMOVEDATAFOLDER" Value='[CONFFOLDER]'  Execute='immediate' />
-    
-
-    <DirectoryRef Id="CONFFOLDER">
-      <Component  t Id="C.RemoveDataFolder" Guid="18b9737f-bd95-47f5-9fd2-1946c187c505" KeyPath="yes"> <!-- https://www.guidgen.com/ -->
-        <util:RemoveFolderEx On="uninstall" Property="P.REMOVEDATAFOLDER" />
-      </Component>
-    </DirectoryRef>
-
-
-    <InstallExecuteSequence>
-      <Custom Action="CA.SetDataFolder" After="AppSearch" >CONFFOLDER</Custom>
-      <Custom Action="C.RemoveDataFolder" After="InstallInitialize" >KEEP_CONFIG = "0"</Custom>
-    </InstallExecuteSequence>
-    <!--SOLUTION NEIL END-->
-		
+ 
 		

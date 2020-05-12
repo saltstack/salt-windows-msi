@@ -11,13 +11,12 @@ The registry seems to be write protected for msi custom actions at uninstall tim
 From [MSDN KNOWNFOLDERID](https://msdn.microsoft.com/en-us/library/windows/desktop/dd378457.aspx):
  - `%SystemDrive%\ProgramData` is used for application data that is not user specific.
 
-On uninstall, we store a plain text file
+On uninstall, we could store a plain text file
 `%SystemDrive%\ProgramData\SaltStack\SaltMinion\KEPT_CONFIG`
 which contains the path to the (former) INSTALLDIR/salt/conf.
 
-This file is only created on uninstall with `KEEP_CONFIG=1` (the default).
-On uninstall with KEEP_CONFIG=0, no configuration remains. 
-Maybe the logs should remain.
+This file could be be created on default uninstall without `REMOVE_CONFIG` (the default).
+On uninstall with REMOVE_CONFIG=1, no configuration remains. 
 
 A (renewed) installation looks for configuration path 
  - in `%SystemDrive%\ProgramData\SaltStack\SaltMinion\KEPT_CONFIG`
