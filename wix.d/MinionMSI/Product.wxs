@@ -105,6 +105,11 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <CustomAction Id="get_NSIS_uninstdir_IMCAX" Script="vbscript">
       Session.Property("nsis_uninstalldir") = Replace(Session.Property("NSIS_UNINSTALLSTRING"),"uninst.exe","")
     </CustomAction>
+    <!-- The most simple helper to conditionally remove a folder with lifetime data -->
+    <CustomAction Id="delete_config_CAX" Script="vbscript">
+      on error resume next
+      CreateObject("Scripting.FileSystemObject").GetFolder(Session.Property("CONFFOLDER")).Delete(True)
+    </CustomAction>
 
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
       <Custom Action="get_NSIS_uninstdir_IMCAX"    Before='LaunchConditions'         >NSIS_UNINSTALLSTRING</Custom>
@@ -123,18 +128,11 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       <Custom Action="uninst_NSIS2_DECAH"          Before='uninst_NSIS2_DECAX'     />
       <Custom Action="uninst_NSIS2_DECAX"          Before='ProcessComponents'       >nsis_uninst_waits_yes</Custom>
 
-      <!--  Remove 'lifetime' data on uninstall (and upgrade?) Lifetime data is mainly *.pyc files. -->
-      <Custom Action='Uninstall_incl_Config_CADH'
-              Before='Uninstall_incl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND REMOVE_CONFIG</Custom>
-      <Custom Action='Uninstall_incl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND REMOVE_CONFIG</Custom>
-
-      <Custom Action='Uninstall_excl_Config_CADH'
-              Before='Uninstall_excl_Config_DECAC'                                      >(REMOVE ~= "ALL") AND (NOT REMOVE_CONFIG)</Custom>
-      <Custom Action='Uninstall_excl_Config_DECAC' After='RemoveFiles'                  >(REMOVE ~= "ALL") AND (NOT REMOVE_CONFIG)</Custom>
+      <Custom Action='delete_config_CAX'           After='RemoveFiles'              >(REMOVE ~= "ALL") and REMOVE_CONFIG</Custom>
 
       <Custom Action='WriteConfig_CADH'
-              Before='WriteConfig_DECAC'                                                >NOT Installed</Custom>
-      <Custom Action='WriteConfig_DECAC'           After='WriteIniValues'               >NOT Installed</Custom>
+              Before='WriteConfig_DECAC'                                            >NOT Installed</Custom>
+      <Custom Action='WriteConfig_DECAC'           After='WriteIniValues'           >NOT Installed</Custom>
 
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
@@ -143,29 +141,15 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
-
-    <!--     SRP: the Property that we'll remember  -->
-    <Property Id="BINFOLDER">
-      <!--   SRP:  the registry search that will reload our Property on repair, upgrade and uninstall -->
-      <RegistrySearch  Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="raw"  Id="BINFOLDER_REGSEARCH" />
-    </Property>
-
-    <DirectoryRef Id="BINFOLDER">
-      <Component Id="CleanupBinFolder" Guid="*">
-        <!--   SRP: the registry key that remembers our DIR and RemoveFolderEx must read from registry. -->
-        <RegistryValue Root="HKLM" Key="SOFTWARE\Saltstack\Salt Minion" Name="BinPath" Type="string" Value="[BINFOLDER]" KeyPath="yes" />
-        <util:RemoveFolderEx On="uninstall" Property="BINFOLDER" />
-      </Component>
-    </DirectoryRef>
-
-
     <DirectoryRef Id="TARGETDIR">
       <Merge Id="MSM_VC90_CRT_64" SourceFile="c:\salt_msi_resources\Microsoft_VC90_CRT_x86_x64.msm" DiskId="1" Language="0"/>
     </DirectoryRef>
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
-      <ComponentRef      Id="CleanupBinFolder" />
+      <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" />
+      <ComponentRef      Id="RemoveFolderEx_VARFOLDER_Component"/>
+
       <Feature Id="VC90_CRT_x86_x64" Title="Visual C++ 9 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
         <MergeRef Id="MSM_VC90_CRT_64"/>
       </Feature>
@@ -215,4 +199,44 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       <ComponentRef Id="InstallfolderPermissions" />
     </ComponentGroup>
   </Fragment>
+
+
+  <!--  Remove 'lifetime' data on uninstall. Lifetime data does not originate from the installer. -->
+  <Fragment Id="RemoveFolderEx_Fragment">
+    <?define RegDir="SOFTWARE\SaltStack\Salt-Minion"?>
+    <?define RegVal_BINFOLDER="RememberForRemoveFolderExBINFOLDER"?>
+    <?define RegVal_VARFOLDER="RememberForRemoveFolderExVARFOLDER"?>
+
+    <Property Id="BINFOLDER">
+      <RegistrySearch Root="HKLM" Key="$(var.RegDir)" Type="raw"
+                Id="BINFOLDER_REGSEARCH" Name="$(var.RegVal_BINFOLDER)" />
+    </Property>
+    <Property Id="VARFOLDER">
+      <RegistrySearch Root="HKLM" Key="$(var.RegDir)" Type="raw"
+                Id="VARFOLDER_REGSEARCH" Name="$(var.RegVal_VARFOLDER)" />
+    </Property>
+
+    <DirectoryRef Id='BINFOLDER'>
+      <Component Id="RemoveFolderEx_BINFOLDER_Component" Guid="b36009bc-ada0-45dc-afda-68c07d137f38">
+        <RegistryValue Root="HKLM" Key="$(var.RegDir)" Name="$(var.RegVal_BINFOLDER)"
+                Type="string" Value="[BINFOLDER]" KeyPath="yes"/>
+        <CreateFolder Directory="BINFOLDER"/>
+        <util:RemoveFolderEx Property="BINFOLDER" On="uninstall"/>
+        <RemoveFolder Id="BINFOLDER" On="uninstall"/>
+      </Component>
+    </DirectoryRef>
+
+    <DirectoryRef Id='VARFOLDER'>
+      <Component Id="RemoveFolderEx_VARFOLDER_Component" Guid="76b05a00-efbf-4e35-a442-6c76ccfd9c52">
+        <RegistryValue Root="HKLM" Key="$(var.RegDir)" Name="$(var.RegVal_VARFOLDER)"
+                Type="string" Value="[VARFOLDER]" KeyPath="yes"/>
+        <CreateFolder Directory="VARFOLDER"/>
+        <util:RemoveFolderEx Property="VARFOLDER" On="uninstall"/>
+        <RemoveFolder Id="VARFOLDER" On="uninstall"/>
+      </Component>
+    </DirectoryRef>
+
+  </Fragment>
+
+
 </Wix>
