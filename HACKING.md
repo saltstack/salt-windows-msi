@@ -126,8 +126,8 @@ Postfix  | Example                            | Meaning
 -------- | ---------------------------------- | -------
 `_IMCAC` | `ReadConfig_IMCAC`                 | Immediate custom action written in C#
 `_DECAX` | `uninst_NSIS_DECAX`                | Deferred custom action written in XML
-`_DECAC` | `Uninstall_excl_Config_DECAC`      | Deferred custom action written in C#
-`_CADH`  | `Uninstall_excl_Config_CADH`       | Custom action data helper (only for deferred custom action)
+`_DECAC` | `WriteConfig_DECAC`                | Deferred custom action written in C#
+`_CADH`  | `WriteConfig_CADH`                 | Custom action data helper (only for deferred custom action)
 
 ### Extending
 
