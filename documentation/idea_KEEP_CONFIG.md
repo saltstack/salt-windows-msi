@@ -15,7 +15,7 @@ On uninstall, we could store a plain text file
 `%SystemDrive%\ProgramData\SaltStack\SaltMinion\KEPT_CONFIG`
 which contains the path to the (former) INSTALLDIR/salt/conf.
 
-This file could be be created on default uninstall without `REMOVE_CONFIG` (the default).
+This file could be created on default uninstall without `REMOVE_CONFIG` (the default).
 On uninstall with REMOVE_CONFIG=1, no configuration remains. 
 
 A (renewed) installation looks for configuration path 
