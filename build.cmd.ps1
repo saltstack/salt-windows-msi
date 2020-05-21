@@ -42,22 +42,21 @@ $targetplatform = 0
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*AMD64*.exe) {$targetplatform="amd64"; $platform="amd64"}
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*x86*.exe)   {$targetplatform="x86";   $platform="x86"}
 if ($targetplatform -eq 0) {
-  Write-Host -ForegroundColor Red Cannot determine target platform
-  Write-Host -ForegroundColor Red No file ..\salt\pkg\windows\installer\Salt-Minion*.exe
-  Write-Host -ForegroundColor Red Have you build the NSIS Nullsoft exe installer?
-exit(1)
+  Write-Host -ForegroundColor Red "Cannot determine target platform"
+  Write-Host -ForegroundColor Red "No file ..\salt\pkg\windows\installer\Salt-Minion*.exe"
+  Write-Host -ForegroundColor Red "Have you build the NSIS Nullsoft exe installer?"
+  exit(1)
 }
 Write-Host -ForegroundColor Green "Found target platform $targetplatform"
 
 # # # Detecting Python version from NSIS exe # # #
-$pythonversion=0
+$pythonversion = 0
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py2*.exe) {$pythonversion=2}
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py3*.exe) {$pythonversion=3}
 if ($pythonversion -eq 0) {
-  $pythonversion = 2
   Write-Host -ForegroundColor Red "Cannot determine Python version"
-  Write-Host -ForegroundColor Red No file ..\salt\pkg\windows\installer\Salt-Minion*.exe
-  Write-Host -ForegroundColor Red Have you build the NSIS Nullsoft exe installer?
+  Write-Host -ForegroundColor Red "No file ..\salt\pkg\windows\installer\Salt-Minion*.exe"
+  Write-Host -ForegroundColor Red "Have you build the NSIS Nullsoft exe installer?"
   exit(1)
 }
 Write-Host -ForegroundColor Green "Found Python $pythonversion"
