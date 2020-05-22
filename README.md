@@ -25,7 +25,7 @@ Example: set the master and its key:
 
 Example: uninstall and remove configuration
 
-> MsiExec.exe /X *.msi KEEP_CONFIG=""
+> MsiExec.exe /X *.msi REMOVE_CONFIG=1
 
 ## Features
 
@@ -41,18 +41,11 @@ Salt Minion-specific msi-properties:
  `MINION_ID`            | Hostname                | The minion id.
  `MINION_CONFIG`        |                         | Content to be written to the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
- `KEEP_CONFIG`          | `1`                     | Set to `""` to remove configuration on uninstall.
+ `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. __ONLY FROM COMMANDLINE__
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
  `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__  --- __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
 
-
-These files and directories are regarded as config and kept:
-
-- C:\salt\conf\minion
-- C:\salt\conf\minion.d\
-- c:\salt\var\cache\salt\minion\extmods\
-- c:\salt\var\cache\salt\minion\files\
 
 Master and id are read from file `C:\salt\conf\minion`
 

@@ -180,63 +180,6 @@ namespace MinionConfigurationExtension {
 
 
         [CustomAction]
-        public static ActionResult Uninstall_incl_Config_DECAC(Session session) {
-            //Remove 'lifetime' data because the MSI easily only removes 'installtime' data.
-            // Do NOT keep config
-            // In fact keep nothing
-            session.Log("...Begin Uninstall_incl_Config_DECAC");
-            PurgeDir(session, "");  // this means to Purge c:\salt\
-            session.Log("...End Uninstall_incl_Config_DECAC");
-            return ActionResult.Success;
-        }
-
-
-        [CustomAction]
-        public static ActionResult Uninstall_excl_Config_DECAC(Session session) {
-            // DO keep config
-            //Selectively delete the var folder.         
-            // We move the 2 directories out of var, delete var, and move back
-            session.Log("...Begin Uninstall_excl_Config_DECAC");
-            PurgeDir(session, @"bin");
-            // move parts from var into safety
-            string safedir = @"c:\salt\_tmp_swap_space\";
-            if (Directory.Exists(safedir)) { Directory.Delete(safedir); }
-            Directory.CreateDirectory(safedir);
-            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", true, safedir);
-            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", true, safedir);
-            // purge var
-            PurgeDir(session, @"var");
-            // move back
-            Directory.CreateDirectory(@"c:\salt\var\cache\salt\minion"); // Directory.Move cannot create dirs
-            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\extmods", "extmods", false, safedir);
-            MinionConfigurationUtilities.movedir_fromAbs_toRel(session, @"c:\salt\var\cache\salt\minion\files", "files", false, safedir);
-            Directory.Delete(safedir);
-
-            // log
-            session.Log("...End Uninstall_excl_Config_DECAC");
-            return ActionResult.Success;
-        }
-
-
-        private static void PurgeDir(Session session, string dir_below_salt_root) {
-            String abs_dir = @"c:\salt\" + dir_below_salt_root; //TODO use root_dir
-            String root_dir = "";
-            root_dir = session.CustomActionData["root_dir"];
-
-            if (Directory.Exists(abs_dir)) {
-                session.Log("PurgeDir:: about to Directory.delete " + abs_dir);
-                Directory.Delete(abs_dir, true);
-                session.Log("PurgeDir:: ...OK");
-            } else {
-                session.Log("PurgeDir:: no Directory " + abs_dir);
-            }
-
-            // quirk for https://github.com/markuskramerIgitt/salt-windows-msi/issues/33  Exception: Access to the path 'minion.pem' is denied . Read only!
-            MinionConfigurationUtilities.shellout(session, @"rmdir /s /q " + abs_dir);
-        }
-
-
-        [CustomAction]
         public static ActionResult del_NSIS_DECAC(Session session) {
             // Leaves the Config
             /*

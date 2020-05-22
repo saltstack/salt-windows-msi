@@ -15,9 +15,7 @@
 <CustomAction Id="ReadConfig_IMCAC"            BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'            Execute='firstSequence'/>
 <CustomAction Id="del_NSIS_DECAC"              BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'               Execute='deferred' Return='check' Impersonate='no'/>
 <CustomAction Id="WriteConfig_DECAC"           BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'            Execute='deferred' Return='check' Impersonate='no'/>
-<CustomAction Id="Uninstall_incl_Config_DECAC" BinaryKey='MinionConfigExt' DllEntry='Uninstall_incl_Config_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
-<CustomAction Id="Uninstall_excl_Config_DECAC" BinaryKey='MinionConfigExt' DllEntry='Uninstall_excl_Config_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
-    
+
     <!--
          Deferred execution is necessary to change the configuration prior 
          to start the service, which is done during the install instead of running 'net start' at the end. 
@@ -42,9 +40,6 @@
     -->
     <!--  Terminology changes from msi to Salt. -->
     <CustomAction Id="WriteConfig_CADH"            Property="WriteConfig_DECAC"             Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER]" />
-    <CustomAction Id="Uninstall_incl_Config_CADH"  Property="Uninstall_incl_Config_DECAC"   Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
-    <CustomAction Id="Uninstall_excl_Config_CADH"  Property="Uninstall_excl_Config_DECAC"   Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID]" />
-    <!-- NICETOHAVE test if Uninstall_*_DECAC needs  master=[MASTER];id=[MINION_ID] -->
 
     <Binary Id='MinionConfigExt' SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
   </Fragment>
