@@ -18,14 +18,23 @@ $ignore_bool = (Test-Path -Path $salt_msi_resources) -Or (New-Item -ItemType dir
 ####
 
 ## Which Microsoft Visual C++ compiler to use with a specific Python version?
-## See https://wiki.python.org/moin/WindowsCompilers
+## See Product.md
 
-## VC++ Runtime merge module from Visual Studio 2008 SP2. Required by Python 2.7
+## VC++ Runtime merge modules from Visual Studio 2013 SP5.
+VerifyOrDownload "c:/salt_msi_resources/Microsoft_VC120_CRT_x64.msm" `
+    "http://repo.saltstack.com/windows/dependencies/64/Microsoft_VC120_CRT_x64.msm" `
+    "15FD10A495287505184B8913DF8D6A9CA461F44F78BC74115A0C14A5EDD1C9A7"
+
+VerifyOrDownload "c:/salt_msi_resources/Microsoft_VC120_CRT_x86.msm" `
+    "http://repo.saltstack.com/windows/dependencies/32/Microsoft_VC120_CRT_x86.msm" `
+    "26340B393F52888B908AC3E67B935A80D390E1728A31FF38EBCEC01117EB2579"
+
+## VC++ Runtime merge module from Visual Studio 2008 SP2.
 VerifyOrDownload "c:/salt_msi_resources/Microsoft_VC90_CRT_x86_x64.msm" `
     "http://repo.saltstack.com/windows/dependencies/Microsoft_VC90_CRT_x86_x64.msm" `
     "A3CE9F8B524E8EEE31CD0487DEAD3A89BFA9721D660FDCE6AC56B59819E17917"
 
-## VC++ Runtime merge module from Visual Studio 2015 SP?. Required by Python 3.5, 3.6, 3.7, 3.8
+## VC++ Runtime merge module from Visual Studio 2015 SP?.
 VerifyOrDownload "c:/salt_msi_resources/Microsoft_VC140_CRT_x64.msm" `
     "http://repo.saltstack.com/windows/dependencies/64/Microsoft_VC140_CRT_x64.msm" `
     "E1344D5943FB2BBB7A56470ED0B7E2B9B212CD9210D3CC6FA82BC3DA8F11EDA8"

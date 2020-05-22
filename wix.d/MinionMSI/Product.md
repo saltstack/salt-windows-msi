@@ -166,29 +166,35 @@ http://wixtoolset.org/documentation/manual/v3/howtos/updates/major_upgrade.html
 
 ## VC++ for Python
 
-Why does the Salt-Minion needs the C++ runtime:
-
-  - TODO/unknown/???
-
 Quote from [PythonWiki](https://wiki.python.org/moin/WindowsCompilers): 
-Even though Python is an interpreted language, you may need to install Windows C++ compilers in some cases.
+Even though Python is an interpreted language, you **may** need to install Windows C++ compilers in some cases.
 For example, you will need to use them if you wish to:
 
 - Install a non-pure Python package from sources with Pip (if there is no Wheel package provided).
 - Compile a Cython or Pyrex file.
 
-Microsoft provides official C++ compilers called Visual C++, you can find them bundled with Visual Studio.
+**The msi contains only required VC++ runtimes.**
 
-Which Microsoft Visual C++ compiler to use with a specific Python version?
+The Salt-Minion requires the C++ runtime for:
 
-|Python     | VC++        | Visual Studio
-|---        |---          |---
-|  2.7      | VC90_CRT    | 2008
-|  3.5-8    | VC140_CRT   | 2015
+- The x509 module requires M2Crypto
+  - M2Crypto requiresOpenSSL
+    - OpenSSL requires "vcredist 2013"/120_CRT
 
+
+Microsoft provides the Visual C++ compiler.
+The runtime come with Visual Studio (in `C:\Program Files (x86)\Common Files\Merge Modules`).
 Merge modules (*.msm) are msi 'library' databases that can be included ('merged') into a (single) msi databases.
 
-The msi incorporates the VC*_CRT as merge modules (*.msm), following the [how-to](https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html)
+Which Microsoft Visual C++ compiler is needed where?
+
+| Software                         | msm         | from Visual Studio and in "vcredist" name
+|---                               |---          |---
+|  (CPython 2.7)                   | VC90_CRT    | 2008
+|  M2Crypto *                      | VC120_CRT   | 2013
+|  (CPython 3.5, 3.6, 3.7, 3.8)    | VC140_CRT   | 2015
+
+The msi incorporates merge modules following this [how-to](https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html)
 
 
 ## Images
