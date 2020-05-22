@@ -37,8 +37,3 @@ VerifyOrDownload "c:/salt_msi_resources/Microsoft_VC120_CRT_x64.msm" `
 VerifyOrDownload "c:/salt_msi_resources/Microsoft_VC120_CRT_x86.msm" `
     "http://repo.saltstack.com/windows/dependencies/32/Microsoft_VC120_CRT_x86.msm" `
     "26340B393F52888B908AC3E67B935A80D390E1728A31FF38EBCEC01117EB2579"
-
-## VC++ Runtime 2008
-VerifyOrDownload "c:/salt_msi_resources/Microsoft_VC90_CRT_x86_x64.msm" `
-    "http://repo.saltstack.com/windows/dependencies/Microsoft_VC90_CRT_x86_x64.msm" `
-    "A3CE9F8B524E8EEE31CD0487DEAD3A89BFA9721D660FDCE6AC56B59819E17917"

@@ -144,6 +144,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <DirectoryRef Id="TARGETDIR">
     <?if $(var.TargetPlatform)=amd64 ?>
       <Merge Id="MSM_VC120_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC120_CRT_x64.msm" DiskId="1" Language="0"/>
+      <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0"/>
     <?endif ?>
     </DirectoryRef>
 
@@ -152,8 +153,11 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" />
       <ComponentRef      Id="RemoveFolderEx_VARFOLDER_Component"/>
 
-      <Feature Id="VC90_CRT_x86_x64" Title="Visual C++ 2013 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
+      <Feature Id="VC120_CRT_x64" Title="Visual C++ 2013 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
         <MergeRef Id="MSM_VC120_CRT"/>
+      </Feature>
+      <Feature Id="VC140_CRT_x64" Title="Visual C++ 2015 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
+        <MergeRef Id="MSM_VC140_CRT"/>
       </Feature>
     </Feature>
 
