@@ -18,8 +18,7 @@ if (-Not (Test-Path -Path $CACHEDIR -PathType Container)) {
 ## WiX toolset
 ##
 ## From https://wixtoolset.org/releases
-##   Wix 3.11.1  released Dec 31, 2017
-##   Wix 3.11.2  released Sep 19, 2019 (Unneeded protection against maliciously crafted cabinet or zip files)
+##   Wix 3.11.2  released Sep 19, 2019
 
 ##
 ## If you have a csproj you must edit the hard reference to the WiX version in file
@@ -29,8 +28,8 @@ if (-Not (Test-Path -Path $CACHEDIR -PathType Container)) {
 ##    </Reference>
 ##
 ##
-if (ProductcodeExists "{AA06E868-267F-47FB-86BC-D3D62305D7F4}") {
-    Write-Host -ForegroundColor Green "Wix 3.11.1 is installed"
+if (ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") {
+    Write-Host -ForegroundColor Green "Wix 3.11.2 is installed"
 } else {
     $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
     $dotnet3enabled = $dotnet3state -Eq "Enabled"
@@ -39,10 +38,10 @@ if (ProductcodeExists "{AA06E868-267F-47FB-86BC-D3D62305D7F4}") {
         Start-Process optionalfeatures -Wait -NoNewWindow
     }
 
-    $wixInstaller = "$CACHEDIR/wix311.exe"
+    $wixInstaller = "$CACHEDIR/wix3-11-2-Setup.exe"
     VerifyOrDownload $wixInstaller `
-        "https://github.com/wixtoolset/wix3/releases/download/wix3111rtm/wix311.exe" `
-        "7CAECC9FFDCDECA09E211AA20C8DD2153DA12A1647F8B077836B858C7B4CA265"
+        "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe" `
+        "32BB76C478FCB356671D4AAF006AD81CA93EEA32C22A9401B168FC7471FECCD2"
     Write-Host -ForegroundColor Yellow "    *** Please install the Wix toolset ***"
     Start-Process $wixInstaller -Wait -NoNewWindow
 }
