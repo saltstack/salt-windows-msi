@@ -21,7 +21,7 @@ $major  = $tagREM.groups["major"].ToString()
 $minor  = $tagREM.groups["minor"]
 $bugfix = $tagREM.groups["bugfix"]
 # Remove leading v from Git tag in a released display version (which only consists of digits and dots).
-$displayversion = $displayversion -replace '^v([\d.]+)$', '$1'
+$displayversion = $displayversion -replace '^v(.+)$', '$1'
 if ([string]::IsNullOrEmpty($minor)) {$minor = 0}
 if ([string]::IsNullOrEmpty($bugfix)) {$bugfix = 0}
 # Assumption: major is a number
