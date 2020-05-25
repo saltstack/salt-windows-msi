@@ -40,7 +40,7 @@ Write-Host -ForegroundColor Green "Found Salt $displayversion (msi $internalvers
 # # # Detecting target platform from NSIS exe # # #
 $targetplatform = 0
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*AMD64*.exe) {$targetplatform="amd64"; $platform="amd64"}
-if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*x86*.exe)   {$targetplatform="x86";   $platform="x86"}
+if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*x86*.exe)   {$targetplatform="win32"; $platform="win32"}
 if ($targetplatform -eq 0) {
   Write-Host -ForegroundColor Red "Cannot determine target platform"
   Write-Host -ForegroundColor Red "No file ..\salt\pkg\windows\installer\Salt-Minion*.exe"
