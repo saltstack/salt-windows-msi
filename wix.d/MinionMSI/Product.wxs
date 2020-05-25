@@ -142,9 +142,13 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
     <DirectoryRef Id="TARGETDIR">
+    <!--Visual C++ runtimes depend on the target platform -->
     <?if $(var.TargetPlatform)=amd64 ?>
       <Merge Id="MSM_VC120_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC120_CRT_x64.msm" DiskId="1" Language="0"/>
       <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0"/>
+    <?else ?>
+      <Merge Id="MSM_VC120_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC120_CRT_x86.msm" DiskId="1" Language="0"/>
+      <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x86.msm" DiskId="1" Language="0"/>
     <?endif ?>
     </DirectoryRef>
 
@@ -153,12 +157,8 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" />
       <ComponentRef      Id="RemoveFolderEx_VARFOLDER_Component"/>
 
-      <Feature Id="VC120_CRT_x64" Title="Visual C++ 2013 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
-        <MergeRef Id="MSM_VC120_CRT"/>
-      </Feature>
-      <Feature Id="VC140_CRT_x64" Title="Visual C++ 2015 64-bit Runtime" AllowAdvertise="no" Display="hidden" Level="1">
-        <MergeRef Id="MSM_VC140_CRT"/>
-      </Feature>
+      <Feature Id="VC120" Title="VC++ 2013" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC120_CRT"/></Feature>
+      <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT"/></Feature>
     </Feature>
 
     <Icon Id="icon.ico" SourceFile="salt.ico" />
