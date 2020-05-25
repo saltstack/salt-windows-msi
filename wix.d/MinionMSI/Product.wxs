@@ -145,6 +145,9 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <?if $(var.TargetPlatform)=amd64 ?>
       <Merge Id="MSM_VC120_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC120_CRT_x64.msm" DiskId="1" Language="0"/>
       <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0"/>
+    <?else ?>
+      <Merge Id="MSM_VC120_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC120_CRT_x86.msm" DiskId="1" Language="0"/>
+      <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x86.msm" DiskId="1" Language="0"/>
     <?endif ?>
     </DirectoryRef>
 
