@@ -21,7 +21,7 @@ $major  = $tagREM.groups["major"].ToString()
 $minor  = $tagREM.groups["minor"]
 $bugfix = $tagREM.groups["bugfix"]
 # Remove leading v from Git tag in a released display version (which only consists of digits and dots).
-$displayversion = $displayversion -replace '^v([\d.]+)$', '$1'
+$displayversion = $displayversion -replace '^v(.+)$', '$1'
 if ([string]::IsNullOrEmpty($minor)) {$minor = 0}
 if ([string]::IsNullOrEmpty($bugfix)) {$bugfix = 0}
 # Assumption: major is a number
@@ -62,13 +62,22 @@ if ($pythonversion -eq 0) {
 Write-Host -ForegroundColor Green "Found Python $pythonversion"
 
 # # # Call msbuid # # #
-$msbuildexe = 'C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe'
-& "$msbuildexe" msbuild.proj /nologo /t:wix `
-  /p:TargetPlatform=$targetplatform `
-  /p:Platform=$platform `
-  /p:DisplayVersion=$displayversion `
-  /p:InternalVersion=$internalversion `
-  /p:PythonVersion=$pythonversion
- if (-not ($?)) {exit(1)}
+# Determine Architecture (32 or 64 bit) and designate msbuildexe
+If ([System.IntPtr]::Size -ne 4) {
+  # 64 bit
+  $msbuildexe = 'C:\Program Files (x86)\MSBuild\14.0\Bin\msbuild.exe'
+} Else {
+  # 32 bit
+  $msbuildexe = 'C:\Program Files\MSBuild\14.0\Bin\msbuild.exe'
+}
+$args = "msbuild.proj /nologo /t:wix `
+ /p:TargetPlatform=$targetplatform `
+ /p:Platform=$platform `
+ /p:DisplayVersion=$displayversion `
+ /p:InternalVersion=$internalversion `
+ /p:PythonVersion=$pythonversion"
+Start-Process $msbuildexe -ArgumentList "$args" -Wait -NoNewWindow -PassThru
+
+if (-not ($?)) {exit(1)}
 
 dir wix.d\MinionMSI\bin\Release\*.msi

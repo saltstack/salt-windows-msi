@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="wix">
       <HintPath>c:\Program Files (x86)\WiX Toolset v3.11\bin\wix.dll</HintPath>
+      <HintPath>c:\Program Files\WiX Toolset v3.11\bin\wix.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
