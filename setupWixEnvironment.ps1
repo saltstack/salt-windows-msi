@@ -70,10 +70,3 @@ if ((ProductcodeExists "{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") -or
     $p = start-process -passthru $BuildToolsInstaller
     $p.WaitForExit()
 }
-If ([System.IntPtr]::Size -ne 4) {
-    # 64 bit
-    $msbuild = "C:\Program Files (x86)\MSBuild\14.0\"    # Build tools 2015
-} Else {
-    # 32 bit
-    $msbuild = "C:\Program Files\MSBuild\14.0\"    # Build tools 2015
-}
