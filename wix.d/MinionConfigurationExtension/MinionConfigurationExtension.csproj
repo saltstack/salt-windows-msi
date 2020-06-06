@@ -58,8 +58,7 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="wix">
-      <HintPath>$(ProgramFiles) (x86)\WiX Toolset v3.11\bin\wix.dll</HintPath>
-      <HintPath>$(ProgramFiles)\WiX Toolset v3.11\bin\wix.dll</HintPath>
+      <HintPath>$(Wix)\bin\wix.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
