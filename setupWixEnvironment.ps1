@@ -20,14 +20,6 @@ if (-Not (Test-Path -Path $CACHEDIR -PathType Container)) {
 ## From https://wixtoolset.org/releases
 ##   Wix 3.11.2  released Sep 19, 2019
 
-##
-## If you have a csproj you must edit the hard reference to the WiX version in file
-##          wix.d/MinionConfigurationExtension/MinionConfigurationExtension.csproj
-##    <Reference Include="wix">
-##      <HintPath>c:\Program Files (x86)\WiX Toolset v3.11\bin\wix.dll</HintPath>
-##    </Reference>
-##
-##
 if (ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") {
     Write-Host -ForegroundColor Green "Wix 3.11.2 is installed"
 } else {
