@@ -89,7 +89,7 @@ Current Defaults:
     ******************  ProcessorArchitecture: $(ProcessorArchitecture)    
     ******************               Platform: $(Platform)
     ******************         TargetPlatform: $(TargetPlatform)
-    ******************           ProgramFiles: $(ProgramFiles)
+    ******************                    Wix: $(Wix)
     ******************                Version: $(Version)
     ******************         DisplayVersion: $(DisplayVersion)
     ******************        InternalVersion: $(InternalVersion)
