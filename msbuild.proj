@@ -89,6 +89,7 @@ Current Defaults:
     ******************  ProcessorArchitecture: $(ProcessorArchitecture)    
     ******************               Platform: $(Platform)
     ******************         TargetPlatform: $(TargetPlatform)
+    ******************           ProgramFiles: $(ProgramFiles)
     ******************                Version: $(Version)
     ******************         DisplayVersion: $(DisplayVersion)
     ******************        InternalVersion: $(InternalVersion)

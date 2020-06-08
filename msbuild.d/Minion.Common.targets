@@ -52,6 +52,7 @@
     <Message Text="  ******************        InstallerPlatform = $(InstallerPlatform)"/>
     <Message Text="  ******************            Configuration = $(Configuration)"/>    
     <Message Text="  ******************           TargetPlatform = $(TargetPlatform)"/>
+    <Message Text="  ******************             ProgramFiles = $(ProgramFiles)"/>
     <Message Text="  ******************           DisplayVersion = $(DisplayVersion)"/>
     <Message Text="  ******************          InternalVersion = $(InternalVersion)"/>
     <Message Text="  ******************                  Version = $(Version)"/>

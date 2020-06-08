@@ -71,6 +71,7 @@ If ([System.IntPtr]::Size -ne 4) {
   $msbuildexe = 'C:\Program Files\MSBuild\14.0\Bin\msbuild.exe'
 }
 $args = "msbuild.proj /nologo /t:wix `
+ /nodeReuse:false `
  /p:TargetPlatform=$targetplatform `
  /p:Platform=$platform `
  /p:DisplayVersion=$displayversion `
