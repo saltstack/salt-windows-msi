@@ -197,6 +197,7 @@ Because of this restriction, the builder generates an internal version:
 
 Distutils contains bin/Lib/distutils/command/bdist_msi.py, which probably does not work.
 
+To Speed up the build process, you could exclude your git repository from Windows defender (Virus & threat protection settings)
 
 ### From upgrade code to uninstallstring
 

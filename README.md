@@ -2,7 +2,7 @@
 
 This creates a Salt Minion msi installer using [WiX](http://wixtoolset.org).
 
-The focus is on 64bit, unattended install.
+The focus is on unattended install.
 
 ## Introduction
 
