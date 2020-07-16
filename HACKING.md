@@ -1,6 +1,6 @@
-## How to program the msi builder toolkit
+## How to use the msi builder toolkit
 
-This is documentation how to program the msi build toolkit.
+This is documentation how to use the msi build toolkit.
 
 
 ## Development requirements
