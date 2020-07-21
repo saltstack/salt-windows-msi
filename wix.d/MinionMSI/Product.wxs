@@ -25,7 +25,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        >Installed OR NOT MINION_HOSTNAME     </Condition>
     <Condition Message="Please rename START_MINION_SERVICE to START_MINION">Installed OR NOT START_MINION_SERVICE</Condition>
 
-    <Condition Message="CONFIG_TYPE must not be '[CONFIG_TYPE]'. Please use 'Existing', 'Custom' or 'Default'.">
+    <Condition Message='CONFIG_TYPE must not be "[CONFIG_TYPE]". Please use "Existing", "Custom" or "Default".'>
       Installed
       OR (CONFIG_TYPE = "Existing")
       OR (CONFIG_TYPE = "Custom")
