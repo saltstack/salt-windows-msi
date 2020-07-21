@@ -19,7 +19,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       OR  (MsiNTProductType = 3) AND (VersionNT >= 602)
     </Condition>
     <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">Installed OR (PhysicalMemory > 125)</Condition>
-    <Condition Message="Installation requires Administrator privileges">             Privileged                         </Condition>
 
     <Condition Message="Please rename MASTER_HOSTNAME to MASTER"           >Installed OR NOT MASTER_HOSTNAME     </Condition>
     <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        >Installed OR NOT MINION_HOSTNAME     </Condition>
