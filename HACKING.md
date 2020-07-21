@@ -1,6 +1,6 @@
-## How to program the msi builder toolkit
+## How to use the msi builder toolkit
 
-This is documentation how to program the msi build toolkit.
+This is documentation how to use the msi build toolkit.
 
 
 ## Development requirements
@@ -81,8 +81,12 @@ Execute
     Build succeeded
       warning CNDL1150
       warning CNDL1150
-        2 Warning(s)
+      warning LGHT1076: ICE82: This action System64Folder.*has duplicate sequence number * in the table InstallExecuteSequence
+        7 Warning(s)
         0 Error(s)
+
+The above 5 LGHT1076 warnings are caused by the VC++ Runtime merge modules and mean no harm. 
+However, using dll's instead of merge modules might be an improvement.
 
 To run the msi installer, you may use one of `install*.cmd` to test, one of `test*.cmd`.
 

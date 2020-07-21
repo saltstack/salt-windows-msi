@@ -32,23 +32,7 @@
 
 		Note 1:
 		 LaunchConditions seems only to terminate the installer.
-     
-     2016-11-29  mkr problem: 
-        Custom Action='IMCA_PeelNSIS' Before='LaunchConditions' 
-     log file sequence:
-        Doing action: AppSearch
-        AppSearch: Property: MASTER, Signature: IniFileSearchID1
-        Doing action: IMCA_PeelNSIS
-     so it is too late to write NSIS variables into an ini file, because the ini file is already read.
-     Same with before AppSearch.
-     Out of options.
-     hard to understand:      http://robmensching.com/blog/posts/2010/5/2/the-wix-toolsets-remember-property-pattern/
-     read  http://stackoverflow.com/questions/3449770/how-do-i-read-app-config-values-and-set-properties-in-wix
-     read  http://stackoverflow.com/questions/23805767/wix-custom-actions-reading-parameters-from-an-xml-file
-     
-     using session["MASTER"] = value; 
-     I (wrongly?) remmembered that I cannot access CA Parameter in immediate actions.
-     So I can delete the attempt to write to the ini file.		
+     	
 		
 
  
