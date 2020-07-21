@@ -95,10 +95,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <CustomAction Id="uninst_NSIS1_DECAX"      DllEntry="WixQuietExec"         Execute="deferred"  Return="check"   BinaryKey="WixCA" Impersonate="no"/>
     <CustomAction Id="uninst_NSIS2_DECAH"      Property="uninst_NSIS2_DECAX"     Value='"C:\salt\uninst.exe" /S'/>
     <CustomAction Id="uninst_NSIS2_DECAX"      DllEntry="WixQuietExec"         Execute="deferred"  Return="check"   BinaryKey="WixCA" Impersonate="no"/>
-    <Property     Id="whereexe"                                                  Value='where'/>
-    <CustomAction Id="learn_exec_IMCAH"        Property="WixQuietExecCmdLine"    Value='"[whereexe]" whoami'/>
-    <CustomAction Id="learn_exec_IMCAX"        DllEntry="WixQuietExec"         Execute="immediate" Return="ignore"  BinaryKey="WixCA"  />
-
 
     <!-- Preparation when NSIS not only installs into fixed path C:\salt.    Remove uninst.exe from NSIS_UNINSTALLSTRING -->
     <CustomAction Id="get_NSIS_uninstdir_IMCAX" Script="vbscript">
@@ -113,8 +109,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
       <Custom Action="get_NSIS_uninstdir_IMCAX"    Before='LaunchConditions'         >NSIS_UNINSTALLSTRING</Custom>
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'     >NOT Installed</Custom>
-      <Custom Action='learn_exec_IMCAH'            Before='learn_exec_IMCAX'        />
-      <Custom Action="learn_exec_IMCAX"            Before='MigrateFeatureStates'    />
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
     </InstallUISequence>
