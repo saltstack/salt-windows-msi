@@ -84,7 +84,7 @@ Salt creates life time data which must be removed, some of it during upgrade, al
 
 Wix `util:RemoveFolderEx` removes any data transaction safe, but counts an upgrade as an uninstallation.
 - for salt/bin/** (mostly *.pyc) this is appropriate.
-- for salt/var/** (grains and modules) we restrict deletion to "only on uninstall" (`REMOVE ~= "ALL"`).
+- for salt/var/** (custom grains and modules) we restrict deletion to "only on uninstall" (`REMOVE ~= "ALL"`).
 
 
 ### Delete minion_id file
