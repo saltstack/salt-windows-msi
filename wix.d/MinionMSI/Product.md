@@ -83,7 +83,7 @@ When uninstalling an application, an msi only removes exactly the data it instal
 Salt creates life time data which must be removed, some of it during upgrade, all of it (except configuration) during uninstall.
 
 Wix `util:RemoveFolderEx` removes any data transaction safe, but counts an upgrade as an uninstallation.
-- for salt/bin/** (mosltly *.py) this is appropriate.
+- for salt/bin/** (mostly *.pyc) this is appropriate.
 - for salt/var/** (grains and modules) we restrict deletion to "only on uninstall" (`REMOVE ~= "ALL"`).
 
 
