@@ -147,8 +147,11 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
-      <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" />
-      <ComponentRef      Id="RemoveFolderEx_VARFOLDER_Component"/>
+      <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" /> <!-- On uninstall and upgrade -->
+      <Feature     Level="0" Id="Only_on_uninstall_not_upgrade" Display="hidden" AllowAdvertise="no">
+        <Condition Level="1">REMOVE ~= "ALL"</Condition>
+        <ComponentRef Id="RemoveFolderEx_VARFOLDER_Component"/>
+      </Feature>
 
       <Feature Id="VC120" Title="VC++ 2013" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC120_CRT"/></Feature>
       <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT"/></Feature>
@@ -220,7 +223,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
         <RegistryValue Root="HKLM" Key="$(var.RegDir)" Name="$(var.RegVal_BINFOLDER)"
                 Type="string" Value="[BINFOLDER]" KeyPath="yes"/>
         <CreateFolder Directory="BINFOLDER"/>
-        <util:RemoveFolderEx Property="BINFOLDER" On="uninstall"/>
+        <util:RemoveFolderEx Property="BINFOLDER" On="uninstall"/> <!-- Includes upgrade -->
         <RemoveFolder Id="BINFOLDER" On="uninstall"/>
       </Component>
     </DirectoryRef>
@@ -230,7 +233,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
         <RegistryValue Root="HKLM" Key="$(var.RegDir)" Name="$(var.RegVal_VARFOLDER)"
                 Type="string" Value="[VARFOLDER]" KeyPath="yes"/>
         <CreateFolder Directory="VARFOLDER"/>
-        <util:RemoveFolderEx Property="VARFOLDER" On="uninstall"/>
+        <util:RemoveFolderEx Property="VARFOLDER" On="uninstall"/> <!-- Includes upgrade -->
         <RemoveFolder Id="VARFOLDER" On="uninstall"/>
       </Component>
     </DirectoryRef>
