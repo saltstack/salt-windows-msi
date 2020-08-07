@@ -41,7 +41,8 @@ namespace MinionConfigurationExtension {
               *   A GUI installation will show these msi properties because this function is called before the GUI.
               *   
               */
-            session.Log("...Begin ReadConfig_IMCAC");
+            session.Log("...BEGIN ReadConfig_IMCAC");
+            session.Log("...VERSION MinionConfigurationExtensionCA 1");
             String master_from_previous_installation = "";
             String id_from_previous_installation = "";
             // Read master and id from main config file
@@ -147,7 +148,7 @@ namespace MinionConfigurationExtension {
                 }
                 File.WriteAllText(master_public_key_filename, new_master_pub_key);
             }
-            session.Log("...End ReadConfig_IMCAC");
+            session.Log("...END ReadConfig_IMCAC");
             return ActionResult.Success;
         }
 
@@ -192,7 +193,8 @@ namespace MinionConfigurationExtension {
              *   This would be cleaner code
              *      uninst /S  does leave the installdir while    uninst /s /DeleteInstallDir  delete the installdir, both silentyl
             */
-            session.Log("...Begin del_NSIS_DECAC");
+            session.Log("...BEGIN del_NSIS_DECAC");
+            session.Log("...VERSION MinionConfigurationExtensionCA 1");
             RegistryKey reg = Registry.LocalMachine;
             // ?When this is under    SOFTWARE\WoW6432Node
             string Salt_uninstall_regpath64 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
@@ -221,7 +223,7 @@ namespace MinionConfigurationExtension {
                 try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception ex) { MinionConfigurationUtilities.just_ExceptionLog("", session, ex); }
                 try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
             }
-            session.Log("...End del_NSIS_DECAC");
+            session.Log("...END del_NSIS_DECAC");
             return ActionResult.Success;
         }
 
@@ -239,7 +241,8 @@ namespace MinionConfigurationExtension {
              *
              */
             // Must have this signature or cannot uninstall not even write to the log
-            session.Log("...WriteConfig_DECAC BEGIN");
+            session.Log("...BEGIN WriteConfig_DECAC");
+            session.Log("...VERSION MinionConfigurationExtensionCA 1");
             string minion_config = MinionConfigurationUtilities.get_property_DECAC(session, "minion_config");
             if (minion_config.Length > 0) {
                 apply_minion_config_DECAC(session, minion_config);
@@ -254,7 +257,7 @@ namespace MinionConfigurationExtension {
                 }
                 save_custom_config_file_if_config_type_demands_DECAC(session);
             }
-            session.Log("...WriteConfig_DECAC END");
+            session.Log("...END WriteConfig_DECAC");
             return ActionResult.Success;
         }
 
