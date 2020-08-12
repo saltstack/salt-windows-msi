@@ -74,6 +74,19 @@ In the DECAC:
     session.CustomActionData["master"]      THIS IS OK
     session.CustomActionData["mister"]      THIS WILL CRASH
 
+
+### Conditional removal of lifetime data
+"Lifetime data" means any change that was not installed by the msi (during the life time of the application).
+
+When uninstalling an application, an msi only removes exactly the data it installed, unless explicit actions are taken.
+
+Salt creates life time data which must be removed, some of it during upgrade, all of it (except configuration) during uninstall.
+
+Wix `util:RemoveFolderEx` removes any data transaction safe, but counts an upgrade as an uninstallation.
+- for salt/bin/** (mostly *.pyc) this is appropriate.
+- for salt/var/** (custom grains and modules) we restrict deletion to "only on uninstall" (`REMOVE ~= "ALL"`).
+
+
 ### Delete minion_id file
 Alternatives
 
