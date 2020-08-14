@@ -42,7 +42,16 @@ The build client is where the msi installer is built.
 
 Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items?itemName=WixToolset.WiXToolset)
 
+
 ### Step 1: build the Nullsoft (NSIS) exe installer
+####  build the Nullsoft (NSIS) exe installer for 3001
+
+    clean_env.bat
+    build.bat 3001 3
+
+YOU MUST clean_env.bat !!!
+
+####  build the Nullsoft (NSIS) exe installer for other versions
 
 [Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
 
