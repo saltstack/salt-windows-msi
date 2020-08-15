@@ -20,6 +20,9 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     </Condition>
     <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">Installed OR (PhysicalMemory > 125)</Condition>
 
+    <!-- ReadConfig_IMCAC must run immediately as Admin, the msi cannot elevate before deferred, so the user must be Admin -->
+    <Condition Message="Installation requires Administrator privileges. Please open from an elevated command prompt.">Privileged</Condition>
+
     <Condition Message="Please rename MASTER_HOSTNAME to MASTER"           >Installed OR NOT MASTER_HOSTNAME     </Condition>
     <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        >Installed OR NOT MINION_HOSTNAME     </Condition>
     <Condition Message="Please rename START_MINION_SERVICE to START_MINION">Installed OR NOT START_MINION_SERVICE</Condition>
