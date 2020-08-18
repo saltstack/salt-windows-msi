@@ -23,7 +23,7 @@ xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl">
 
 <!-- BEGIN remove component for ssm.exe from dist-amd64.wxs because it must be in service.wxs -->
 <!--key to detect ssmexe-->
-<xsl:key name="ssmexe" match="wix:Component[contains(wix:File/@Source, 'ssm.exe')]" use="@Id"/>
+<xsl:key name="ssmexe" match="wix:Component[contains(wix:File/@Source, '\ssm.exe')]" use="@Id"/>
 
 <!--Match and ignore ssmexe  -->
 <xsl:template match="wix:Component[key('ssmexe', @Id)]"/>
