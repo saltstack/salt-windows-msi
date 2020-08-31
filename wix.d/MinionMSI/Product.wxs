@@ -108,6 +108,10 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       on error resume next
       CreateObject("Scripting.FileSystemObject").GetFolder(Session.Property("CONFFOLDER")).Delete(True)
     </CustomAction>
+    <CustomAction Id="delete_VARFOLDER_CAX" Script="vbscript">
+      on error resume next
+      CreateObject("Scripting.FileSystemObject").GetFolder(Session.Property("VARFOLDER")).Delete(True)
+    </CustomAction>
 
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
       <Custom Action="get_NSIS_uninstdir_IMCAX"    Before='LaunchConditions'         >NSIS_UNINSTALLSTRING</Custom>
@@ -125,6 +129,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       <Custom Action="uninst_NSIS2_DECAX"          Before='ProcessComponents'       >nsis_uninst_waits_yes</Custom>
 
       <Custom Action='delete_config_CAX'           After='RemoveFiles'              >(REMOVE ~= "ALL") and REMOVE_CONFIG</Custom>
+      <Custom Action='delete_VARFOLDER_CAX'        After='RemoveFiles'              >REMOVE ~= "ALL"</Custom>
 
       <Custom Action='WriteConfig_CADH'
               Before='WriteConfig_DECAC'                                            >NOT Installed</Custom>
@@ -151,10 +156,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" /> <!-- On uninstall and upgrade -->
-      <Feature     Level="0" Id="Only_on_uninstall_not_upgrade" Display="hidden" AllowAdvertise="no">
-        <Condition Level="1">REMOVE ~= "ALL"</Condition>
-        <ComponentRef Id="RemoveFolderEx_VARFOLDER_Component"/>
-      </Feature>
 
       <Feature Id="VC120" Title="VC++ 2013" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC120_CRT"/></Feature>
       <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT"/></Feature>
@@ -182,8 +183,9 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
             <Directory Id="SALT_CONF_PKI_MINION_FOLDER" Name="minion" />
           </Directory>
         </Directory>
-        <!-- Declare bin and var folder for RemoveFolderEX remember pattern -->
+        <!-- Declare bin folder for RemoveFolderEX remember pattern -->
         <Directory Id="BINFOLDER"  Name="bin" />
+        <!-- Declare var folder for delete_VARFOLDER_CAX -->
         <Directory Id="VARFOLDER"  Name="var" />
       </Directory>
     </Directory>
@@ -207,18 +209,14 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
 
   <!--  Remove 'lifetime' data on uninstall. Lifetime data does not originate from the installer. -->
+  <!--  Wix uninstall include upgrades. Cannot be used for lifetime data that must persist on upgrade. -->
   <Fragment Id="RemoveFolderEx_Fragment">
     <?define RegDir="SOFTWARE\SaltStack\Salt-Minion"?>
     <?define RegVal_BINFOLDER="RememberForRemoveFolderExBINFOLDER"?>
-    <?define RegVal_VARFOLDER="RememberForRemoveFolderExVARFOLDER"?>
 
-    <Property Id="BINFOLDER">
+    <Property Id="BINFOLDER" Secure="yes">
       <RegistrySearch Root="HKLM" Key="$(var.RegDir)" Type="raw"
                 Id="BINFOLDER_REGSEARCH" Name="$(var.RegVal_BINFOLDER)" />
-    </Property>
-    <Property Id="VARFOLDER">
-      <RegistrySearch Root="HKLM" Key="$(var.RegDir)" Type="raw"
-                Id="VARFOLDER_REGSEARCH" Name="$(var.RegVal_VARFOLDER)" />
     </Property>
 
     <DirectoryRef Id='BINFOLDER'>
@@ -230,18 +228,5 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
         <RemoveFolder Id="BINFOLDER" On="uninstall"/>
       </Component>
     </DirectoryRef>
-
-    <DirectoryRef Id='VARFOLDER'>
-      <Component Id="RemoveFolderEx_VARFOLDER_Component" Guid="76b05a00-efbf-4e35-a442-6c76ccfd9c52">
-        <RegistryValue Root="HKLM" Key="$(var.RegDir)" Name="$(var.RegVal_VARFOLDER)"
-                Type="string" Value="[VARFOLDER]" KeyPath="yes"/>
-        <CreateFolder Directory="VARFOLDER"/>
-        <util:RemoveFolderEx Property="VARFOLDER" On="uninstall"/> <!-- Includes upgrade -->
-        <RemoveFolder Id="VARFOLDER" On="uninstall"/>
-      </Component>
-    </DirectoryRef>
-
   </Fragment>
-
-
 </Wix>
