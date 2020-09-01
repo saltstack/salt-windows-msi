@@ -103,14 +103,20 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <CustomAction Id="get_NSIS_uninstdir_IMCAX" Script="vbscript">
       Session.Property("nsis_uninstalldir") = Replace(Session.Property("NSIS_UNINSTALLSTRING"),"uninst.exe","")
     </CustomAction>
-    <!-- The most simple helper to conditionally remove a folder with lifetime data -->
-    <CustomAction Id="delete_config_CAX" Script="vbscript">
-      on error resume next
-      CreateObject("Scripting.FileSystemObject").GetFolder(Session.Property("CONFFOLDER")).Delete(True)
+    <!-- Deferreds cannot access Session.Property but conditionally remove folders with lifetime data -->
+    <CustomAction Id="delete_config_DECAX" Script="vbscript">
+Dim fso
+Set fso = CreateObject("Scripting.FileSystemObject")
+if fso.FolderExists("c:\salt") then
+  fso.DeleteFolder "c:\salt"
+end if
     </CustomAction>
-    <CustomAction Id="delete_VARFOLDER_CAX" Script="vbscript">
-      on error resume next
-      CreateObject("Scripting.FileSystemObject").GetFolder(Session.Property("VARFOLDER")).Delete(True)
+    <CustomAction Id="delete_VARFOLDER_DECAX" Script="vbscript">
+Dim fso
+Set fso = CreateObject("Scripting.FileSystemObject")
+if fso.FolderExists("c:\salt\var") then
+  fso.DeleteFolder "c:\salt\var"
+end if
     </CustomAction>
 
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
@@ -128,8 +134,8 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       <Custom Action="uninst_NSIS2_DECAH"          Before='uninst_NSIS2_DECAX'     />
       <Custom Action="uninst_NSIS2_DECAX"          Before='ProcessComponents'       >nsis_uninst_waits_yes</Custom>
 
-      <Custom Action='delete_config_CAX'           After='RemoveFiles'              >(REMOVE ~= "ALL") and REMOVE_CONFIG</Custom>
-      <Custom Action='delete_VARFOLDER_CAX'        After='RemoveFiles'              >REMOVE ~= "ALL"</Custom>
+      <Custom Action='delete_config_DECAX'         After='InstallFinalize'          >(REMOVE ~= "ALL") and REMOVE_CONFIG</Custom>
+      <Custom Action='delete_VARFOLDER_DECAX'      After='InstallFinalize'          >REMOVE ~= "ALL"</Custom>
 
       <Custom Action='WriteConfig_CADH'
               Before='WriteConfig_DECAC'                                            >NOT Installed</Custom>
@@ -175,7 +181,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
 
   <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir"> <!-- Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
+    <Directory Id="TARGETDIR" Name="SourceDir">      <!-- Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
       <Directory Id="INSTALLFOLDER" Name="salt" >
         <Directory Id="CONFFOLDER" Name="conf" >
           <Directory Id="MINION_D_CONF_FOLDER"  Name="minion.d" />
@@ -183,10 +189,8 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
             <Directory Id="SALT_CONF_PKI_MINION_FOLDER" Name="minion" />
           </Directory>
         </Directory>
-        <!-- Declare bin folder for RemoveFolderEX remember pattern -->
-        <Directory Id="BINFOLDER"  Name="bin" />
-        <!-- Declare var folder for delete_VARFOLDER_CAX -->
-        <Directory Id="VARFOLDER"  Name="var" />
+        <Directory Id="BINFOLDER"  Name="bin" />      <!-- For RemoveFolderEX remember pattern -->
+        <Directory Id="VARFOLDER"  Name="var" />      <!-- For delete_VARFOLDER_DECAX -->
       </Directory>
     </Directory>
 
