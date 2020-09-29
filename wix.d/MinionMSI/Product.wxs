@@ -70,6 +70,15 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"/>
+    <DirectoryRef Id="TARGETDIR">
+        <Component Id="SaltNssmRegistryEntries" Guid="fcb947ff-016b-45f8-a7d0-0a98df0d0537">
+            <RegistryKey Root="HKLM"
+                         Key="System\CurrentControlSet\Services\salt-minion\Parameters"
+                         ForceDeleteOnUninstall='yes'>
+                <RegistryValue Name="AppRestartDelay"    Value="60000"  Type="integer"/>
+            </RegistryKey>
+        </Component>
+    </DirectoryRef>
 
     <!-- Search previous NSIS installation.
          Assume NSIS always (32 and 64 bit Salt-minion) writes into the 32bit WoW registry -->
@@ -253,6 +262,7 @@ End If
     </DirectoryRef>
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
+      <ComponentRef Id="SaltNssmRegistryEntries" />
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" /> <!-- On uninstall and upgrade -->
 
