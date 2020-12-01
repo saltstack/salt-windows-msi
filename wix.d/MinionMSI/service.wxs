@@ -16,7 +16,6 @@
           <RegistryValue Type="expandable" Name="AppDirectory"        Value="[INSTALLFOLDER]bin" />
           <RegistryValue Type="expandable" Name="Application"         Value="[INSTALLFOLDER]bin\python.exe" />
           <RegistryValue Type="expandable" Name="AppParameters"       Value="[INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
-          <RegistryValue Type="expandable" Name="AppEnvironmentExtra" Value="PYTHONHOME=" />
         </RegistryKey>
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion\Parameters\AppExit">
           <RegistryValue Type="string" Value="Restart" />
