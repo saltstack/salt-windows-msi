@@ -7,7 +7,6 @@
         <ServiceInstall Account="LocalSystem" ErrorControl="normal" Name="salt-minion" Start="auto" Type="ownProcess" Vital="yes"
           Description="Salt Minion from saltstack.com" DisplayName="Salt Minion" Id="SaltMinionServiceInstall">
           <ServiceConfig OnInstall="yes" OnReinstall="yes" DelayedAutoStart="no" />
-          <ServiceDependency Id="nsi" />
         </ServiceInstall>
         <ServiceControl Id="SaltMinionServiceControlNoStart" Name="salt-minion" Remove="uninstall" Stop="both" Start="install" Wait="yes">
           <ServiceArgument />
