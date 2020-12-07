@@ -11,16 +11,18 @@
         <ServiceControl Id="SaltMinionServiceControlNoStart" Name="salt-minion" Remove="uninstall" Stop="both" Start="install" Wait="yes">
           <ServiceArgument />
         </ServiceControl>
-        <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion\Parameters">
-          <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLFOLDER]bin" />
-          <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLFOLDER]bin\python.exe" />
-          <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s [INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
-          <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
-          <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
-          <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
-        </RegistryKey>
-        <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion\Parameters\AppExit">
-          <RegistryValue Type="string" Value="Restart" />
+        <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
+          <RegistryKey Key="Parameters">
+            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLFOLDER]bin" />
+            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLFOLDER]bin\python.exe" />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s [INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
+            <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
+            <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
+            <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
+            <RegistryKey Key="AppExit">
+              <RegistryValue Type="string" Value="Restart" />
+            </RegistryKey>
+          </RegistryKey>
         </RegistryKey>
       </Component>
     </ComponentGroup>
