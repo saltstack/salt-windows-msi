@@ -4,11 +4,28 @@
     <ComponentGroup Id="service">
       <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLFOLDER" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
         <File Id="fil055DB09E328331BF0202C29D7483905C" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
-        <ServiceInstall Account="LocalSystem" ErrorControl="normal" Name="salt-minion" Start="auto" Type="ownProcess" Vital="yes"
-          Description="Salt Minion from saltstack.com" DisplayName="Salt Minion" Id="SaltMinionServiceInstall">
-          <ServiceConfig OnInstall="yes" OnReinstall="yes" DelayedAutoStart="no" />
+        <ServiceInstall
+          Account="LocalSystem"
+          ErrorControl="normal"
+          Name="salt-minion"
+          Start="auto"
+          Type="ownProcess"
+          Vital="yes"
+          Description="Salt Minion from saltstack.com"
+          DisplayName="Salt Minion"
+          Id="SaltMinionServiceInstall">
+          <ServiceConfig
+            OnInstall="yes"
+            OnReinstall="yes"
+            DelayedAutoStart="no" />
         </ServiceInstall>
-        <ServiceControl Id="SaltMinionServiceControlNoStart" Name="salt-minion" Remove="uninstall" Stop="both" Start="install" Wait="yes">
+        <ServiceControl
+          Id="SaltMinionServiceControl"
+          Name="salt-minion"
+          Remove="uninstall"
+          Stop="both"
+          Start="install"
+          Wait="yes">
           <ServiceArgument />
         </ServiceControl>
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
