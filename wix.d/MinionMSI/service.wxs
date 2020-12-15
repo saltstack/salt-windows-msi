@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+  xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Fragment>
     <ComponentGroup Id="service">
       <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLFOLDER" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
-        <File Id="fil055DB09E328331BF0202C29D7483905C" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
+        <File Id="ssm.exe" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
         <ServiceInstall
           Account="LocalSystem"
           ErrorControl="normal"
@@ -12,12 +13,12 @@
           Type="ownProcess"
           Vital="yes"
           Description="Salt Minion from saltstack.com"
-          DisplayName="Salt Minion"
+          DisplayName="salt-minion"
           Id="SaltMinionServiceInstall">
-          <ServiceConfig
-            OnInstall="yes"
-            OnReinstall="yes"
-            DelayedAutoStart="no" />
+          <util:ServiceConfig
+            FirstFailureActionType="none"
+            SecondFailureActionType="none"
+            ThirdFailureActionType="none" />
         </ServiceInstall>
         <ServiceControl
           Id="SaltMinionServiceControl"
@@ -28,6 +29,11 @@
           Wait="yes">
           <ServiceArgument />
         </ServiceControl>
+        <CreateFolder />
+        <util:EventSource
+          Log="Application"
+          Name="nssm"
+          EventMessageFile="[#ssm.exe]" />
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
           <RegistryKey Key="Parameters">
             <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLFOLDER]bin" />
