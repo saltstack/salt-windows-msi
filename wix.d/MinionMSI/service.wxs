@@ -1,25 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+  xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Fragment>
     <ComponentGroup Id="service">
       <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLFOLDER" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
-        <File Id="fil055DB09E328331BF0202C29D7483905C" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
-        <ServiceInstall Account="LocalSystem" ErrorControl="normal" Name="salt-minion" Start="auto" Type="ownProcess" Vital="yes"
-          Description="Salt Minion from saltstack.com" DisplayName="Salt Minion" Id="SaltMinionServiceInstall">
-          <ServiceConfig OnInstall="yes" OnReinstall="yes" DelayedAutoStart="no" />
-          <ServiceDependency Id="nsi" />
+        <File Id="ssm.exe" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
+        <ServiceInstall
+          Account="LocalSystem"
+          ErrorControl="normal"
+          Name="salt-minion"
+          Start="auto"
+          Type="ownProcess"
+          Vital="yes"
+          Description="Salt Minion from saltstack.com"
+          DisplayName="salt-minion"
+          Id="SaltMinionServiceInstall">
+          <util:ServiceConfig
+            FirstFailureActionType="none"
+            SecondFailureActionType="none"
+            ThirdFailureActionType="none" />
         </ServiceInstall>
-        <ServiceControl Id="SaltMinionServiceControlNoStart" Name="salt-minion" Remove="uninstall" Stop="both" Start="install" Wait="yes">
+        <ServiceControl
+          Id="SaltMinionServiceControl"
+          Name="salt-minion"
+          Remove="uninstall"
+          Stop="both"
+          Start="install"
+          Wait="yes">
           <ServiceArgument />
         </ServiceControl>
-        <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion\Parameters">
-          <RegistryValue Type="expandable" Name="AppDirectory"        Value="[INSTALLFOLDER]bin" />
-          <RegistryValue Type="expandable" Name="Application"         Value="[INSTALLFOLDER]bin\python.exe" />
-          <RegistryValue Type="expandable" Name="AppParameters"       Value="[INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
-          <RegistryValue Type="expandable" Name="AppEnvironmentExtra" Value="PYTHONHOME=" />
-        </RegistryKey>
-        <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion\Parameters\AppExit">
-          <RegistryValue Type="string" Value="Restart" />
+        <CreateFolder />
+        <util:EventSource
+          Log="Application"
+          Name="nssm"
+          EventMessageFile="[#ssm.exe]" />
+        <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
+          <RegistryKey Key="Parameters">
+            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLFOLDER]bin" />
+            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLFOLDER]bin\python.exe" />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s [INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
+            <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
+            <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
+            <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
+            <RegistryKey Key="AppExit">
+              <RegistryValue Type="string" Value="Restart" />
+            </RegistryKey>
+          </RegistryKey>
         </RegistryKey>
       </Component>
     </ComponentGroup>

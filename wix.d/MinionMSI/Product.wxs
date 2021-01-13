@@ -70,15 +70,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"/>
-    <DirectoryRef Id="TARGETDIR">
-        <Component Id="SaltNssmRegistryEntries" Guid="fcb947ff-016b-45f8-a7d0-0a98df0d0537">
-            <RegistryKey Root="HKLM"
-                         Key="System\CurrentControlSet\Services\salt-minion\Parameters"
-                         ForceDeleteOnUninstall='yes'>
-                <RegistryValue Name="AppRestartDelay"    Value="60000"  Type="integer"/>
-            </RegistryKey>
-        </Component>
-    </DirectoryRef>
 
     <!-- Search previous NSIS installation.
          Assume NSIS always (32 and 64 bit Salt-minion) writes into the 32bit WoW registry -->
@@ -114,7 +105,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     </CustomAction>
     <!-- Deferreds cannot access Session.Property but conditionally remove folders with lifetime data -->
     <!-- CA are executed twice? On Error resume may help-->
-    <CustomAction Id="delete_config_DECAX" Script="vbscript">
+    <CustomAction Id="delete_excl_config_DECAX" Script="vbscript">
 On error resume next
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set wshshell = CreateObject("Wscript.Shell")
@@ -124,8 +115,12 @@ If fso.FileExists("C:\salt\ssm.exe") Then
   wshshell.Run "C:\salt\ssm.exe remove  salt-minion confirm", 0, True
   wshshell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
 End If
-If fso.FolderExists("C:\salt") Then
-  fso.DeleteFolder "c:\salt"
+If fso.FileExists("C:\salt\ssm.exe") Then
+  fso.DeleteFile "c:\salt\ssm.exe"
+End If
+fso.DeleteFile "c:\salt\salt*"
+If fso.FolderExists("C:\salt\bin") Then
+  fso.DeleteFolder "c:\salt\bin"
 End If
     </CustomAction>
     <CustomAction Id="delete_VARFOLDER_DECAX" Script="vbscript">
@@ -195,7 +190,7 @@ objShell.Run "net stop salt-minion", 0, true
 objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </CustomAction>
 
-    <CustomAction Id="bruteforcedelete" Script="vbscript">
+    <CustomAction Id="delete_incl_config_DECAX" Script="vbscript">
 On error resume next
 Set fso = CreateObject("Scripting.FileSystemObject")
 Set wshshell = CreateObject("Wscript.Shell")
@@ -239,8 +234,8 @@ End If
       <Custom Action='restore_salt'                After='PublishProduct'           >WIX_UPGRADE_DETECTED</Custom>  <!--only on upgrade, not on uninstall -->
 
       <Custom Action='delete_VARFOLDER_DECAX'      After='InstallFinalize'          >REMOVE ~= "ALL"</Custom>
-      <Custom Action='delete_config_DECAX'         After='InstallFinalize'          >(REMOVE ~= "ALL") and REMOVE_CONFIG</Custom>
-      <Custom Action='bruteforcedelete'            After='InstallFinalize'          >(REMOVE ~= "ALL") and REMOVE_CONFIG</Custom>  <!--only on uninstall, not on upgrade? -->
+      <Custom Action='delete_excl_config_DECAX'    After='InstallFinalize'          >(REMOVE ~= "ALL") and (NOT REMOVE_CONFIG)</Custom>
+      <Custom Action='delete_incl_config_DECAX'    After='InstallFinalize'          >(REMOVE ~= "ALL") and REMOVE_CONFIG</Custom>  <!--only on uninstall, not on upgrade? -->
 
 
       <!-- Optionally start the service  -->
@@ -262,7 +257,6 @@ End If
     </DirectoryRef>
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
-      <ComponentRef Id="SaltNssmRegistryEntries" />
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" /> <!-- On uninstall and upgrade -->
 

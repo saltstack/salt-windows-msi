@@ -185,6 +185,10 @@ properties, and the current value of those properties:
 > msbuild msbuild.proj /t:help
 
 ### Other Notes
+msi conditions for Customm Actions in a table with install, uninstall, updgrade:
+- https://stackoverflow.com/a/17608049 
+
+
 Install sequences documentation:
 
 - [standard-actions-reference](https://docs.microsoft.com/en-us/windows/win32/msi/standard-actions-reference)
