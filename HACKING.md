@@ -30,7 +30,6 @@ The build client is where the msi installer is built.
 - 64bit Windows 10
 - The Git repositories `salt` and `salt-windows-msi`
 - .Net 3.5 SDK (for WiX)<sup>*</sup>
-- Microsoft_VC90_CRT_x86_x64.msm from Visual Studio 2008 SP2 in `c:\salt_msi_resources\`<sup>**</sup>
 - Microsoft_VC140_CRT_x64.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
 - Microsoft_VC140_CRT_x86.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
 - [Wix 3.11](http://wixtoolset.org/releases/)<sup>**</sup>
@@ -88,10 +87,8 @@ Execute
 `build.cmd` should return output ending in:
 
     Build succeeded
-      warning CNDL1150
-      warning CNDL1150
-      warning LGHT1076: ICE82: This action System64Folder.*has duplicate sequence number * in the table InstallExecuteSequence
-        7 Warning(s)
+      warning LGHT1076: ICE82: This action System64Folder.* has duplicate sequence number * in the table InstallExecuteSequence
+        5 Warning(s)
         0 Error(s)
 
 The above 5 LGHT1076 warnings are caused by the VC++ Runtime merge modules and mean no harm. 
