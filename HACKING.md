@@ -87,12 +87,11 @@ Execute
 `build.cmd` should return output ending in:
 
     Build succeeded
-      warning LGHT1076: ICE82: This action System64Folder.* has duplicate sequence number * in the table InstallExecuteSequence
-        5 Warning(s)
+        0 Warning(s)
         0 Error(s)
 
-The above 5 LGHT1076 warnings are caused by the VC++ Runtime merge modules and mean no harm. 
-However, using dll's instead of merge modules might be an improvement.
+[LGHT1076 ICE82 warnings are caused by the VC++ Runtime merge modules](https://sourceforge.net/p/wix/mailman/message/22945366/) and supressed.
+Using dll's instead of merge modules might be an improvement.
 
 To run the msi installer, you may use one of `install*.cmd` to test, one of `test*.cmd`.
 
