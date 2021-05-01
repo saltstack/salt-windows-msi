@@ -58,7 +58,7 @@ YOU MUST clean_env.bat !!!
 Execute
 
     cd c:\dev\salt\pkg\windows
-    git checkout v2019.2.3
+    git checkout v3002.5
 
 Repeat
 
@@ -67,7 +67,7 @@ Repeat
 
 until `git status` returns
 
-    HEAD detached at v2019.2.3
+    HEAD detached at v3002.5
     nothing to commit, working tree clean
 
 then execute
