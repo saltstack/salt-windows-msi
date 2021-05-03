@@ -13,7 +13,7 @@
     <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
-    <SuppressIces>ICE03</SuppressIces>
+    <SuppressIces>ICE03;ICE82</SuppressIces>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
@@ -21,25 +21,25 @@
     <DefineConstants>Debug</DefineConstants>
     <WixVariables>
     </WixVariables>
-    <SuppressIces>ICE03</SuppressIces>
+    <SuppressIces>ICE03;ICE82</SuppressIces>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
-    <SuppressIces>ICE03</SuppressIces>
+    <SuppressIces>ICE03;ICE82</SuppressIces>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <DefineConstants>Debug</DefineConstants>
-    <SuppressIces>ICE03</SuppressIces>
+    <SuppressIces>ICE03;ICE82</SuppressIces>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <CompilerAdditionalOptions>-nologo</CompilerAdditionalOptions>
     <LinkerAdditionalOptions>-nologo</LinkerAdditionalOptions>
-    <SuppressIces>ICE03</SuppressIces>
+    <SuppressIces>ICE03;ICE82</SuppressIces>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="service.wxs" />
