@@ -108,25 +108,7 @@ We uninstall a NSIS Salt-minion v2017.5 or newer with a deferred Quiet Execution
 
 https://wixtoolset.org/documentation/manual/v3/xsd/wix/customaction.html
 
-NSIS Salt Minion v2017.5 added parameters to uninst.exe
 
-    uninst /S                    leaves the installdir
-    uninst /S /DeleteInstallDir  deletes the installdir, both silently
-    uninst /s is not /S
-
-
-uninst.exe _?= waits before returning:
-
-    MSI (s) (88:A4) [16:41:46:795]: Hello, I'm your 32bit Elevated Non-remapped custom action server.
-    WixQuietExec:  Entering WixQuietExec in C:\Windows\Installer\MSICED6.tmp, version 3.11.2318.0
-    WixQuietExec:  "C:\salt\uninst.exe" /S _?=C:\salt
-    MSI (s) (88:F0) [16:41:53:435]: Executing op: ActionStart(Name=uninst_NSIS2_DECAX,,)
-
-
-    MSI (s) (C4:00) [16:54:13:482]: Hello, I'm your 32bit Elevated Non-remapped custom action server.
-    WixQuietExec:  Entering WixQuietExec in C:\Windows\Installer\MSI33C4.tmp, version 3.11.2318.0
-    WixQuietExec:  "C:\salt\uninst.exe" /S _?=C:\salt
-    MSI (s) (C4:30) [16:54:19:701]: Executing op: ActionStart(Name=uninst_NSIS2_DECAX,,)
 
 
 ## Sequences

@@ -45,9 +45,9 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
                                OR (NSIS_DISPLAYVERSION << "30") OR NOT NSIS_DISPLAYVERSION) OR Installed]]>
     </Condition>
 
-    <!-- Testing if the salt-minion service start after NSIS uninst.exe /S  -->
-    <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION] or set testing_salt_msi_uninstalls_exe=1 for testing to uninstall the Nullsoft-exe instelled Salt Minion'>
-      NOT (NSIS_UNINSTALLSTRING >> "uninst.exe") OR %testing_salt_msi_uninstalls_exe
+    <!-- Abort msi install if NSIS installed -->
+    <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION]'>
+      NOT (NSIS_UNINSTALLSTRING >> "uninst.exe")
     </Condition>
 
     <!--
@@ -78,28 +78,10 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
         <RegistrySearch Id="NSIS_DISPLAYVERSION"
             Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="no" />
     </Property>
-    <!-- Combine both properties to decide how to uninstall.
-      uninst.exe /S was implemented in v2017.5   Later displayversion lost the leading v.
-     Set properties and combine them. These 2 steps require sequencing.
-         Assume RegistrySearch takes place in AppSearch.
-         Assume AppSearch is sequenced before LaunchConditions.  -->
+
+    <!-- The sign of NSIS install  -->
     <SetProperty Id="nsis_exe"              Before="LaunchConditions" Value="1">NSIS_UNINSTALLSTRING >> "uninst.exe"</SetProperty>
-    <SetProperty Id="nsis_ge_v2017.5"       Before="LaunchConditions" Value="1">NSIS_DISPLAYVERSION >= "v2017.5"</SetProperty>
-    <SetProperty Id="nsis_ge_2018"          Before="LaunchConditions" Value="1"><![CDATA[NSIS_DISPLAYVERSION >= "2018" AND NOT NSIS_DISPLAYVERSION << "v"]]></SetProperty>
-    <SetProperty Id="nsis_uninst_waits_not"  After="LaunchConditions" Value="1">nsis_exe AND NOT (nsis_ge_v2017.5 OR nsis_ge_2018)</SetProperty>
-    <SetProperty Id="nsis_uninst_waits_yes"  After="LaunchConditions" Value="1">nsis_exe AND     (nsis_ge_v2017.5 OR nsis_ge_2018)</SetProperty>
 
-    <!-- Properties for Custom actions  -->
-    <!-- Assume NSIS installs into fixed path C:\salt  only.  -->
-    <CustomAction Id="uninst_NSIS1_DECAH"      Property="uninst_NSIS1_DECAX"     Value='"C:\salt\uninst.exe" /S _?=C:\salt'/>
-    <CustomAction Id="uninst_NSIS1_DECAX"      DllEntry="WixQuietExec"         Execute="deferred"  Return="check"   BinaryKey="WixCA" Impersonate="no"/>
-    <CustomAction Id="uninst_NSIS2_DECAH"      Property="uninst_NSIS2_DECAX"     Value='"C:\salt\uninst.exe" /S'/>
-    <CustomAction Id="uninst_NSIS2_DECAX"      DllEntry="WixQuietExec"         Execute="deferred"  Return="check"   BinaryKey="WixCA" Impersonate="no"/>
-
-    <!-- Preparation when NSIS not only installs into fixed path C:\salt.    Remove uninst.exe from NSIS_UNINSTALLSTRING -->
-    <CustomAction Id="get_NSIS_uninstdir_IMCAX" Script="vbscript">
-      Session.Property("nsis_uninstalldir") = Replace(Session.Property("NSIS_UNINSTALLSTRING"),"uninst.exe","")
-    </CustomAction>
     <!-- Deferreds cannot access Session.Property but conditionally remove folders with lifetime data -->
     <!-- CA are executed twice? On Error resume may help-->
     <CustomAction Id="delete_excl_config_DECAX" Script="vbscript">
@@ -205,7 +187,6 @@ End If
 
 
     <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
-      <Custom Action="get_NSIS_uninstdir_IMCAX"    Before='LaunchConditions'         >NSIS_UNINSTALLSTRING</Custom>
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'     >NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
@@ -216,11 +197,7 @@ End If
       <Custom Action='stopSalt'                   Before='InstallValidate'          >1</Custom>
 
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'               After='InstallInitialize'       >nsis_uninst_waits_not</Custom>
-      <Custom Action="uninst_NSIS1_DECAH"          Before='uninst_NSIS1_DECAX'     />
-      <Custom Action="uninst_NSIS1_DECAX"          Before='uninst_NSIS2_DECAX'      >nsis_uninst_waits_yes</Custom>
-      <Custom Action="uninst_NSIS2_DECAH"          Before='uninst_NSIS2_DECAX'     />
-      <Custom Action="uninst_NSIS2_DECAX"          Before='ProcessComponents'       >nsis_uninst_waits_yes</Custom>
+      <Custom Action='del_NSIS_DECAC'               After='InstallInitialize'       >nsis_exe</Custom>
 
       <Custom Action='capture_salt'                After='FindRelatedProducts'      >WIX_UPGRADE_DETECTED</Custom>  <!--only on upgrade, not on uninstall -->
 
