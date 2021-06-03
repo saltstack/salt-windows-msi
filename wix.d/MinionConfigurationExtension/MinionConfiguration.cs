@@ -185,13 +185,11 @@ namespace MinionConfigurationExtension {
             // Leaves the Config
             /*
              * If NSIS is installed:
-             *   remove salt-minion service, 
+             *   remove salt-minion service,
              *   remove registry
              *   remove files, except /salt/conf and /salt/var
-             *   
-             *   Instead of the above, TODO use uninst.exe and preserve the 2 directories (by moving them into safety first?)
-             *   This would be cleaner code
-             *      uninst /S  does leave the installdir while    uninst /s /DeleteInstallDir  delete the installdir, both silentyl
+             *
+             *   Instead of the above, we cannot use uninst.exe because the service would no longer start.
             */
             session.Log("...BEGIN del_NSIS_DECAC");
             session.Log("...VERSION MinionConfigurationExtensionCA 1");
