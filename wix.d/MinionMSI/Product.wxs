@@ -244,6 +244,15 @@ End If
 
     <UIRef Id="ProductUI" />                             <!-- Includes ProductUI.wxs in this directory -->
 
+
+    <!--  Immediate (*_IMCAC) and defferred (*_DECAC) custom action declarations. -->
+    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'  Execute='firstSequence'/> 
+    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'    Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
+    <Binary       Id='MinionConfigExt'      SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
+    <CustomAction Id="WriteConfig_CADH"     Property="WriteConfig_DECAC" Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER]" />
+
+
     <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- Do not create cab files -->
   </Product>
 
