@@ -217,7 +217,7 @@ End If
 
     <DirectoryRef Id="TARGETDIR">
     <!--Visual C++ runtimes depend on the target platform -->
-    <?if $(var.TargetPlatform)=amd64 ?>
+    <?if $(var.WIN64)=yes ?>
       <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0"/>
     <?else ?>
       <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x86.msm" DiskId="1" Language="0"/>
@@ -272,7 +272,7 @@ End If
     <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'  Execute='firstSequence'/> 
     <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'    Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
-    <Binary       Id='MinionConfigExt'      SourceFile='$(var.MinionConfigurationExtension.TargetDir)$(var.MinionConfigurationExtension.TargetName).CA.dll'/>
+    <Binary       Id='MinionConfigExt'      SourceFile='CustomAction01\CustomAction01.CA.dll'/>
     <CustomAction Id="WriteConfig_CADH"     Property="WriteConfig_DECAC" Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER]" />
 
 
@@ -362,7 +362,7 @@ End If
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <ComponentGroupRef Id="dist"    />       <!-- Includes dist-amd64.wxs in this directory -->
+      <ComponentGroupRef Id="DiscoveredFiles"    />       <!-- In Product-*-discovered-files.wxs -->
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="InstallfolderPermissions" />
     </ComponentGroup>
