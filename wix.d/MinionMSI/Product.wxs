@@ -280,7 +280,64 @@ End If
     <CustomAction Id="WriteConfig_CADH"     Property="WriteConfig_DECAC" Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER]" />
 
 
-    <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- Do not create cab files -->
+    <!--  Windows service (nssm and without)-->
+    <?if 1=1 ?>
+    <ComponentGroup Id="service">
+      <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLFOLDER" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
+        <File Id="ssm.exe" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
+        <ServiceInstall
+          Account="LocalSystem" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes"
+          Name="salt-minion"
+          Description="Salt Minion from saltstack.com"
+          DisplayName="salt-minion"
+          Id="si1">
+          <util:ServiceConfig
+            FirstFailureActionType="none"
+            SecondFailureActionType="none"
+            ThirdFailureActionType="none" />
+        </ServiceInstall>
+        <ServiceControl Name="salt-minion" Remove="uninstall" Stop="both" Start="install" Wait="yes" Id="sc1">
+          <ServiceArgument />
+        </ServiceControl>
+        <CreateFolder />
+        <util:EventSource Log="Application" Name="nssm" EventMessageFile="[#ssm.exe]" />
+        <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
+          <RegistryKey Key="Parameters">
+            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLFOLDER]bin" />
+            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLFOLDER]bin\python.exe" />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s [INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
+            <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
+            <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
+            <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
+            <RegistryKey Key="AppExit">
+              <RegistryValue Type="string" Value="Restart" />
+            </RegistryKey>
+          </RegistryKey>
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+    <?else ?>
+    <ComponentGroup Id="service">
+      <Component        Id="servicec1" Directory="BINFOLDER" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
+        <File           Source="$(var.dist)\bin\python.exe"  KeyPath="yes"/>
+        <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
+                        Arguments="[BINFOLDER]Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet"
+                        Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
+          <util:ServiceConfig
+            FirstFailureActionType="none"
+            SecondFailureActionType="none"
+            ThirdFailureActionType="none" />
+        </ServiceInstall>
+        <ServiceControl Name="salt-minion"  Start="install"  Stop="both"  Remove="uninstall"  Wait="yes" Id="ServiceControl">
+          <ServiceArgument /> <!-- http://stackoverflow.com/questions/10621082/wix-serviceinstall-arguments  -->
+        </ServiceControl>
+      </Component>
+    </ComponentGroup>
+    <?endif ?>
+
+
+    <!-- Do not create cab files -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
   </Product>
 
 
@@ -310,7 +367,7 @@ End If
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <ComponentGroupRef Id="dist"    />       <!-- Includes dist-amd64.wxs in this directory -->
-      <ComponentGroupRef Id="service" />       <!-- Includes service.wxs in this directory -->
+      <ComponentGroupRef Id="service" />
       <ComponentRef Id="InstallfolderPermissions" />
     </ComponentGroup>
   </Fragment>

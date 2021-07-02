@@ -42,8 +42,6 @@
     <SuppressIces>ICE03;ICE82</SuppressIces>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="service.wxs" />
-    <Compile Include="servicePython.wxs" />
     <Compile Include="Product.wxs" />
   </ItemGroup>
   <ItemGroup>

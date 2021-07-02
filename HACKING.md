@@ -132,9 +132,9 @@ This means that any filesystem and registry change by C# is not atomic.
     - dist-$(TargetPlatform).wxs: (TEMPORARY FILE) NSIS-files, created by BuildDistFragment.targets
     - MinionMSI.wixproj: msbuild boilerplate.
     - Product.wxs: main file.
-    - service.wxs: salt-minion Windows Service using ssm.exe, the Salt Service Manager.
-    - servicePython.wxs: (EXPERIMENTAL) salt-minion Windows Service
-      - requires [saltminionservice](https://github.com/saltstack/salt/blob/167cdb344732a6b85e6421115dd21956b71ba25a/salt/utils/saltminionservice.py) or [winservice](https://github.com/saltstack/salt/blob/3fb24929c6ebc3bfbe2a06554367f8b7ea980f5e/salt/utils/winservice.py) [Removed](https://github.com/saltstack/salt/commit/8c01aacd9b4d6be2e8cf991e3309e2a378737ea0)
+      - salt-minion Windows Service using ssm.exe, the Salt Service Manager.
+      - (EXPERIMENTAL) salt-minion Windows Service
+        - requires [saltminionservice](https://github.com/saltstack/salt/blob/167cdb344732a6b85e6421115dd21956b71ba25a/salt/utils/saltminionservice.py) or [winservice](https://github.com/saltstack/salt/blob/3fb24929c6ebc3bfbe2a06554367f8b7ea980f5e/salt/utils/winservice.py) [Removed](https://github.com/saltstack/salt/commit/8c01aacd9b4d6be2e8cf991e3309e2a378737ea0)
 
 ### Naming conventions
 
