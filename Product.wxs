@@ -23,10 +23,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <!-- ReadConfig_IMCAC must run immediately as Admin, the msi cannot elevate before deferred, so the user must be Admin -->
     <Condition Message="Installation requires Administrator privileges. Please open from an elevated command prompt.">Privileged</Condition>
 
-    <Condition Message="Please rename MASTER_HOSTNAME to MASTER"           >Installed OR NOT MASTER_HOSTNAME     </Condition>
-    <Condition Message="Please rename MINION_HOSTNAME to MINION_ID"        >Installed OR NOT MINION_HOSTNAME     </Condition>
-    <Condition Message="Please rename START_MINION_SERVICE to START_MINION">Installed OR NOT START_MINION_SERVICE</Condition>
-
     <Condition Message='CONFIG_TYPE must not be "[CONFIG_TYPE]". Please use "Existing", "Custom" or "Default".'>
       Installed
       OR (CONFIG_TYPE = "Existing")
@@ -221,7 +217,7 @@ End If
 
     <DirectoryRef Id="TARGETDIR">
     <!--Visual C++ runtimes depend on the target platform -->
-    <?if $(var.TargetPlatform)=amd64 ?>
+    <?if $(var.WIN64)=yes ?>
       <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0"/>
     <?else ?>
       <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x86.msm" DiskId="1" Language="0"/>
@@ -242,9 +238,102 @@ End If
     <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="imgLeft.png" />
 
-    <UIRef Id="ProductUI" />                             <!-- Includes ProductUI.wxs in this directory -->
 
-    <MediaTemplate EmbedCab="yes" CompressionLevel="low" /> <!-- Do not create cab files -->
+    <!-- GUI -->
+    <UI>
+      <UIRef Id="WixUI_Mondo" />
+      <Publish Dialog="LicenseAgreementDlg"   Control="Next"   Event="NewDialog"   Value="ProductUIsettings" Order="3">LicenseAccepted = "1"</Publish>
+      <Publish Dialog="ProductUIsettings"     Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="ProductUIsettings"     Control="Back"   Event="NewDialog"   Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="ProductUIsettings"     Control="Cancel" Event="SpawnDialog" Value="CancelDlg">1</Publish>
+      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="ProductUIsettings">1</Publish>
+      <Dialog Id="ProductUIsettings" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Hosts Specification" />
+        <Control Id="Description"  Type="Text"       X="15"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please specify master and minion." />
+        <Control Id="BannerBitmap" Type="Bitmap"     X="0"   Y="0"   Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
+        <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
+        <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
+
+        <Control Id="MasterLabel"  Type="Text"       X="20"  Y="55"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Master (single hostname or IP address):" />
+        <Control Id="MasterId"     Type="Edit"       X="30"  Y="70"  Width="190" Height="15" Property="MASTER" />
+        <Control Id="MinionLabel"  Type="Text"       X="20"  Y="85"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion:" />
+        <Control Id="MinionId"     Type="Edit"       X="30"  Y="100" Width="190" Height="15" Property="MINION_ID" />
+        <Control Id="StartService" Type="CheckBox"   X="20"  Y="140" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
+        <Control Id="HideInARP"    Type="CheckBox"   X="20"  Y="155" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
+
+        <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
+        <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
+      </Dialog>
+    </UI>
+
+
+    <!--  Immediate (*_IMCAC) and defferred (*_DECAC) custom action declarations. -->
+    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'  Execute='firstSequence'/> 
+    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'    Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
+    <Binary       Id='MinionConfigExt'      SourceFile='CustomAction01\CustomAction01.CA.dll'/>
+    <CustomAction Id="WriteConfig_CADH"     Property="WriteConfig_DECAC" Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER]" />
+
+
+    <!--  Windows service (nssm and without)-->
+    <?if 1=1 ?>
+    <ComponentGroup Id="service">
+      <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLFOLDER" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
+        <File Id="ssm.exe" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
+        <ServiceInstall
+          Account="LocalSystem" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes"
+          Name="salt-minion"
+          Description="Salt Minion from saltstack.com"
+          DisplayName="salt-minion"
+          Id="si1">
+          <util:ServiceConfig
+            FirstFailureActionType="none"
+            SecondFailureActionType="none"
+            ThirdFailureActionType="none" />
+        </ServiceInstall>
+        <ServiceControl Name="salt-minion" Remove="uninstall" Stop="both" Start="install" Wait="yes" Id="sc1">
+          <ServiceArgument />
+        </ServiceControl>
+        <CreateFolder />
+        <util:EventSource Log="Application" Name="nssm" EventMessageFile="[#ssm.exe]" />
+        <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
+          <RegistryKey Key="Parameters">
+            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLFOLDER]bin" />
+            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLFOLDER]bin\python.exe" />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s [INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
+            <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
+            <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
+            <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
+            <RegistryKey Key="AppExit">
+              <RegistryValue Type="string" Value="Restart" />
+            </RegistryKey>
+          </RegistryKey>
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+    <?else ?>
+    <ComponentGroup Id="service">
+      <Component        Id="servicec1" Directory="BINFOLDER" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
+        <File           Source="$(var.dist)\bin\python.exe"  KeyPath="yes"/>
+        <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
+                        Arguments="[BINFOLDER]Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet"
+                        Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
+          <util:ServiceConfig
+            FirstFailureActionType="none"
+            SecondFailureActionType="none"
+            ThirdFailureActionType="none" />
+        </ServiceInstall>
+        <ServiceControl Name="salt-minion"  Start="install"  Stop="both"  Remove="uninstall"  Wait="yes" Id="ServiceControl">
+          <ServiceArgument /> <!-- http://stackoverflow.com/questions/10621082/wix-serviceinstall-arguments  -->
+        </ServiceControl>
+      </Component>
+    </ComponentGroup>
+    <?endif ?>
+
+
+    <!-- Do not create cab files -->
+    <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
   </Product>
 
 
@@ -273,8 +362,8 @@ End If
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <ComponentGroupRef Id="dist"    />       <!-- Includes dist-amd64.wxs in this directory -->
-      <ComponentGroupRef Id="service" />       <!-- Includes service.wxs in this directory -->
+      <ComponentGroupRef Id="DiscoveredFiles"    />       <!-- In Product-*-discovered-files.wxs -->
+      <ComponentGroupRef Id="service" />
       <ComponentRef Id="InstallfolderPermissions" />
     </ComponentGroup>
   </Fragment>
