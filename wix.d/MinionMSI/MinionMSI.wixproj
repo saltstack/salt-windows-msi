@@ -44,10 +44,8 @@
   <ItemGroup>
     <Compile Include="service.wxs" />
     <Compile Include="servicePython.wxs" />
-    <Compile Include="ProductUIsettings.wxs" />
     <Compile Include="MinionConfigurationExtensionCA.wxs" />
     <Compile Include="Product.wxs" />
-    <Compile Include="ProductUI.wxs" />
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixUtilExtension">

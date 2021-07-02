@@ -130,11 +130,8 @@ This means that any filesystem and registry change by C# is not atomic.
     - MinionConfiguration.cs
   - MinionMSI/: create a msi:
     - dist-$(TargetPlatform).wxs: (TEMPORARY FILE) NSIS-files, created by BuildDistFragment.targets
-    - MinionConfigurationExtensionCA.wxs: custom actions boilerplate.
     - MinionMSI.wixproj: msbuild boilerplate.
     - Product.wxs: main file.
-    - ProductUI.wxs: UI flow description.
-    - ProductUIsettings.wxs: Dialog for the master/minion properties.
     - service.wxs: salt-minion Windows Service using ssm.exe, the Salt Service Manager.
     - servicePython.wxs: (EXPERIMENTAL) salt-minion Windows Service
       - requires [saltminionservice](https://github.com/saltstack/salt/blob/167cdb344732a6b85e6421115dd21956b71ba25a/salt/utils/saltminionservice.py) or [winservice](https://github.com/saltstack/salt/blob/3fb24929c6ebc3bfbe2a06554367f8b7ea980f5e/salt/utils/winservice.py) [Removed](https://github.com/saltstack/salt/commit/8c01aacd9b4d6be2e8cf991e3309e2a378737ea0)
@@ -172,13 +169,11 @@ manipulation will require changes to the following files:
 If the new custom action should be exposed to the UI, additional changes
 are required:
 
-- SettingsCustomizatonDlg.wxs: There is room to add 1-2 more properties to this dialog.
-- ProductUI.wxs: A &lt;ProgressText /&gt; entry providing a brief description of what the new action is doing.
 
 If the new custom action requires its own dialog, these additional changes are required:
 
 - The new dialog file.
-- ProductUI.wxs: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs.
+- GUI: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs.
   Other dialogs will also have to be adjusted to maintain correct sequencing.
 - MinionMSI.wixproj: The new dialog must be added as a &lt;Compile /&gt; item to be included in the build.
 
