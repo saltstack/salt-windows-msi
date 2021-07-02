@@ -44,7 +44,6 @@
   <ItemGroup>
     <Compile Include="service.wxs" />
     <Compile Include="servicePython.wxs" />
-    <Compile Include="MinionConfigurationExtensionCA.wxs" />
     <Compile Include="Product.wxs" />
   </ItemGroup>
   <ItemGroup>

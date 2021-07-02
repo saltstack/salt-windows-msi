@@ -157,7 +157,7 @@ existing configuration file using a regular expression replace. Each new
 manipulation will require changes to the following files:
 
 - MinionConfiguration.cs: a new method (i.e. new custom action).
-- MinionConfigurationExtensionCA.wxs: a &lt;CustomAction /&gt; entry to
+- Product.wxs: a &lt;CustomAction /&gt; entry to
   make the new method available.
 - Product.wxs: a &lt;Custom /&gt; entry in the &lt;InstallSequence /&gt;
   to make the configuration change.
