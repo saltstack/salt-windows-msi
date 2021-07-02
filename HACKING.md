@@ -39,6 +39,19 @@ The build client is where the msi installer is built.
 
 <sup>**</sup> `build_env.cmd` will download and install if necessary.
 
+How to include 64bit rc.exe (resource compiler) into path
+
+Open "Build Tools for Visual Studio 2017"
+- Select workload "Visual C++ build tools"
+- Check options
+  -  "C++/CLI support"
+  -  "VC++ 2015.3 v14.00 (v140) toolset for desktop"
+- Download 2 GB in 177 packages.
+
+    set ttt=C:\Program Files (x86)\Windows Kits\8.1\bin\x64
+    set path=%ttt%;%path%
+
+
 Optionally: [Visual Studio Extension](https://marketplace.visualstudio.com/items?itemName=WixToolset.WiXToolset)
 
 
