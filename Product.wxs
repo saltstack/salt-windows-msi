@@ -107,57 +107,6 @@ if fso.FolderExists("c:\salt\var") then
 end if
     </CustomAction>
 
-    <CustomAction Id="capture_salt" Script="vbscript">
-' workaround for Salt-Minions that delete var folder
-Dim fso
-Set fso = CreateObject("Scripting.FileSystemObject")
-if fso.FolderExists("c:\salt\var\cache\salt\minion\extmods") then
-  ' destination must not exist
-  if fso.FolderExists("c:\salt_tmp_msi_wix") then
-    fso.DeleteFolder "c:\salt_tmp_msi_wix"
-  end if
-  ' parent of destination must exist
-  fso.CreateFolder "c:\salt_tmp_msi_wix"
-  fso.CopyFolder "c:\salt\var\cache\salt\minion\extmods", "c:\salt_tmp_msi_wix\extmods"
-end if
-    </CustomAction>
-    <CustomAction Id="restore_salt" Script="vbscript">
-' workaround for Salt-Minions that delete var folder
-Dim fso
-Set fso = CreateObject("Scripting.FileSystemObject")
-
-if fso.FolderExists("c:\salt_tmp_msi_wix\extmods") then
-  ' destination must not exist
-  if fso.FolderExists("c:\salt\var\cache\salt\minion\extmods") then
-    fso.DeleteFolder "c:\salt\var\cache\salt\minion\extmods"
-  end if
-  ' parent of destination must exist
-  if Not fso.FolderExists("c:\salt") then
-    fso.CreateFolder "c:\salt"
-  end if
-  if Not fso.FolderExists("c:\salt\var") then
-    fso.CreateFolder "c:\salt\var"
-  end if
-  if Not fso.FolderExists("c:\salt\var\cache") then
-    fso.CreateFolder "c:\salt\var\cache"
-  end if
-  if Not fso.FolderExists("c:\salt\var\cache\salt") then
-    fso.CreateFolder "c:\salt\var\cache\salt"
-  end if
-  if Not fso.FolderExists("c:\salt\var\cache\salt\minion") then
-    fso.CreateFolder "c:\salt\var\cache\salt\minion"
-  end if
-
-  fso.MoveFolder "c:\salt_tmp_msi_wix\extmods", "c:\salt\var\cache\salt\minion\extmods"
-  fso.DeleteFolder "c:\salt_tmp_msi_wix"
-end if
-    </CustomAction>
-    <CustomAction Id="hideSalt" Script="vbscript">
-On error resume next
-Set objShell = CreateObject("WScript.Shell")
-intReturn = objShell.Run("attrib.exe +H C:\salt" , 0, true)
-    </CustomAction>
-
     <CustomAction Id="stopSalt" Script="vbscript">
 On error resume next
 Set objShell = CreateObject("WScript.Shell")
@@ -195,13 +144,9 @@ End If
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
       <Custom Action='del_NSIS_DECAC'               After='InstallInitialize'       >nsis_exe</Custom>
 
-      <Custom Action='capture_salt'                After='FindRelatedProducts'      >WIX_UPGRADE_DETECTED</Custom>  <!--only on upgrade, not on uninstall -->
-
       <Custom Action='WriteConfig_CADH'
               Before='WriteConfig_DECAC'                                            >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'           After='WriteIniValues'           >NOT Installed</Custom>
-
-      <Custom Action='restore_salt'                After='PublishProduct'           >WIX_UPGRADE_DETECTED</Custom>  <!--only on upgrade, not on uninstall -->
 
       <Custom Action='delete_VARFOLDER_DECAX'      After='InstallFinalize'          >REMOVE ~= "ALL"</Custom>
       <Custom Action='delete_excl_config_DECAX'    After='InstallFinalize'          >(REMOVE ~= "ALL") and (NOT REMOVE_CONFIG)</Custom>
