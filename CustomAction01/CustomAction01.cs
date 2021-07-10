@@ -5,10 +5,6 @@ using System;
 using System.IO;
 using System.Text.RegularExpressions;
 
-// Formatting convention
-//     Visual Studio
-//         Tools/Options/Text Editor/C#/Tabs                  --> Smart, 4, Insert spaces
-//         Tools/Options/Text Editor/C#/Formatting/New Liness --> None
 
 
 namespace MinionConfigurationExtension {
@@ -22,24 +18,24 @@ namespace MinionConfigurationExtension {
              * From the previous installation, we read only two properties, that we present in the installer:
               *  - master
               *  - id
-              *  
-              *  This function reads these two properties from 
+              *
+              *  This function reads these two properties from
               *   - the 2 msi properties:
               *     - MASTER
-              *     - MINION_ID		    
-              *   - files from a provious installations: 
+              *     - MINION_ID
+              *   - files from a provious installations:
               *     - the number of file the function searches depend on CONFIGURATION_TYPE
               *   - dependend on CONFIGURATION_TYPE, default values can be:
               *     - master = "salt"
               *     - id = %hostname%
-              *  
-              *  
+              *
+              *
               *  This function writes its results in the 2 msi properties:
               *   - MASTER
               *   - MINION_ID
-              *   
+              *
               *   A GUI installation will show these msi properties because this function is called before the GUI.
-              *   
+              *
               */
             session.Log("...BEGIN ReadConfig_IMCAC");
             session.Log("...VERSION MinionConfigurationExtensionCA 1");
@@ -91,7 +87,7 @@ namespace MinionConfigurationExtension {
                 /* If the msi property has value #, this is our convention for "unset"
                  * This means the user has not set the value on commandline (GUI comes later)
                  * If the msi property has value different from # "unset", the user has set the master
-                 * msi propery has precedence over kept config 
+                 * msi propery has precedence over kept config
                  * Only if msi propery is unset, set value of previous installation
                  */
 
@@ -329,7 +325,7 @@ namespace MinionConfigurationExtension {
             session.Message(InstallMessage.Progress, new Record(2, 1));
             // pattern description
             // ^        start of line
-            //          anything after the colon is ignored and would be removed 
+            //          anything after the colon is ignored and would be removed
             string pattern = "^" + SaltKey + ":";
             string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
 
