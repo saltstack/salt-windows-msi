@@ -41,7 +41,7 @@ Salt Minion-specific and generic msi-properties:
  `MINION_ID`            | Hostname                | The minion id.
  `MINION_CONFIG`        |                         | Content to be written to the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
- `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. __ONLY FROM COMMANDLINE__
+ `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. __ONLY FROM COMMANDLINE__. Configuration is inevitably removed after installation with `MINION_CONFIG`.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
  `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__  --- __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
@@ -59,11 +59,14 @@ You can set a new master public key with `MASTER_KEY`, after you converted it in
 
 ### `MINION_CONFIG`
 
-If `MINION_CONFIG` is set:
+If `MINION_CONFIG` is given:
 
-- Its content is written to file `c:\salt\conf\minion`, with `^` replaced by line breaks,
-- all `minion.d\*.conf` files are deleted,
-- the `minion_id` file is deleted.
+- Its content is written to configuraton file `%ProgramData%\conf\minion`, with `^` replaced by line breaks,
+- All prior configuration is deleted:
+  - all `minion.d\*.conf` files are deleted,
+  - the `minion_id` file is deleted.
+- Configuration and the cache is written to `%ProgramData%`, not to `C:\salt`. No need to specify `MOVE_CONF_PROGRAMDATA=1` on install.
+- The uninstall will remove all configuration (from file system and from Windows registry). No need to specify `CUSTOM_CONFIG=1` on uninstall.
 
 Example `MINION_CONFIG="master: Anna^id: Ben"` results in:
 

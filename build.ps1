@@ -100,6 +100,8 @@ Push-Location CustomAction01
     /reference:"C:\Windows\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll" `
     /reference:"C:\Windows\Microsoft.NET\Framework\v2.0.50727\System.dll" `
     /reference:"C:\Windows\Microsoft.NET\Framework\v2.0.50727\System.Xml.dll" `
+    /reference:"C:\Windows\Microsoft.NET\Framework\v2.0.50727\System.ServiceProcess.dll" `
+    /reference:"C:\Windows\Microsoft.NET\Framework\v2.0.50727\System.Management.dll" `
     /nowarn:"1701,1702" `
     /out:CustomAction01.dll `
     CustomAction01.cs CustomAction01Util.cs Properties\AssemblyInfo.cs

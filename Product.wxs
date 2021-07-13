@@ -78,56 +78,11 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <!-- The sign of NSIS install  -->
     <SetProperty Id="nsis_exe"              Before="LaunchConditions" Value="1">NSIS_UNINSTALLSTRING >> "uninst.exe"</SetProperty>
 
-    <!-- Deferreds cannot access Session.Property but conditionally remove folders with lifetime data -->
-    <!-- CA are executed twice? On Error resume may help-->
-    <CustomAction Id="delete_excl_config_DECAX" Script="vbscript">
-On error resume next
-Set fso = CreateObject("Scripting.FileSystemObject")
-Set wshshell = CreateObject("Wscript.Shell")
-If fso.FileExists("C:\salt\ssm.exe") Then
-  wshshell.Run "C:\salt\ssm.exe stop   salt-minion", 0, True
-  wshshell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
-  wshshell.Run "C:\salt\ssm.exe remove  salt-minion confirm", 0, True
-  wshshell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
-End If
-If fso.FileExists("C:\salt\ssm.exe") Then
-  fso.DeleteFile "c:\salt\ssm.exe"
-End If
-fso.DeleteFile "c:\salt\salt*"
-If fso.FolderExists("C:\salt\bin") Then
-  fso.DeleteFolder "c:\salt\bin"
-End If
-    </CustomAction>
-    <CustomAction Id="delete_VARFOLDER_DECAX" Script="vbscript">
-On Error Resume Next
-Dim fso
-Set fso = CreateObject("Scripting.FileSystemObject")
-if fso.FolderExists("c:\salt\var") then
-  fso.DeleteFolder "c:\salt\var"
-end if
-    </CustomAction>
-
     <CustomAction Id="stopSalt" Script="vbscript">
 On error resume next
 Set objShell = CreateObject("WScript.Shell")
 objShell.Run "net stop salt-minion", 0, true
 objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
-    </CustomAction>
-
-    <CustomAction Id="delete_incl_config_DECAX" Script="vbscript">
-On error resume next
-Set fso = CreateObject("Scripting.FileSystemObject")
-Set wshshell = CreateObject("Wscript.Shell")
-
-If fso.FileExists("C:\salt\ssm.exe") Then
-  wshshell.Run "C:\salt\ssm.exe stop salt-minion", 0, True
-  wshshell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
-  wshshell.Run "C:\salt\ssm.exe remove salt-minion confirm", 0, True
-  wshshell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
-End If
-If fso.FolderExists("C:\salt") Then
-  fso.DeleteFolder "c:\salt"
-End If
     </CustomAction>
 
 
@@ -139,18 +94,18 @@ End If
 
     <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * *  -->
       <!-- stopSalt because log file must be released -->
-      <Custom Action='stopSalt'                   Before='InstallValidate'          >1</Custom>
+      <Custom Action='stopSalt'                   Before='InstallValidate'        >1</Custom>
 
-      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'               After='InstallInitialize'       >nsis_exe</Custom>
+      <Custom Action='ReadConfig_IMCAC'           Before='MigrateFeatureStates'   >NOT Installed</Custom>
+      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'      >nsis_exe</Custom>
 
       <Custom Action='WriteConfig_CADH'
-              Before='WriteConfig_DECAC'                                            >NOT Installed</Custom>
-      <Custom Action='WriteConfig_DECAC'           After='WriteIniValues'           >NOT Installed</Custom>
+              Before='WriteConfig_DECAC'                                          >NOT Installed</Custom>
+      <Custom Action='WriteConfig_DECAC'           After='WriteIniValues'         >NOT Installed</Custom>
 
-      <Custom Action='delete_VARFOLDER_DECAX'      After='InstallFinalize'          >REMOVE ~= "ALL"</Custom>
-      <Custom Action='delete_excl_config_DECAX'    After='InstallFinalize'          >(REMOVE ~= "ALL") and (NOT REMOVE_CONFIG)</Custom>
-      <Custom Action='delete_incl_config_DECAX'    After='InstallFinalize'          >(REMOVE ~= "ALL") and REMOVE_CONFIG</Custom>  <!--only on uninstall, not on upgrade? -->
+      <Custom Action='DeleteConfig_CADH'
+              Before='DeleteConfig_DECAC'                                         >REMOVE ~= "ALL"</Custom>
+      <Custom Action='DeleteConfig_DECAC'          After='RemoveFiles'            >REMOVE ~= "ALL"</Custom>
 
 
       <!-- Optionally start the service  -->
@@ -213,13 +168,15 @@ End If
     </UI>
 
 
-    <!--  Immediate (*_IMCAC) and defferred (*_DECAC) custom action declarations. -->
-    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'  Execute='firstSequence'/> 
-    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'    Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
-    <Binary       Id='MinionConfigExt'      SourceFile='CustomAction01\CustomAction01.CA.dll'/>
-    <CustomAction Id="WriteConfig_CADH"     Property="WriteConfig_DECAC" Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER]" />
-
+    <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom action . -->
+    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
+    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
+    <Binary                                            Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
+    <!-- Custom Action Data Helper needed for deferred custom actions  TODO use same names -->
+    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="MOVE_CONF_PROGRAMDATA=[MOVE_CONF_PROGRAMDATA];root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER];" />
+    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];" />
 
     <!--  Windows service (nssm and without)-->
     <?if 1=1 ?>
@@ -292,7 +249,7 @@ End If
           </Directory>
         </Directory>
         <Directory Id="BINFOLDER"  Name="bin" />      <!-- For RemoveFolderEX remember pattern -->
-        <Directory Id="VARFOLDER"  Name="var" />      <!-- For delete_VARFOLDER_DECAX -->
+        <Directory Id="VARFOLDER"  Name="var" />      <!-- RemoveFolderEX does not help -->
       </Directory>
     </Directory>
 
