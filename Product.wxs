@@ -3,13 +3,13 @@
 xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
   <Product
-      Manufacturer = "SaltStack, Inc."
+      Manufacturer = "$(var.MANUFACTURER)"
       Name         = "Salt Minion $(var.DisplayVersion)"
       Version      = "$(var.InternalVersion)"
       UpgradeCode  = "FC6FB3A2-65DE-41A9-AD91-D10A402BD641"
       Id           = "*"
       Language     = "1033">
-    <Package InstallScope="perMachine"  InstallerVersion="405" Compressed="yes"/>
+    <Package InstallScope="perMachine"  InstallerVersion="500" Compressed="yes"/>
 
     <!-- Conditions for installation -->
     <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
@@ -85,15 +85,16 @@ objShell.Run "net stop salt-minion", 0, true
 objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </CustomAction>
 
-
-    <InstallUISequence>         <!-- * * * * * * * * * * * * * * * * * * Sequence with GUI * * * * * * * * * * * * * * * * *  -->
+    <!-- Sequence with GUI   -->
+    <InstallUISequence>
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'     >NOT Installed</Custom>
 
-      <LaunchConditions After="AppSearch" /> <!-- Benefit is unclear. Was used when detecting MFC. Probably not needed. -->
+      <LaunchConditions After="AppSearch" /> <!-- Benefit  unclear. -->
     </InstallUISequence>
 
-    <InstallExecuteSequence>     <!-- * * * * * * * * * * * * * * * * *  Sequence without GUI (silent, headless)  * * * * * *  -->
-      <!-- stopSalt because log file must be released -->
+    <!-- Sequence without GUI (silent, headless)   -->
+    <InstallExecuteSequence>
+      <!-- stopSalt to release log file -->
       <Custom Action='stopSalt'                   Before='InstallValidate'        >1</Custom>
 
       <Custom Action='ReadConfig_IMCAC'           Before='MigrateFeatureStates'   >NOT Installed</Custom>
@@ -126,15 +127,17 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
-      <ComponentRef      Id="RemoveFolderEx_BINFOLDER_Component" /> <!-- On uninstall and upgrade -->
-
       <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT"/></Feature>
     </Feature>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <ComponentGroupRef Id="DiscoveredFiles"    />       <!-- In Product-*-discovered-files.wxs -->
+      <ComponentGroupRef Id="service" />
+      <ComponentRef Id="InstallfolderPermissions" />
+    </ComponentGroup>
+
 
     <Icon Id="icon.ico" SourceFile="salt.ico" />
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
-
-
     <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
     <WixVariable Id="WixUIDialogBmp" Value="imgLeft.png" />
 
@@ -142,11 +145,21 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <!-- GUI -->
     <UI>
       <UIRef Id="WixUI_Mondo" />
+
+
       <Publish Dialog="LicenseAgreementDlg"   Control="Next"   Event="NewDialog"   Value="ProductUIsettings" Order="3">LicenseAccepted = "1"</Publish>
-      <Publish Dialog="ProductUIsettings"     Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg">1</Publish>
+
+      <Publish Dialog="ProductUIsettings"     Control="Next"   Event="NewDialog"   Value="ProductUIsettings2">1</Publish>
       <Publish Dialog="ProductUIsettings"     Control="Back"   Event="NewDialog"   Value="LicenseAgreementDlg">1</Publish>
       <Publish Dialog="ProductUIsettings"     Control="Cancel" Event="SpawnDialog" Value="CancelDlg">1</Publish>
-      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="ProductUIsettings">1</Publish>
+
+      <Publish Dialog="ProductUIsettings2"     Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="ProductUIsettings2"     Control="Back"   Event="NewDialog"   Value="ProductUIsettings">1</Publish>
+      <Publish Dialog="ProductUIsettings2"     Control="Cancel" Event="SpawnDialog" Value="CancelDlg">1</Publish>
+
+      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="ProductUIsettings2">1</Publish>
+
+
       <Dialog Id="ProductUIsettings" Width="370" Height="270" Title="[ProductName] Setup">
         <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Hosts Specification" />
         <Control Id="Description"  Type="Text"       X="15"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please specify master and minion." />
@@ -165,6 +178,28 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
         <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
       </Dialog>
+
+      <Dialog Id="ProductUIsettings2" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Install folder" />
+        <Control Id="Description"  Type="Text"       X="15"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please specify the install folder." />
+        <Control Id="BannerBitmap" Type="Bitmap"     X="0"   Y="0"   Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
+        <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
+        <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
+
+        <Control Id="i1" Type="Text"       X="20"  Y="55"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Install to:" />
+        <Control Id="i2" Type="PathEdit"   X="30"  Y="70"  Width="250" Height="15" Property="INSTALLFOLDER" />
+        <Control Id="i3" Type="PushButton" X="280" Y="70"  Width="40"  Height="15" Text="Browse" >
+          <Publish Property="_BrowseProperty" Value="INSTALLFOLDER" Order="1">1</Publish>
+          <Publish Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+        </Control>
+
+        <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
+        <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
+      </Dialog>
+
+
+
     </UI>
 
 
@@ -175,8 +210,39 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
     <Binary                                            Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
     <!-- Custom Action Data Helper needed for deferred custom actions  TODO use same names -->
-    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="MOVE_CONF_PROGRAMDATA=[MOVE_CONF_PROGRAMDATA];root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER];" />
+    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="MOVE_CONF_PROGRAMDATA=[MOVE_CONF_PROGRAMDATA];INSTALLFOLDER=[INSTALLFOLDER];ROOTFOLDER=[ROOTFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER];" />
     <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];" />
+
+
+    <Directory Id="TARGETDIR" Name="SourceDir">     <!-- fixed expression -->
+      <Directory Id="$(var.PROGRAMFILES)">    <!-- typically    C:\Program Files or   C:\Program Files (x86) -->
+        <Directory Id='PROGRAMFILES_MANUFACTURER' Name='$(var.MANUFACTURER)'>
+          <Directory Id='INSTALLFOLDER' Name='$(var.PRODUCTDIR)'/> <!-- admin can set/override   -->
+            <Directory Id="BINFOLDER"  Name="bin" />
+        </Directory>
+      </Directory>
+      <Directory Id="CommonAppDataFolder">    <!-- typically    %ProgramData% C:\ProgramData  -->
+        <Directory Id="Manufacturer_CommonAppDataFolder" Name="$(var.MANUFACTURER)">
+          <Directory Id="ROOTFOLDER" Name="$(var.PRODUCTDIR)">
+            <Directory Id="CONFFOLDER" Name="conf" >
+              <Directory Id="MINION_D_CONF_FOLDER"  Name="minion.d" />
+              <Directory Id="SALT_CONF_PKI_FOLDER" Name="pki" >
+                <Directory Id="SALT_CONF_PKI_MINION_FOLDER" Name="minion" />
+              </Directory>
+            </Directory>
+            <Directory Id="VARFOLDER"  Name="var" />
+          </Directory>
+        </Directory>
+      </Directory>
+    </Directory>
+
+    <!-- Set permissions of the install folder with WixQueryOsWellKnownSID -->
+    <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
+    <Component Id="InstallfolderPermissions"  Directory="INSTALLFOLDER" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
+      <CreateFolder>
+        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
+      </CreateFolder>
+    </Component>
 
     <!--  Windows service (nssm and without)-->
     <?if 1=1 ?>
@@ -237,59 +303,4 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <!-- Do not create cab files -->
     <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
   </Product>
-
-
-  <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir">      <!-- Outmost directory must be exactly this. Ramirez ch 1 p 25 -->
-      <Directory Id="INSTALLFOLDER" Name="salt" >
-        <Directory Id="CONFFOLDER" Name="conf" >
-          <Directory Id="MINION_D_CONF_FOLDER"  Name="minion.d" />
-          <Directory Id="SALT_CONF_PKI_FOLDER" Name="pki" >
-            <Directory Id="SALT_CONF_PKI_MINION_FOLDER" Name="minion" />
-          </Directory>
-        </Directory>
-        <Directory Id="BINFOLDER"  Name="bin" />      <!-- For RemoveFolderEX remember pattern -->
-        <Directory Id="VARFOLDER"  Name="var" />      <!-- RemoveFolderEX does not help -->
-      </Directory>
-    </Directory>
-
-    <!-- Set permissions of the install folder with WixQueryOsWellKnownSID -->
-    <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
-    <Component Id="InstallfolderPermissions"  Directory="INSTALLFOLDER" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
-      <CreateFolder>
-        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
-      </CreateFolder>
-    </Component>
-  </Fragment>
-
-  <Fragment>
-    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <ComponentGroupRef Id="DiscoveredFiles"    />       <!-- In Product-*-discovered-files.wxs -->
-      <ComponentGroupRef Id="service" />
-      <ComponentRef Id="InstallfolderPermissions" />
-    </ComponentGroup>
-  </Fragment>
-
-
-  <!--  Remove 'lifetime' data on uninstall. Lifetime data does not originate from the installer. -->
-  <!--  Wix uninstall include upgrades. Cannot be used for lifetime data that must persist on upgrade. -->
-  <Fragment Id="RemoveFolderEx_Fragment">
-    <?define RegDir="SOFTWARE\SaltStack\Salt-Minion"?>
-    <?define RegVal_BINFOLDER="RememberForRemoveFolderExBINFOLDER"?>
-
-    <Property Id="BINFOLDER" Secure="yes">
-      <RegistrySearch Root="HKLM" Key="$(var.RegDir)" Type="raw"
-                Id="BINFOLDER_REGSEARCH" Name="$(var.RegVal_BINFOLDER)" />
-    </Property>
-
-    <DirectoryRef Id='BINFOLDER'>
-      <Component Id="RemoveFolderEx_BINFOLDER_Component" Guid="b36009bc-ada0-45dc-afda-68c07d137f38">
-        <RegistryValue Root="HKLM" Key="$(var.RegDir)" Name="$(var.RegVal_BINFOLDER)"
-                Type="string" Value="[BINFOLDER]" KeyPath="yes"/>
-        <CreateFolder Directory="BINFOLDER"/>
-        <util:RemoveFolderEx Property="BINFOLDER" On="uninstall"/> <!-- Includes upgrade -->
-        <RemoveFolder Id="BINFOLDER" On="uninstall"/>
-      </Component>
-    </DirectoryRef>
-  </Fragment>
 </Wix>

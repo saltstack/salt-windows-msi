@@ -65,8 +65,9 @@ Write-Host -ForegroundColor Green "Found Python $pythonversion"
 # # # build # # #
 # Product related values
 $MANUFACTURER   = "Salt Project"
-$PRODUCT        = "Salt Minion $displayversion"
+$PRODUCT        = "Salt Minion"
 $PRODUCTFILE    = "Salt-Minion-$displayversion"
+$PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
 $DISCOVERFOLDER = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
 
@@ -153,6 +154,7 @@ Write-Host -ForegroundColor Yellow "Compiling wxs to $($ARCHITECTURE[$i]) wixobj
     -ddist="$($DISCOVERFOLDER[$i])" `
     -dMANUFACTURER="$MANUFACTURER" `
     -dPRODUCT="$PRODUCT" `
+    -dPRODUCTDIR="$PRODUCTDIR" `
     -dDisplayVersion="$displayversion" `
     -dInternalVersion="$internalversion" `
     -dDISCOVERFOLDER="$($DISCOVERFOLDER[$i])" `
