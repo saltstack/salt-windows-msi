@@ -18,6 +18,7 @@ namespace MinionConfigurationExtension {
 
 
         public static string get_reg(Session session, string regpath, string regkey) {
+            session.Log(@"...get_reg {0} {1}", regpath, regkey);
             RegistryKey hklm = Registry.LocalMachine;
             var sub_hive = hklm.OpenSubKey(regpath);
             string regval = "";
@@ -148,33 +149,32 @@ namespace MinionConfigurationExtension {
         }
 
 
-        public static string get_property_DECAC(Session session, string key) {
-            session.Log("   ...CustomActionData key {0}", key);
-            string val = session.CustomActionData[key];
-            session.Log("   ...CustomActionData val {0}", val);
-            session.Log("   ...CustomActionData len {0}", val.Length);
+
+        public static string get_property_IMCAC(Session session, string key ) {
+            // IMMEDIATE means
+            //   you can directly access msi properties at session[KEY]
+            // keys are case sensitive
+            // If key does not exist, its value will be empty
+            session.Log("...get_property_IMCAC key {0}", key);
+            string val = session[key];
+            session.Log("...get_property_IMCAC val {0}", val);
+            session.Log("...get_property_IMCAC len {0}", val.Length);
             return val;
         }
 
 
-        public static string getConfigFileLocation_DECAC(Session session) {
-            return Path.Combine(session.CustomActionData["root_dir"], @"conf\minion");
+        public static string get_property_DECAC(Session session, string key) {
+            // DEFERRED means
+            //   you may modify the system because the transaction has started
+            //   you must access msi properties via CustomActionData[KEY]
+            // If key does not exist, the msi will fail to install
+            session.Log("...get_property_DECAC key {0}", key);
+            string val = session.CustomActionData[key];
+            session.Log("...get_property_DECAC val {0}", val);
+            session.Log("...get_property_DECAC len {0}", val.Length);
+            return val;
         }
 
-
-        public static string getConfigdDirectoryLocation_DECAC(Session session) {
-            return Path.Combine(session.CustomActionData["root_dir"], @"conf\minion.d");
-        }
-
-
-        public static string getConfigFileLocation_IMCAC(Session session) {
-            return Path.Combine(session["INSTALLFOLDER"], @"conf\minion");
-        }
-
-
-        public static string getConfigdDirectoryLocation_IMCAC(Session session) {
-            return Path.Combine(session["INSTALLFOLDER"], @"conf\minion.d");
-        }
 
 
         public static void just_ExceptionLog(string description, Session session, Exception ex) {
@@ -184,6 +184,15 @@ namespace MinionConfigurationExtension {
             session.Log(ex.StackTrace.ToString());
         }
 
+        public static string get_file_that_exist(Session session, string[] files) {
+            foreach (var file in files) {
+                if (File.Exists(file)) {
+                    session.Log("...found " + file);
+                    return file;
+                }
+            }
+            return "";
+        }
 
         public static void shellout(Session session, string s) {
             // This is a handmade shellout routine

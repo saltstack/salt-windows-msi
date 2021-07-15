@@ -7,10 +7,10 @@ The build client is where the msi installer is built.
 - 64bit Windows 10
 - The Git repositories `salt` and `salt-windows-msi`
 - .Net 3.5 SDK (for WiX)<sup>*</sup>
+- [Wix 3](http://wixtoolset.org/releases/)<sup>**</sup>
+- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>**</sup>
 - Microsoft_VC140_CRT_x64.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
 - Microsoft_VC140_CRT_x86.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
-- [Wix 3.11](http://wixtoolset.org/releases/)<sup>**</sup>
-- [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>**</sup>
 
 <sup>*</sup> `build_env.cmd` will open `optionalfeatures` if necessary.
 

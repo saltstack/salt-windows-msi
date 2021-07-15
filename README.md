@@ -44,15 +44,15 @@ Salt Minion-specific and generic msi-properties:
  `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. __ONLY FROM COMMANDLINE__. Configuration is inevitably removed after installation with `MINION_CONFIG`.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
- `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__  --- __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
+ `INSTALLDIR`           | Windows default         | Where to install (`INSTALLFOLDER` is deprecated)
  `ARPSYSTEMCOMPONENT`   |                         | Set to 1 to hide "Salt Minion" in "Programs and Features".
 
 
-Master and id are read from file `C:\salt\conf\minion`
+Master and id are read from file `conf\minion`
 
-You can set a new master with `MASTER`.
+You can set a master with `MASTER`.
 
-You can set a new master public key with `MASTER_KEY`, after you converted it into one line like so:
+You can set a master public key with `MASTER_KEY`, after you converted it into one line like so:
 
 - Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
 - Remove linebreaks.

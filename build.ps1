@@ -141,7 +141,7 @@ Write-Host -ForegroundColor Yellow "Harvesting files from $($DISCOVERFOLDER[$i])
 # -t <xsl> Transform harvested output with XSL file.
 & "$($ENV:WIX)bin\heat" dir "$($DISCOVERFOLDER[$i])" -out "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" `
    -cg DiscoveredFiles -var var.DISCOVERFOLDER `
-   -dr INSTALLFOLDER -t Product-discover-files.xsl `
+   -dr INSTALLDIR -t Product-discover-files.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -suid -srd -ke -template fragment
 
 

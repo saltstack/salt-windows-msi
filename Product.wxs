@@ -45,6 +45,8 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION]'>
       NOT (NSIS_UNINSTALLSTRING >> "uninst.exe")
     </Condition>
+    <!-- Generic Abort -->
+    <Condition Message="Abort [AbortReason]">Installed or (not AbortReason)</Condition>
 
     <!--
         Properties unset by default:
@@ -62,7 +64,18 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
-    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLFOLDER"/>
+    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLDIR"/>
+
+    <!-- Allow alias for Property  -->
+    <SetProperty  Id="INSTALLDIR"   Value='[INSTALLFOLDER]' Before="LaunchConditions">INSTALLFOLDER</SetProperty>
+
+
+    <!-- Search for C salt config minion file-->
+    <Property Id="C_SALT_CONF_MINION_EXISTS">
+      <DirectorySearch Id="ds1" Path="C:\salt\conf">
+        <FileSearch Name="minion"/>
+      </DirectorySearch>
+    </Property>
 
     <!-- Search previous NSIS installation.
          Assume NSIS always (32 and 64 bit Salt-minion) writes into the 32bit WoW registry -->
@@ -129,10 +142,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       <ComponentGroupRef Id="ProductComponents" />
       <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT"/></Feature>
     </Feature>
-    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLDIR">
       <ComponentGroupRef Id="DiscoveredFiles"    />       <!-- In Product-*-discovered-files.wxs -->
       <ComponentGroupRef Id="service" />
-      <ComponentRef Id="InstallfolderPermissions" />
+      <ComponentRef Id="INSTALLDIR_Permissions" />
     </ComponentGroup>
 
 
@@ -146,23 +159,28 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <UI>
       <UIRef Id="WixUI_Mondo" />
 
+      <Publish Dialog="LicenseAgreementDlg"   Control="Next"   Event="NewDialog"   Value="HostsDlg" Order="3">LicenseAccepted = "1"</Publish>
 
-      <Publish Dialog="LicenseAgreementDlg"   Control="Next"   Event="NewDialog"   Value="ProductUIsettings" Order="3">LicenseAccepted = "1"</Publish>
+      <Publish Dialog="HostsDlg"              Control="Back"   Event="NewDialog"   Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="HostsDlg"              Control="Next"   Event="NewDialog"   Value="DirectoryDlg"       >1</Publish>
+      <Publish Dialog="HostsDlg"              Control="Cancel" Event="SpawnDialog" Value="CancelDlg"          >1</Publish>
 
-      <Publish Dialog="ProductUIsettings"     Control="Next"   Event="NewDialog"   Value="ProductUIsettings2">1</Publish>
-      <Publish Dialog="ProductUIsettings"     Control="Back"   Event="NewDialog"   Value="LicenseAgreementDlg">1</Publish>
-      <Publish Dialog="ProductUIsettings"     Control="Cancel" Event="SpawnDialog" Value="CancelDlg">1</Publish>
+      <Publish Dialog="DirectoryDlg"          Control="Back"   Event="NewDialog"   Value="HostsDlg"           >1</Publish>
+      <Publish Dialog="DirectoryDlg"          Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg"     >NOT C_SALT_CONF_MINION_EXISTS</Publish>
+      <Publish Dialog="DirectoryDlg"          Control="Next"   Event="NewDialog"   Value="MoveConfigDlg"      >    C_SALT_CONF_MINION_EXISTS</Publish>
+      <Publish Dialog="DirectoryDlg"          Control="Cancel" Event="SpawnDialog" Value="CancelDlg"          >1</Publish>
 
-      <Publish Dialog="ProductUIsettings2"     Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg">1</Publish>
-      <Publish Dialog="ProductUIsettings2"     Control="Back"   Event="NewDialog"   Value="ProductUIsettings">1</Publish>
-      <Publish Dialog="ProductUIsettings2"     Control="Cancel" Event="SpawnDialog" Value="CancelDlg">1</Publish>
+      <Publish Dialog="MoveConfigDlg"         Control="Back"   Event="NewDialog"   Value="DirectoryDlg"       >1</Publish>
+      <Publish Dialog="MoveConfigDlg"         Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg"     >1</Publish>
+      <Publish Dialog="MoveConfigDlg"         Control="Cancel" Event="SpawnDialog" Value="CancelDlg"          >1</Publish>
 
-      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="ProductUIsettings2">1</Publish>
+      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="DirectoryDlg"       >NOT C_SALT_CONF_MINION_EXISTS</Publish>
+      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="MoveConfigDlg"      >    C_SALT_CONF_MINION_EXISTS</Publish>
 
 
-      <Dialog Id="ProductUIsettings" Width="370" Height="270" Title="[ProductName] Setup">
-        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Hosts Specification" />
-        <Control Id="Description"  Type="Text"       X="15"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please specify master and minion." />
+      <Dialog Id="HostsDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Hosts" />
+        <Control Id="Description"  Type="Text"       X="25"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please specify master and minion." />
         <Control Id="BannerBitmap" Type="Bitmap"     X="0"   Y="0"   Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
         <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
         <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
@@ -174,30 +192,43 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         <Control Id="StartService" Type="CheckBox"   X="20"  Y="140" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="20"  Y="155" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
 
-        <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
+        <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
       </Dialog>
 
-      <Dialog Id="ProductUIsettings2" Width="370" Height="270" Title="[ProductName] Setup">
-        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Install folder" />
-        <Control Id="Description"  Type="Text"       X="15"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please specify the install folder." />
+      <Dialog Id="DirectoryDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Installation directory" />
+        <Control Id="Description"  Type="Text"       X="25"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please specify the installation directory." />
         <Control Id="BannerBitmap" Type="Bitmap"     X="0"   Y="0"   Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
         <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
         <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
 
-        <Control Id="i1" Type="Text"       X="20"  Y="55"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Install to:" />
-        <Control Id="i2" Type="PathEdit"   X="30"  Y="70"  Width="250" Height="15" Property="INSTALLFOLDER" />
+        <Control Id="i1" Type="Text"       X="20"  Y="55"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Install program into directory:" />
+        <Control Id="i2" Type="PathEdit"   X="30"  Y="70"  Width="250" Height="15" Property="INSTALLDIR" />
         <Control Id="i3" Type="PushButton" X="280" Y="70"  Width="40"  Height="15" Text="Browse" >
-          <Publish Property="_BrowseProperty" Value="INSTALLFOLDER" Order="1">1</Publish>
+          <Publish Property="_BrowseProperty" Value="INSTALLDIR" Order="1">1</Publish>
           <Publish Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
         </Control>
 
-        <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
+        <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
       </Dialog>
 
+      <Dialog Id="MoveConfigDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Configuration directory" />
+        <Control Id="Description"  Type="Text"       X="25"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please decide to move configuration." />
+        <Control Id="BannerBitmap" Type="Bitmap"     X="0"   Y="0"   Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
+        <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
+        <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
+
+        <Control Id="m1" Type="CheckBox"   X="30"  Y="55" Width="320" Height="15" Property="MOVE_CONF_PROGRAMDATA" CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'."/>
+
+        <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
+        <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
+      </Dialog>
 
 
     </UI>
@@ -209,25 +240,27 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
     <Binary                                            Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
-    <!-- Custom Action Data Helper needed for deferred custom actions  TODO use same names -->
-    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="MOVE_CONF_PROGRAMDATA=[MOVE_CONF_PROGRAMDATA];INSTALLFOLDER=[INSTALLFOLDER];ROOTFOLDER=[ROOTFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER];" />
+    <!-- Custom Action Data Helper for deferred custom actions  -->
+    <!-- master and id must be named like in YAML configuration -->
+    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF_PROGRAMDATA=[MOVE_CONF_PROGRAMDATA];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];MINION_D_DIR=[MINION_D_DIR];PKIMINIONDIR=[PKIMINIONDIR];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
     <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];" />
 
 
-    <Directory Id="TARGETDIR" Name="SourceDir">     <!-- fixed expression -->
+    <!-- Layout directories -->
+    <Directory Id="TARGETDIR" Name="SourceDir">     <!-- fixed expression. Place of the msi file-->
       <Directory Id="$(var.PROGRAMFILES)">    <!-- typically    C:\Program Files or   C:\Program Files (x86) -->
         <Directory Id='PROGRAMFILES_MANUFACTURER' Name='$(var.MANUFACTURER)'>
-          <Directory Id='INSTALLFOLDER' Name='$(var.PRODUCTDIR)'/> <!-- admin can set/override   -->
-            <Directory Id="BINFOLDER"  Name="bin" />
+          <Directory Id='INSTALLDIR' Name='$(var.PRODUCTDIR)'/> <!-- admin can set/override   -->
+            <Directory Id="BINDIR"  Name="bin" />
         </Directory>
       </Directory>
       <Directory Id="CommonAppDataFolder">    <!-- typically    %ProgramData% C:\ProgramData  -->
         <Directory Id="Manufacturer_CommonAppDataFolder" Name="$(var.MANUFACTURER)">
-          <Directory Id="ROOTFOLDER" Name="$(var.PRODUCTDIR)">
-            <Directory Id="CONFFOLDER" Name="conf" >
-              <Directory Id="MINION_D_CONF_FOLDER"  Name="minion.d" />
-              <Directory Id="SALT_CONF_PKI_FOLDER" Name="pki" >
-                <Directory Id="SALT_CONF_PKI_MINION_FOLDER" Name="minion" />
+          <Directory Id="ROOTDIR" Name="$(var.PRODUCTDIR)">
+            <Directory Id="CONFDIR" Name="conf" >
+              <Directory Id="MINION_D_DIR"  Name="minion.d" />
+              <Directory Id="PKIDIR" Name="pki" >
+                <Directory Id="PKIMINIONDIR" Name="minion" />
               </Directory>
             </Directory>
             <Directory Id="VARFOLDER"  Name="var" />
@@ -236,18 +269,21 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       </Directory>
     </Directory>
 
-    <!-- Set permissions of the install folder with WixQueryOsWellKnownSID -->
+    <!-- Set ownership of INSTALLDIR to 'Localized qualified name of the Administrators group' -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
-    <Component Id="InstallfolderPermissions"  Directory="INSTALLFOLDER" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
+    <Component Id="INSTALLDIR_Permissions"  Directory="INSTALLDIR" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
       <CreateFolder>
-        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
+        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" /> 
       </CreateFolder>
     </Component>
+
+    <!-- Set directory conditionally to deprecated CONFDIR -->
+    <SetProperty  Id="CONFDIR"   Value='C:\salt' Before="CostFinalize">NOT (MOVE_CONF_PROGRAMDATA = "1")</SetProperty>
 
     <!--  Windows service (nssm and without)-->
     <?if 1=1 ?>
     <ComponentGroup Id="service">
-      <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLFOLDER" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
+      <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLDIR" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
         <File Id="ssm.exe" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
         <ServiceInstall
           Account="LocalSystem" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes"
@@ -267,9 +303,9 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         <util:EventSource Log="Application" Name="nssm" EventMessageFile="[#ssm.exe]" />
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
           <RegistryKey Key="Parameters">
-            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLFOLDER]bin" />
-            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLFOLDER]bin\python.exe" />
-            <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s [INSTALLFOLDER]bin\Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet" />
+            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLDIR]bin" />
+            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLDIR]bin\python.exe" />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s [INSTALLDIR]bin\Scripts\salt-minion -c [INSTALLDIR]conf -l quiet" />
             <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
             <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
             <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
@@ -282,10 +318,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </ComponentGroup>
     <?else ?>
     <ComponentGroup Id="service">
-      <Component        Id="servicec1" Directory="BINFOLDER" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
+      <Component        Id="servicec1" Directory="BINDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
         <File           Source="$(var.dist)\bin\python.exe"  KeyPath="yes"/>
         <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
-                        Arguments="[BINFOLDER]Scripts\salt-minion -c [INSTALLFOLDER]conf -l quiet"
+                        Arguments="[BINDIR]Scripts\salt-minion -c [INSTALLDIR]conf -l quiet"
                         Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
           <util:ServiceConfig
             FirstFailureActionType="none"

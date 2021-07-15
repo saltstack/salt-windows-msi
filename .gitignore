@@ -4,3 +4,5 @@ _cache.dir/*
 *.pdb
 *.dll
 *-discovered-files.wxs
+Salt-Minion-*-install.log
+Salt-Minion-*-uninstall.log
