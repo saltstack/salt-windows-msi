@@ -1,7 +1,6 @@
-# This msi installer requires an NSIS exe. e.g.:
-#   Salt-Minion-3000-Py3-AMD64-Setup.exe
-#   Salt-Minion-3000-Py2-AMD64-Setup.exe
-#   Salt-Minion-3000-Py3-x86-Setup.exe
+# This msi installer requires an Py3 NSIS exe. e.g.:
+#   Salt-Minion-3002.6-Py3-AMD64-Setup.exe
+#   Salt-Minion-3002.6-Py3-x86-Setup.exe
 #
 Set-PSDebug -Strict
 Set-strictmode -version latest
@@ -35,31 +34,28 @@ if ([convert]::ToInt32($major, 10) -ge 3000) {      # 3000 scheme
   $month = $minor
   $internalversion = "$year.$month.$bugfix"
 }
-Write-Host -ForegroundColor Green "Found Salt $displayversion (msi $internalversion)"
+Write-Host -ForegroundColor Yellow "Display version   $displayversion"
+Write-Host -ForegroundColor Yellow "Internal version  $internalversion"
 
 # # # Detecting target platform from NSIS exe # # #
 $targetplatform = 0
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*AMD64*.exe) {$targetplatform="64"}
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*x86*.exe)   {$targetplatform="32"}
 if ($targetplatform -eq 0) {
-  Write-Host -ForegroundColor Red "Cannot determine target platform"
-  Write-Host -ForegroundColor Red "No file ..\salt\pkg\windows\installer\Salt-Minion*.exe"
+  Write-Host -ForegroundColor Red "Cannot determine target platform from ..\salt\pkg\windows\installer\Salt-Minion*.exe"
   Write-Host -ForegroundColor Red "Have you build the NSIS Nullsoft exe installer?"
   exit(1)
 }
-Write-Host -ForegroundColor Green "Found target platform $targetplatform"
+Write-Host -ForegroundColor Yellow "Architecture      $targetplatform"
 
 # # # Detecting Python version from NSIS exe # # #
 $pythonversion = 0
-if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py2*.exe) {$pythonversion=2}
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py3*.exe) {$pythonversion=3}
 if ($pythonversion -eq 0) {
-  Write-Host -ForegroundColor Red "Cannot determine Python version"
-  Write-Host -ForegroundColor Red "No file ..\salt\pkg\windows\installer\Salt-Minion*.exe"
+  Write-Host -ForegroundColor Red "Cannot determine Python version from ..\salt\pkg\windows\installer\Salt-Minion*.exe"
   Write-Host -ForegroundColor Red "Have you build the NSIS Nullsoft exe installer?"
   exit(1)
 }
-Write-Host -ForegroundColor Green "Found Python $pythonversion"
 
 
 # # # build # # #
@@ -89,7 +85,7 @@ function CheckExitCode($txt) {   # Exit on failure
 }
 
 
-Write-Host -ForegroundColor Yellow "Compiling C# custom actions into *.dll"
+Write-Host -ForegroundColor Yellow "Compiling    *.cs to *.dll"
 Push-Location CustomAction01
 # Compiler options are exactly those of a wix msbuild project.
 # https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options
@@ -110,11 +106,10 @@ Pop-Location
 CheckExitCode "Compiling C#"
 
 
-Write-Host -ForegroundColor Yellow "Packaging *.dlls into *.CA.dll for running in a sandbox"
+Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll"
 # MakeSfxCA creates a self-extracting managed MSI CA DLL because
 # the custom action dll will run in a sandbox and needs all dll inside. This adds 700 kB.
 # Because MakeSfxCA does not check if Wix references a non existing procedure, you must check.
-Write-Host -ForegroundColor Blue "Does this search find all your custom action procedures?"
 & "$($ENV:WIX)sdk\MakeSfxCA.exe" `
     "$pwd\CustomAction01\CustomAction01.CA.dll" `
     "$($ENV:WIX)sdk\x86\SfxCA.dll" `
@@ -122,11 +117,11 @@ Write-Host -ForegroundColor Blue "Does this search find all your custom action p
     "$($ENV:WIX)SDK\Microsoft.Deployment.WindowsInstaller.dll" `
     "$($ENV:WIX)bin\wix.dll" `
     "$($ENV:WIX)bin\Microsoft.Deployment.Resources.dll" `
-    "$pwd\CustomAction01\CustomAction.config"
+    "$pwd\CustomAction01\CustomAction.config" | Out-null
 CheckExitCode "Packaging"
 
 
-Write-Host -ForegroundColor Yellow "Harvesting files from $($DISCOVERFOLDER[$i]) to $($ARCHITECTURE[$i])"
+Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVERFOLDER[$i]) to $($ARCHITECTURE[$i]) components *.wxs"
 # https://wixtoolset.org/documentation/manual/v3/overview/heat.html
 # -cg <ComponentGroupName> Component group name (cannot contain spaces e.g -cg MyComponentGroup).
 # -sfrag   Suppress generation of fragments for directories and components.
@@ -145,7 +140,7 @@ Write-Host -ForegroundColor Yellow "Harvesting files from $($DISCOVERFOLDER[$i])
    -nologo -indent 1 -gg -sfrag -sreg -suid -srd -ke -template fragment
 
 
-Write-Host -ForegroundColor Yellow "Compiling wxs to $($ARCHITECTURE[$i]) wixobj"
+Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *.wixobj"
 # Options see "%wix%bin\candle"
 & "$($ENV:WIX)bin\candle.exe" -nologo -sw1150 `
     -arch $ARCHITECTURE[$i] `
@@ -161,10 +156,10 @@ Write-Host -ForegroundColor Yellow "Compiling wxs to $($ARCHITECTURE[$i]) wixobj
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
     -ext "$($ENV:WIX)bin\WixUIExtension.dll" `
     -ext "$($ENV:WIX)bin\WixNetFxExtension.dll" `
-    "Product.wxs" "Product-$($ARCHITECTURE[$i])-discovered-files.wxs"
+    "Product.wxs" "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" | Out-null
 CheckExitCode "candle"
 
-Write-Host -ForegroundColor Yellow "Linking $($ARCHITECTURE[$i]) wixobj to $PRODUCTFILE-Py$pythonversion-$($ARCH_AKA[$i]).msi"
+Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODUCT-$VERSION-$($ARCH_AKA[$i]).msi"
 # Options https://wixtoolset.org/documentation/manual/v3/overview/light.html
 & "$($ENV:WIX)bin\light"  -nologo `
     -out "$pwd\$PRODUCTFILE-Py$pythonversion-$($ARCH_AKA[$i]).msi" `
