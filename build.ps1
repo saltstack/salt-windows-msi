@@ -77,10 +77,17 @@ $ARCH_AKA     = "AMD64",                "x86"                  # For filename
 $PLATFORM     = "x64",                  "Win32"
 $PROGRAMFILES = "ProgramFiles64Folder", "ProgramFilesFolder"   # msi dictionary values
 
-function CheckExitCode($txt) {   # Exit on failure
+function CheckExitCode() {   # Exit on failure
     if ($LastExitCode -ne 0) {
-        Write-Host -ForegroundColor Red "$txt failed"
+        if (Test-Path build.tmp -PathType Leaf) {
+            Get-Content build.tmp
+            Remove-Item build.tmp
+        }
+        Write-Host -ForegroundColor Red "Failed"
         exit(1)
+    }
+    if (Test-Path build.tmp -PathType Leaf) {
+        Remove-Item build.tmp
     }
 }
 
@@ -103,13 +110,14 @@ Push-Location CustomAction01
     /out:CustomAction01.dll `
     CustomAction01.cs CustomAction01Util.cs Properties\AssemblyInfo.cs
 Pop-Location
-CheckExitCode "Compiling C#"
+CheckExitCode
 
 
 Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll"
 # MakeSfxCA creates a self-extracting managed MSI CA DLL because
 # the custom action dll will run in a sandbox and needs all dll inside. This adds 700 kB.
-# Because MakeSfxCA does not check if Wix references a non existing procedure, you must check.
+# Because MakeSfxCA cannot check if Wix will reference a non existing procedure, you must double check yourself.
+# Usage: MakeSfxCA <outputca.dll> SfxCA.dll <inputca.dll> [support files ...]
 & "$($ENV:WIX)sdk\MakeSfxCA.exe" `
     "$pwd\CustomAction01\CustomAction01.CA.dll" `
     "$($ENV:WIX)sdk\x86\SfxCA.dll" `
@@ -117,8 +125,8 @@ Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll"
     "$($ENV:WIX)SDK\Microsoft.Deployment.WindowsInstaller.dll" `
     "$($ENV:WIX)bin\wix.dll" `
     "$($ENV:WIX)bin\Microsoft.Deployment.Resources.dll" `
-    "$pwd\CustomAction01\CustomAction.config" | Out-null
-CheckExitCode "Packaging"
+    "$pwd\CustomAction01\CustomAction.config" > build.tmp
+CheckExitCode
 
 
 Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVERFOLDER[$i]) to $($ARCHITECTURE[$i]) components *.wxs"
@@ -138,7 +146,7 @@ Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVERFOLDER[$i]) to $($AR
    -cg DiscoveredFiles -var var.DISCOVERFOLDER `
    -dr INSTALLDIR -t Product-discover-files.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -suid -srd -ke -template fragment
-
+CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *.wixobj"
 # Options see "%wix%bin\candle"
@@ -156,8 +164,8 @@ Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
     -ext "$($ENV:WIX)bin\WixUIExtension.dll" `
     -ext "$($ENV:WIX)bin\WixNetFxExtension.dll" `
-    "Product.wxs" "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" | Out-null
-CheckExitCode "candle"
+    "Product.wxs" "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" > build.tmp
+CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODUCT-$VERSION-$($ARCH_AKA[$i]).msi"
 # Options https://wixtoolset.org/documentation/manual/v3/overview/light.html
@@ -172,6 +180,6 @@ Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODU
     -sice:ICE03 `
     -cultures:en-us `
     "Product.wixobj" "Product-$($ARCHITECTURE[$i])-discovered-files.wixobj"
-CheckExitCode "light"
+CheckExitCode
 
 Write-Host -ForegroundColor Green "Done "
