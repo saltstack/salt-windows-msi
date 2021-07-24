@@ -43,12 +43,10 @@ namespace MinionConfigurationExtension {
               *
               */
             session.Log("...BEGIN ReadConfig_IMCAC");
-            string Manufacturer          = cutil.get_property_IMCAC(session, "Manufacturer");
-            string ProductName           = cutil.get_property_IMCAC(session, "ProductName");
-            string MOVE_CONF_PROGRAMDATA = cutil.get_property_IMCAC(session, "MOVE_CONF_PROGRAMDATA");
-            string ProgramData           = System.Environment.GetEnvironmentVariable("ProgramData");
-            string install_dir           = cutil.get_reg_SOFTWARE(session, @"Salt Project\Salt", "install_dir");
-            string root_dir              = cutil.get_reg_SOFTWARE(session, @"Salt Project\Salt", "root_dir");
+            string Manufacturer   = cutil.get_property_IMCAC(session, "Manufacturer");
+            string ProductName    = cutil.get_property_IMCAC(session, "ProductName");
+            string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");
+            string ProgramData    = System.Environment.GetEnvironmentVariable("ProgramData");
 
             string CONFIGDIROld = @"C:\" + ProductName;
             string CONFIGDIRNew =  ProgramData + @"\" + Manufacturer + @"\" + ProductName;
@@ -56,9 +54,9 @@ namespace MinionConfigurationExtension {
             session["CONFIGDIRNew"] = CONFIGDIRNew;
 
             string abortReason = "";
-            if (MOVE_CONF_PROGRAMDATA == "1") {
+            if (MOVE_CONF == "1") {
                 if (Directory.Exists(CONFIGDIROld) && Directory.Exists(CONFIGDIRNew)) {
-                    abortReason = CONFIGDIROld + " and " + CONFIGDIRNew + " must not both exist when MOVE_CONF_PROGRAMDATA=1.  ";
+                    abortReason = CONFIGDIROld + " and " + CONFIGDIRNew + " must not both exist when MOVE_CONF=1.  ";
                 }
             }
             if (abortReason.Length > 0) {
@@ -67,7 +65,6 @@ namespace MinionConfigurationExtension {
 
             session.Log("...Searching minion config file for reading master and id");
             string main_config = cutil.get_file_that_exist(session, new string[] {
-                root_dir + @"\conf\minion",
                 CONFIGDIRNew + @"\conf\minion",
                 CONFIGDIROld + @"\conf\minion"});
             string MINION_CONFIGDIR = "";
@@ -299,22 +296,15 @@ namespace MinionConfigurationExtension {
             // Must have this signature or cannot uninstall not even write to the log
             session.Log("...BEGIN WriteConfig_DECAC");
             // Get msi properties
-            string MOVE_CONF_PROGRAMDATA = cutil.get_property_DECAC(session, "MOVE_CONF_PROGRAMDATA");
-            string INSTALLDIR = cutil.get_property_DECAC(session, "INSTALLDIR");
-            string minion_config = cutil.get_property_DECAC(session, "minion_config");
+            string MOVE_CONF     = cutil.get_property_DECAC(session, "MOVE_CONF");
+            string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
+            string MINION_CONFIG = cutil.get_property_DECAC(session, "MINION_CONFIG");
             // Get environment variables
             string ProgramData = System.Environment.GetEnvironmentVariable("ProgramData");
-            // Write to registry
-            cutil.set_reg(session, @"SOFTWARE\Salt Project\Salt", "install_dir", INSTALLDIR);
-            if (MOVE_CONF_PROGRAMDATA == "1" || minion_config.Length > 0) {
-                cutil.set_reg(session, @"SOFTWARE\Salt Project\Salt", "root_dir", ProgramData + @"\" + @"Salt Project\Salt");
-                cutil.set_reg(session, @"SOFTWARE\Salt Project\Salt", "REMOVE_CONFIG", "1");
-            } else {
-                cutil.set_reg(session, @"SOFTWARE\Salt Project\Salt", "root_dir", @"C:\Salt");
-            }
+
             // Write, move or delete files
-            if (minion_config.Length > 0) {
-                apply_minion_config_DECAC(session, minion_config);
+            if (MINION_CONFIG.Length > 0) {
+                apply_minion_config_DECAC(session, MINION_CONFIG);
             } else {
                 string master = "";
                 string id = "";
@@ -334,7 +324,7 @@ namespace MinionConfigurationExtension {
             session.Log("...save_custom_config_file_if_config_type_demands_DECAC");
             string config_type    = cutil.get_property_DECAC(session, "config_type");
             string custom_config1 = cutil.get_property_DECAC(session, "custom_config");
-            string ROOTDIR        = cutil.get_property_DECAC(session, "ROOTDIR");
+            string CONFIGDIR      = cutil.get_property_DECAC(session, "CONFIGDIR");
 
             string custom_config_final = "";
             if (!(config_type == "Custom" && custom_config1.Length > 0 )) {
@@ -359,35 +349,27 @@ namespace MinionConfigurationExtension {
             Backup_configuration_files_from_previous_installation(session);
             // lay down a custom config passed via the command line
             string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(custom_config_final));
-            cutil.Write_file(session, ROOTDIR + @"\conf", "minion", content_of_custom_config_file);
+            cutil.Write_file(session, CONFIGDIR + @"\conf", "minion", content_of_custom_config_file);
         }
 
        [CustomAction]
         public static ActionResult DeleteConfig_DECAC(Session session) {
             // This uninstalls the current install.
-            // The current install wrote to registry SOFTWARE\Salt Project\Salt
-            // This uninstall relies on registry SOFTWARE\Salt Project\Salt
             session.Log("...BEGIN DeleteConfig_DECAC");
             kill_python_exe(session);
 
-            // Determine wether to delete everything
-            string REMOVE_CONFIG_prop = cutil.get_property_DECAC(session, "REMOVE_CONFIG");
-            string REMOVE_CONFIG_reg = cutil.get_reg_SOFTWARE(session, @"Salt Project\Salt", "REMOVE_CONFIG");
-            bool DELETE_EVERYTHING = REMOVE_CONFIG_prop == "1" || REMOVE_CONFIG_reg == "1";
+            // Determine wether to delete everything and DIRS
+            string REMOVE_CONFIG = cutil.get_property_DECAC(session, "REMOVE_CONFIG");
+            string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
+            string CONFIGDIR     = cutil.get_property_DECAC(session, "CONFIGDIR");
 
-            // Determine install_dir, root_dir
-            string install_dir = cutil.get_reg_SOFTWARE(session, @"Salt Project\Salt", "install_dir");
-            string root_dir    = cutil.get_reg_SOFTWARE(session, @"Salt Project\Salt", "root_dir");
-
-            // Delete install_dir, root_dir, registry subkey
-            cutil.del_dir(session, install_dir, "");     // msi only deletes what it installed, not *.pyc.
-            if (DELETE_EVERYTHING) {
-                cutil.del_dir(session, root_dir, "");
-                cutil.del_reg(session, @"SOFTWARE\Salt Project\Salt");
-                cutil.del_reg(session, @"SOFTWARE\WoW6432Node\Salt Project\Salt");
+            // The registry subkey deletes itself
+            cutil.del_dir(session, INSTALLDIR, "");     // msi only deletes what it installed, not *.pyc.
+            if (REMOVE_CONFIG == "1") {
+                cutil.del_dir(session, CONFIGDIR, "");
             } else {
-                cutil.del_dir(session, root_dir, "var");
-                cutil.del_dir(session, root_dir, "srv");
+                cutil.del_dir(session, CONFIGDIR, "var");
+                cutil.del_dir(session, CONFIGDIR, "srv");
             }
 
             session.Log("...END DeleteConfig_DECAC");
@@ -397,14 +379,14 @@ namespace MinionConfigurationExtension {
 
 
 
-        private static void apply_minion_config_DECAC(Session session, string minion_config) {
-            // Precondition: parameter minion_config contains the content of the MINION_CONFI property and is not empty
+        private static void apply_minion_config_DECAC(Session session, string MINION_CONFIG) {
+            // Precondition: parameter MINION_CONFIG contains the content of the MINION_CONFIG property and is not empty
             // Remove all other config
             session.Log("...apply_minion_config_DECAC BEGIN");
-            string CONFDIR           = cutil.get_property_DECAC(session, "CONFDIR");
+            string CONFDIR      = cutil.get_property_DECAC(session, "CONFDIR");
             string MINION_D_DIR = cutil.get_property_DECAC(session, "MINION_D_DIR");
             // Write conf/minion
-            string lines = minion_config.Replace("^", Environment.NewLine);
+            string lines = MINION_CONFIG.Replace("^", Environment.NewLine);
             cutil.Writeln_file(session, CONFDIR, "minion", lines);
             // Remove conf/minion_id
             string minion_id = Path.Combine(CONFDIR, "minion_id");

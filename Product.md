@@ -198,7 +198,7 @@ Images:
 - Dimensions of images must follow [WiX rules](http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html)
 - WixUIDialogBmp must be transparent
 
-Create imgLeft.png from panel.bmp:
+Create Product-imgLeft.png from panel.bmp:
 
 - Open paint3D:
   - new image, ..., canvas options: Transparent canvas off, Resize image with canvas NO, Width 493 Height 312

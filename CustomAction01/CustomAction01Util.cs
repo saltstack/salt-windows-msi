@@ -16,48 +16,6 @@ namespace MinionConfigurationExtension {
         // IMCAC means ou can directly access msi properties at session[*]
 
 
-
-        public static string get_reg(Session session, string regpath, string regkey) {
-            session.Log(@"...get_reg {0} {1}", regpath, regkey);
-            RegistryKey hklm = Registry.LocalMachine;
-            var sub_hive = hklm.OpenSubKey(regpath);
-            string regval = "";
-            if (sub_hive != null) {
-                regval = sub_hive.GetValue(regkey).ToString();
-                session.Log("...get_reg " + regkey);
-                session.Log("...get_reg " + regval);
-            }
-            return regval;
-        }
-
-
-        public static string get_reg_SOFTWARE(Session session, string regpath, string regkey) {
-            // search 64bit and 32bit registry
-            string reg_val = get_reg(session, @"SOFTWARE\" + regpath, regkey);
-            if (reg_val.Length == 0) {
-                // if found nothing search 32bit registry
-                reg_val   = get_reg(session, @"SOFTWARE\WoW6432Node\" + regpath, regkey);
-            }
-            return reg_val;
-        }
-
-
-        public static void set_reg(Session session, string regpath, string regkey, string regval) {
-            RegistryKey hklm = Registry.LocalMachine;
-            var sub_hive = hklm.CreateSubKey(regpath);
-            sub_hive.SetValue(regkey, regval);
-        }
-
-        public static void del_reg(Session session, string regpath) {
-            RegistryKey hklm = Registry.LocalMachine;
-            var sub_hive = hklm.OpenSubKey(regpath);
-            if (sub_hive != null) {
-                session.Log("...del_reg " + regpath);
-                hklm.DeleteSubKeyTree(regpath);
-                session.Log("...del_reg " + regpath);
-            }
-        }
-
         public static void del_dir(Session session, string a_dir, string sub_dir) {
             string abs_path = a_dir;
             if (sub_dir.Length > 0) {

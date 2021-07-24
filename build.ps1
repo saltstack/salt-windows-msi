@@ -182,4 +182,6 @@ Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODU
     "Product.wixobj" "Product-$($ARCHITECTURE[$i])-discovered-files.wixobj"
 CheckExitCode
 
+Remove-Item *.wixobj
+
 Write-Host -ForegroundColor Green "Done "

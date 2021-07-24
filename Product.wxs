@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
-xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
-
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Product
       Manufacturer = "$(var.MANUFACTURER)"
       Name         = "Salt Minion $(var.DisplayVersion)"
@@ -9,7 +7,17 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
       UpgradeCode  = "FC6FB3A2-65DE-41A9-AD91-D10A402BD641"
       Id           = "*"
       Language     = "1033">
-    <Package InstallScope="perMachine"  InstallerVersion="500" Compressed="yes"/>
+
+
+    <!--  Install per Machine -->
+    <Package InstallScope="perMachine" InstallerVersion="500" Compressed="yes"/>
+
+
+    <!--  Aborts -->
+    <?if $(var.WIN64)="no" ?>
+      <Condition Message="The 32bit variant must be installed on 32bit Windows.">not VersionNT64</Condition>
+    <?endif?>
+    <Condition Message="[AbortReason]">Installed or (not AbortReason)</Condition>
 
     <!-- Conditions for installation -->
     <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
@@ -45,8 +53,6 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION]'>
       NOT (NSIS_UNINSTALLSTRING >> "uninst.exe")
     </Condition>
-    <!-- Generic Abort -->
-    <Condition Message="Abort [AbortReason]">Installed or (not AbortReason)</Condition>
 
     <!--
         Properties unset by default:
@@ -59,15 +65,21 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
     -->
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
     <Property Id="START_MINION"             Value="1"                    />
-    <Property Id="ROOTDRIVE"                Value="C:\"/>
+    <Property Id="ROOTDRIVE"                Value="C:\"/>  <!-- prevent msi to chose the drive with most space left -->
     <Property Id="ARPPRODUCTICON"           Value="icon.ico" />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLDIR"/>
 
-    <!-- Allow alias for Property  -->
-    <SetProperty  Id="INSTALLDIR"   Value='[INSTALLFOLDER]' Before="LaunchConditions">INSTALLFOLDER</SetProperty>
+    <!-- Allow command line alias for Property  -->
+    <SetProperty Id="INSTALLDIR"  Value='[INSTALLFOLDER]'   Before="LaunchConditions">INSTALLFOLDER</SetProperty>
+    <!-- Old configdir  -->
+    <SetProperty Id="OCONFIGDIR"  Value='C:\$(var.PRODUCT)' Before="LaunchConditions">1</SetProperty>
+    <!-- MINION_CONFIG implies MOVE_CONF  -->
+    <SetProperty Id="MOVE_CONF" Value='1'                   Before="LaunchConditions">MINION_CONFIG</SetProperty>
+    <!-- MINION_CONFIG implies REMOVE_CONFIG  -->
+    <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 
 
     <!-- Search for C salt config minion file-->
@@ -76,6 +88,38 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
         <FileSearch Name="minion"/>
       </DirectorySearch>
     </Property>
+
+    <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry-->
+    <Property Id="PINSTALLDIR">
+      <!-- C:\Program Files\Salt Project\Salt -->
+      <!-- better-name for root_dir is installdir -->
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="root_dir"  Win64="$(var.WIN64)" Type="raw" Id="rsi" />
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="root_dir"  Win64="no"           Type="raw" Id="rsi_nullsoft" />
+    </Property>
+    <Property Id="PCONFIGDIR">
+      <!-- C:\ProgramData\Salt Project\Salt -->
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="config_dir" Win64="$(var.WIN64)" Type="raw" Id="rsc"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="config_dir" Win64="no"           Type="raw" Id="rsc_nullsoft"/>
+    </Property>
+    <Property Id="REMOVE_CONFIG">
+      <!-- Read from registry the intention to remove config  -->
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="REMOVE_CONFIG" Win64="$(var.WIN64)" Type="raw" Id="rsrmc"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="REMOVE_CONFIG" Win64="no"           Type="raw" Id="rsrmc_nullsoft"/>
+    </Property>
+
+    <!-- Write registry (declare components) and delete on uninstall -->
+    <Component Id="write_to_registry" Directory="TARGETDIR">
+      <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)">
+        <RegistryValue Name="root_dir"      Value="[INSTALLDIR]" Type="string"/> <!-- better-name for root_dir is installdir -->
+        <RegistryValue Name="config_dir"    Value="[CONFIGDIR]"  Type="string"/>
+      </RegistryKey>
+    </Component>
+    <Component Id="write_to_registry_to_remove_all_config_on_uninstall" Directory="TARGETDIR">
+      <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" ForceDeleteOnUninstall="yes" >
+        <RegistryValue Name="REMOVE_CONFIG" Value="1"            Type="string"/>
+      </RegistryKey>
+    </Component>
+
 
     <!-- Search previous NSIS installation.
          Assume NSIS always (32 and 64 bit Salt-minion) writes into the 32bit WoW registry -->
@@ -90,6 +134,7 @@ xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
     <!-- The sign of NSIS install  -->
     <SetProperty Id="nsis_exe"              Before="LaunchConditions" Value="1">NSIS_UNINSTALLSTRING >> "uninst.exe"</SetProperty>
+
 
     <CustomAction Id="stopSalt" Script="vbscript">
 On error resume next
@@ -140,7 +185,12 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
 
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef      Id='write_to_registry'/>
       <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT"/></Feature>
+    </Feature>
+    <Feature Id='remove_all_config_on_uninstall' Level='0'>
+      <Condition Level="1">MINION_CONFIG or (REMOVE ~= "ALL")</Condition>
+      <ComponentRef Id='write_to_registry_to_remove_all_config_on_uninstall'/>
     </Feature>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLDIR">
       <ComponentGroupRef Id="DiscoveredFiles"    />       <!-- In Product-*-discovered-files.wxs -->
@@ -149,10 +199,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </ComponentGroup>
 
 
-    <Icon Id="icon.ico" SourceFile="salt.ico" />
+    <Icon        Id="icon.ico"   SourceFile="Product-icon.ico" />
+    <WixVariable Id="WixUIBannerBmp"  Value="Product-imgTop.jpg" />
+    <WixVariable Id="WixUIDialogBmp"  Value="Product-imgLeft.png" />
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
-    <WixVariable Id="WixUIBannerBmp" Value="imgTop.jpg" />
-    <WixVariable Id="WixUIDialogBmp" Value="imgLeft.png" />
 
 
     <!-- GUI -->
@@ -223,7 +273,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
         <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
 
-        <Control Id="m1" Type="CheckBox"   X="30"  Y="55" Width="320" Height="15" Property="MOVE_CONF_PROGRAMDATA" CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'."/>
+        <Control Id="m1" Type="CheckBox"   X="30"  Y="55" Width="320" Height="15" Property="MOVE_CONF" CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'."/>
 
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
@@ -242,21 +292,22 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <Binary                                            Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->
-    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF_PROGRAMDATA=[MOVE_CONF_PROGRAMDATA];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];MINION_D_DIR=[MINION_D_DIR];PKIMINIONDIR=[PKIMINIONDIR];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
-    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];" />
+    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];MINION_D_DIR=[MINION_D_DIR];PKIMINIONDIR=[PKIMINIONDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
+    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];" />
 
-
-    <!-- Layout directories -->
-    <Directory Id="TARGETDIR" Name="SourceDir">     <!-- fixed expression. Place of the msi file-->
-      <Directory Id="$(var.PROGRAMFILES)">    <!-- typically    C:\Program Files or   C:\Program Files (x86) -->
-        <Directory Id='PROGRAMFILES_MANUFACTURER' Name='$(var.MANUFACTURER)'>
-          <Directory Id='INSTALLDIR' Name='$(var.PRODUCTDIR)'/> <!-- admin can set/override   -->
+    <!--  Default directory layout, Admin could modify by setting properties.  -->
+    <!-- write INSTALLDIR instead of INSTALLFOLDER -->
+    <!-- write CONFIGDIR  instead of ROOTDIR -->
+    <Directory Id="TARGETDIR" Name="SourceDir">                   <!-- Fixed expression. Location of the msi file -->
+      <Directory Id="$(var.PROGRAMFILES)">                        <!-- C:\Program Files  or  C:\Program Files (x86) -->
+        <Directory Id="installparent" Name="$(var.MANUFACTURER)">
+          <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)"/>   <!-- Admin could modify  -->
             <Directory Id="BINDIR"  Name="bin" />
         </Directory>
       </Directory>
-      <Directory Id="CommonAppDataFolder">    <!-- typically    %ProgramData% C:\ProgramData  -->
-        <Directory Id="Manufacturer_CommonAppDataFolder" Name="$(var.MANUFACTURER)">
-          <Directory Id="ROOTDIR" Name="$(var.PRODUCTDIR)">
+      <Directory Id="CommonAppDataFolder">                        <!-- C:\ProgramData -->
+        <Directory Id="configparent" Name="$(var.MANUFACTURER)">
+          <Directory Id="CONFIGDIR" Name="$(var.PRODUCTDIR)">     <!-- Admin could modify  -->
             <Directory Id="CONFDIR" Name="conf" >
               <Directory Id="MINION_D_DIR"  Name="minion.d" />
               <Directory Id="PKIDIR" Name="pki" >
@@ -268,6 +319,11 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         </Directory>
       </Directory>
     </Directory>
+    <!-- Set INSTALLDIR to previous install (before GUI and before install sequence) -->
+    <SetProperty Id="INSTALLDIR" Value="[PINSTALLDIR]" Sequence="both"    Before="CostFinalize" Action="sid1">PINSTALLDIR</SetProperty>
+    <!-- Set CONFIGDIR to previous install or old layout  (only before install sequence) -->
+    <SetProperty Id="CONFIGDIR"  Value="[PCONFIGDIR]"  Sequence="execute" Before="CostFinalize" Action="scd1">not MOVE_CONF and     PCONFIGDIR</SetProperty>
+    <SetProperty Id="CONFIGDIR"  Value="[OCONFIGDIR]"  Sequence="execute" Before="CostFinalize" Action="scd2">not MOVE_CONF and not PCONFIGDIR</SetProperty>
 
     <!-- Set ownership of INSTALLDIR to 'Localized qualified name of the Administrators group' -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
@@ -277,8 +333,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       </CreateFolder>
     </Component>
 
-    <!-- Set directory conditionally to deprecated CONFDIR -->
-    <SetProperty  Id="CONFDIR"   Value='C:\salt' Before="CostFinalize">NOT (MOVE_CONF_PROGRAMDATA = "1")</SetProperty>
+
 
     <!--  Windows service (nssm and without)-->
     <?if 1=1 ?>
