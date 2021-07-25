@@ -183,20 +183,32 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <?endif ?>
     </DirectoryRef>
 
+
+    <!-- Assemble fixed and conditional features -->
+    <!-- Conditional features need attention for install and uninstall -->
+    <!-- Leaving registry keys would mean the product is still installed -->
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
-      <ComponentRef      Id='write_to_registry'/>
       <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT"/></Feature>
     </Feature>
-    <Feature Id='remove_all_config_on_uninstall' Level='0'>
-      <Condition Level="1">MINION_CONFIG or (REMOVE ~= "ALL")</Condition>
-      <ComponentRef Id='write_to_registry_to_remove_all_config_on_uninstall'/>
-    </Feature>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLDIR">
-      <ComponentGroupRef Id="DiscoveredFiles"    />       <!-- In Product-*-discovered-files.wxs -->
+      <ComponentGroupRef Id="DiscoveredBinaryFiles" />
+      <ComponentGroupRef Id="DiscoveredConfigFiles" />
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
     </ComponentGroup>
+    <Feature Id="leave_registry_on_uninstall" Level="0"><Condition Level="1"
+                >not Installed or (REMOVE ~= "ALL")</Condition>
+      <!-- On install (not Installed): always write keys -->
+      <!-- On uninstall (REMOVE ~= "ALL"): always remove -->
+      <ComponentRef Id="write_to_registry"/>
+    </Feature>
+    <Feature Id="remove_registry_on_uninstall" Level="0"><Condition Level="1"
+                >REMOVE_CONFIG or (REMOVE ~= "ALL")</Condition>
+      <!-- On install: only write key if requested (REMOVE_CONFIG) -->
+      <!-- On uninstall (REMOVE ~= "ALL"): always remove -->
+      <ComponentRef Id="write_to_registry_to_remove_all_config_on_uninstall"/>
+    </Feature>
 
 
     <Icon        Id="icon.ico"   SourceFile="Product-icon.ico" />
@@ -339,7 +351,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <?if 1=1 ?>
     <ComponentGroup Id="service">
       <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLDIR" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
-        <File Id="ssm.exe" KeyPath="yes" Source="$(var.dist)\bin\ssm.exe" />
+        <File Id="ssm.exe" KeyPath="yes" Source="$(var.DISCOVER_INSTALLDIR)\bin\ssm.exe" />
         <ServiceInstall
           Account="LocalSystem" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes"
           Name="salt-minion"
@@ -374,7 +386,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <?else ?>
     <ComponentGroup Id="service">
       <Component        Id="servicec1" Directory="BINDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
-        <File           Source="$(var.dist)\bin\python.exe"  KeyPath="yes"/>
+        <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes"/>
         <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
                         Arguments="[BINDIR]Scripts\salt-minion -c [INSTALLDIR]conf -l quiet"
                         Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >

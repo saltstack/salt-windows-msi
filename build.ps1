@@ -65,7 +65,8 @@ $PRODUCT        = "Salt Minion"
 $PRODUCTFILE    = "Salt-Minion-$displayversion"
 $PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
-$DISCOVERFOLDER = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
+$DISCOVER_INSTALLDIR = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
+$DISCOVER_CONFIGDIR  = "..\salt\pkg\windows\buildenv\conf"
 
 $msbuild = "C:\Program Files (x86)\MSBuild\14.0\"    # MSBuild only needed to compile C#
 
@@ -129,7 +130,9 @@ Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll"
 CheckExitCode
 
 
-Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVERFOLDER[$i]) to $($ARCHITECTURE[$i]) components *.wxs"
+Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVER_INSTALLDIR[$i]) to $($ARCHITECTURE[$i]) components *.wxs"
+# move conf folder up one dir because it must not be discoverd twice and xslt is difficult
+Move-Item $DISCOVER_CONFIGDIR $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder
 # https://wixtoolset.org/documentation/manual/v3/overview/heat.html
 # -cg <ComponentGroupName> Component group name (cannot contain spaces e.g -cg MyComponentGroup).
 # -sfrag   Suppress generation of fragments for directories and components.
@@ -142,10 +145,19 @@ Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVERFOLDER[$i]) to $($AR
 # -ke      Keep empty directories.
 # -dr <DirectoryName>   Directory reference to root directories (cannot contains spaces e.g. -dr MyAppDirRef).
 # -t <xsl> Transform harvested output with XSL file.
-& "$($ENV:WIX)bin\heat" dir "$($DISCOVERFOLDER[$i])" -out "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" `
-   -cg DiscoveredFiles -var var.DISCOVERFOLDER `
+& "$($ENV:WIX)bin\heat" dir "$($DISCOVER_INSTALLDIR[$i])" -out "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" `
+   -cg DiscoveredBinaryFiles -var var.DISCOVER_INSTALLDIR `
    -dr INSTALLDIR -t Product-discover-files.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -suid -srd -ke -template fragment
+Move-Item $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONFIGDIR
+CheckExitCode
+
+#  workaround remove -suid because heat cannot keep id's unique from previous run
+Write-Host -ForegroundColor Yellow "Discovering  $DISCOVER_CONFIGDIR to components *.wxs"
+& "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFIGDIR" -out "Product-config-discovered-files.wxs" `
+   -cg DiscoveredConfigFiles -var var.DISCOVER_CONFIGDIR `
+   -dr CONFIGDIR -t Product-discover-files.xsl `
+   -nologo -indent 1 -gg -sfrag -sreg -srd -ke -template fragment
 CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *.wixobj"
@@ -154,24 +166,25 @@ Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *
     -arch $ARCHITECTURE[$i] `
     -dWIN64="$($WIN64[$i])" `
     -dPROGRAMFILES="$($PROGRAMFILES[$i])" `
-    -ddist="$($DISCOVERFOLDER[$i])" `
     -dMANUFACTURER="$MANUFACTURER" `
     -dPRODUCT="$PRODUCT" `
     -dPRODUCTDIR="$PRODUCTDIR" `
     -dDisplayVersion="$displayversion" `
     -dInternalVersion="$internalversion" `
-    -dDISCOVERFOLDER="$($DISCOVERFOLDER[$i])" `
+    -dDISCOVER_INSTALLDIR="$($DISCOVER_INSTALLDIR[$i])" `
+    -dDISCOVER_CONFIGDIR="$DISCOVER_CONFIGDIR" `
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
     -ext "$($ENV:WIX)bin\WixUIExtension.dll" `
     -ext "$($ENV:WIX)bin\WixNetFxExtension.dll" `
-    "Product.wxs" "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" > build.tmp
+    "Product.wxs" "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" "Product-config-discovered-files.wxs" > build.tmp
 CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODUCT-$VERSION-$($ARCH_AKA[$i]).msi"
 # Options https://wixtoolset.org/documentation/manual/v3/overview/light.html
 & "$($ENV:WIX)bin\light"  -nologo `
     -out "$pwd\$PRODUCTFILE-Py$pythonversion-$($ARCH_AKA[$i]).msi" `
-    -dDISCOVERFOLDER="$($DISCOVERFOLDER[$i])" `
+    -dDISCOVER_INSTALLDIR="$($DISCOVER_INSTALLDIR[$i])" `
+    -dDISCOVER_CONFIGDIR="$DISCOVER_CONFIGDIR" `
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
     -ext "$($ENV:WIX)bin\WixUIExtension.dll" `
     -ext "$($ENV:WIX)bin\WixNetFxExtension.dll" `
@@ -179,7 +192,7 @@ Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODU
     -sw1076 `
     -sice:ICE03 `
     -cultures:en-us `
-    "Product.wixobj" "Product-$($ARCHITECTURE[$i])-discovered-files.wixobj"
+    "Product.wixobj" "Product-$($ARCHITECTURE[$i])-discovered-files.wixobj" "Product-config-discovered-files.wixobj"
 CheckExitCode
 
 Remove-Item *.wixobj
