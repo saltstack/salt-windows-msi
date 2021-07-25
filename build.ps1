@@ -156,7 +156,7 @@ CheckExitCode
 Write-Host -ForegroundColor Yellow "Discovering  $DISCOVER_CONFIGDIR to components *.wxs"
 & "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFIGDIR" -out "Product-config-discovered-files.wxs" `
    -cg DiscoveredConfigFiles -var var.DISCOVER_CONFIGDIR `
-   -dr CONFIGDIR -t Product-discover-files.xsl `
+   -dr CONFDIR -t Product-discover-files.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -srd -ke -template fragment
 CheckExitCode
 
