@@ -29,7 +29,7 @@
     <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">Installed OR (PhysicalMemory > 125)</Condition>
 
     <!-- ReadConfig_IMCAC must run immediately as Admin, the msi cannot elevate before deferred, so the user must be Admin -->
-    <Condition Message="Installation requires Administrator privileges. Please open from an elevated command prompt.">Privileged</Condition>
+    <Condition Message="Searching for configuration requires Administrator privileges. Please open from an elevated command prompt.">Privileged</Condition>
 
     <Condition Message='CONFIG_TYPE must not be "[CONFIG_TYPE]". Please use "Existing", "Custom" or "Default".'>
       Installed
@@ -241,6 +241,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         <Control Id="StartService" Type="CheckBox"   X="20"  Y="140" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="20"  Y="155" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
         <Control Id="move_conf"    Type="CheckBox"   X="20"  Y="170" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'."/>
+        <Control Id="remove_conf"  Type="CheckBox"   X="20"  Y="185" Width="280" Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;Remove configuration on uninstall"/>
 
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />

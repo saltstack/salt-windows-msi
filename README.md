@@ -42,7 +42,7 @@ Salt Minion-specific and generic msi-properties:
  `MINION_CONFIG`        |                         | Content to be written to the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
  `MOVE_CONF`            |                         | Set to 1 to move configuration from `C:\salt` to `%ProgramData%`.
- `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. __ONLY FROM COMMANDLINE__. Configuration is inevitably removed after installation with `MINION_CONFIG`.
+ `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. Implied by `MINION_CONFIG`.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
  `INSTALLDIR`           | Windows default         | Where to install (`INSTALLFOLDER` is deprecated)
@@ -62,12 +62,12 @@ You can set a master public key with `MASTER_KEY`, after you converted it into o
 
 If `MINION_CONFIG` is given:
 
-- Its content is written to configuraton file `%ProgramData%\conf\minion`, with `^` replaced by line breaks,
+- Its content is written to configuraton file `%ProgramData%\conf\minion`, with `^` replaced by line breaks
 - All prior configuration is deleted:
-  - all `minion.d\*.conf` files are deleted,
-  - the `minion_id` file is deleted.
-- Configuration and the cache is written to `%ProgramData%`, not to `C:\salt`. No need to specify `MOVE_CONF=1` on install.
-- The uninstall will remove all configuration (from file system and from Windows registry). No need to specify `CUSTOM_CONFIG=1` on uninstall.
+  - all `minion.d\*.conf` files
+  - the `minion_id` file
+- Implies `MOVE_CONF=1`: configuration is written to `%ProgramData%`.
+- Implies `REMOVE_CONFIG=1`: uninstall will remove all configuration.
 
 Example `MINION_CONFIG="master: Anna^id: Ben"` results in:
 
