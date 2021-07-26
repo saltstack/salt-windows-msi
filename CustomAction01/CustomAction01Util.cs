@@ -19,7 +19,7 @@ namespace MinionConfigurationExtension {
         public static void del_dir(Session session, string a_dir, string sub_dir) {
             string abs_path = a_dir;
             if (sub_dir.Length > 0) {
-                abs_path = a_dir + @"\" + sub_dir;
+                abs_path = Path.Combine(a_dir, sub_dir);
             }
             if (a_dir.Length>0 && Directory.Exists(a_dir) && Directory.Exists(abs_path)) {
                 try {

@@ -43,13 +43,12 @@ namespace MinionConfigurationExtension {
               *
               */
             session.Log("...BEGIN ReadConfig_IMCAC");
-            string Manufacturer   = cutil.get_property_IMCAC(session, "Manufacturer");
-            string ProductName    = cutil.get_property_IMCAC(session, "ProductName");
             string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");
             string ProgramData    = System.Environment.GetEnvironmentVariable("ProgramData");
 
-            string CONFIGDIROld = @"C:\" + ProductName;
-            string CONFIGDIRNew =  ProgramData + @"\" + Manufacturer + @"\" + ProductName;
+            string CONFIGDIROld = @"C:\salt";
+            string CONFIGDIRNew =  Path.Combine(ProgramData, @"\Salt Project\Salt");
+            // Create msi proporties
             session["CONFIGDIROld"] = CONFIGDIROld;
             session["CONFIGDIRNew"] = CONFIGDIRNew;
 
@@ -142,15 +141,16 @@ namespace MinionConfigurationExtension {
             }
 
             // Save the salt-master public key
-            // This assumes the install will be done.
+            // This assumes the install is silent.
             // Saving should only occur in WriteConfig_DECAC,
             // IMCAC is easier and no harm because there is no public master key in the installer.
             string MASTER_KEY = cutil.get_property_IMCAC(session, "MASTER_KEY");
-            string PKIMINIONDIR = cutil.get_property_IMCAC(session, "PKIMINIONDIR");
-            var master_public_key_filename = Path.Combine(PKIMINIONDIR, "minion_master.pub");
-            session.Log("...master_public_key_filename           = " + master_public_key_filename);
+            string CONFIGDIR  = cutil.get_property_IMCAC(session, "CONFIGDIR");
+            string pki_minion_dir = Path.Combine(CONFIGDIR, @"conf\minion.d\pki\minion");
+            var master_key_file = Path.Combine(pki_minion_dir, "minion_master.pub");
+            session.Log("...master_key_file           = " + master_key_file);
             bool MASTER_KEY_set = MASTER_KEY != "";
-            session.Log("...master key earlier config file exists = " + File.Exists(master_public_key_filename));
+            session.Log("...master key earlier config file exists = " + File.Exists(master_key_file));
             session.Log("...master key msi property given         = " + MASTER_KEY_set);
             if (MASTER_KEY_set) {
                 String master_key_lines = "";   // Newline after 64 characters
@@ -166,11 +166,11 @@ namespace MinionConfigurationExtension {
                   "-----BEGIN PUBLIC KEY-----" + Environment.NewLine +
                   master_key_lines + Environment.NewLine +
                   "-----END PUBLIC KEY-----";
-                if (!Directory.Exists(session["PKIMINIONDIR"])) {
+                if (!Directory.Exists(pki_minion_dir)) {
                     // The <Directory> declaration in Product.wxs does not create the folders
-                    Directory.CreateDirectory(session["PKIMINIONDIR"]);
+                    Directory.CreateDirectory(pki_minion_dir);
                 }
-                File.WriteAllText(master_public_key_filename, new_master_pub_key);
+                File.WriteAllText(master_key_file, new_master_pub_key);
             }
             session.Log("...END ReadConfig_IMCAC");
             return ActionResult.Success;
@@ -361,10 +361,11 @@ namespace MinionConfigurationExtension {
             // Determine wether to delete everything and DIRS
             string REMOVE_CONFIG = cutil.get_property_DECAC(session, "REMOVE_CONFIG");
             string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
+            string bindir        = Path.Combine(INSTALLDIR, "bin");
             string CONFIGDIR     = cutil.get_property_DECAC(session, "CONFIGDIR");
 
             // The registry subkey deletes itself
-            cutil.del_dir(session, INSTALLDIR, "");     // msi only deletes what it installed, not *.pyc.
+            cutil.del_dir(session, bindir, "");     // msi only deletes what it installed, not *.pyc.
             if (REMOVE_CONFIG == "1") {
                 cutil.del_dir(session, CONFIGDIR, "");
             } else {
@@ -384,7 +385,7 @@ namespace MinionConfigurationExtension {
             // Remove all other config
             session.Log("...apply_minion_config_DECAC BEGIN");
             string CONFDIR      = cutil.get_property_DECAC(session, "CONFDIR");
-            string MINION_D_DIR = cutil.get_property_DECAC(session, "MINION_D_DIR");
+            string MINION_D_DIR = Path.Combine(CONFDIR, "minion.d");
             // Write conf/minion
             string lines = MINION_CONFIG.Replace("^", Environment.NewLine);
             cutil.Writeln_file(session, CONFDIR, "minion", lines);

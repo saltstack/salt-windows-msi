@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Product
       Manufacturer = "$(var.MANUFACTURER)"
-      Name         = "Salt Minion $(var.DisplayVersion)"
+      Name         = "$(var.PRODUCT) $(var.DisplayVersion)"
       Version      = "$(var.InternalVersion)"
       UpgradeCode  = "FC6FB3A2-65DE-41A9-AD91-D10A402BD641"
       Id           = "*"
@@ -74,41 +74,33 @@
 
     <!-- Allow command line alias for Property  -->
     <SetProperty Id="INSTALLDIR"  Value='[INSTALLFOLDER]'   Before="LaunchConditions">INSTALLFOLDER</SetProperty>
-    <!-- Old configdir  -->
-    <SetProperty Id="OCONFIGDIR"  Value='C:\$(var.PRODUCT)' Before="LaunchConditions">1</SetProperty>
     <!-- MINION_CONFIG implies MOVE_CONF  -->
-    <SetProperty Id="MOVE_CONF" Value='1'                   Before="LaunchConditions">MINION_CONFIG</SetProperty>
+    <SetProperty Id="MOVE_CONF"     Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
     <!-- MINION_CONFIG implies REMOVE_CONFIG  -->
     <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 
 
     <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry-->
-    <Property Id="PINSTALLDIR">
-      <!-- C:\Program Files\Salt Project\Salt -->
-      <!-- better-name for root_dir is installdir -->
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="root_dir"  Win64="$(var.WIN64)" Type="raw" Id="rsi" />
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="root_dir"  Win64="no"           Type="raw" Id="rsi_nullsoft" />
-    </Property>
     <Property Id="PCONFIGDIR">
       <!-- C:\ProgramData\Salt Project\Salt -->
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="config_dir" Win64="$(var.WIN64)" Type="raw" Id="rsc"/>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="config_dir" Win64="no"           Type="raw" Id="rsc_nullsoft"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="config_dir" Win64="$(var.WIN64)" Type="raw" Id="rsc"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="config_dir" Win64="no"           Type="raw" Id="rsc_nullsoft"/>
     </Property>
     <Property Id="REMOVE_CONFIG">
       <!-- Read from registry the intention to remove config  -->
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="REMOVE_CONFIG" Win64="$(var.WIN64)" Type="raw" Id="rsrmc"/>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" Name="REMOVE_CONFIG" Win64="no"           Type="raw" Id="rsrmc_nullsoft"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="$(var.WIN64)" Type="raw" Id="rsrmc"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="no"           Type="raw" Id="rsrmc_nullsoft"/>
     </Property>
 
     <!-- Write registry (declare components) and delete on uninstall -->
     <Component Id="write_to_registry" Directory="TARGETDIR">
-      <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)">
-        <RegistryValue Name="root_dir"      Value="[INSTALLDIR]" Type="string"/> <!-- better-name for root_dir is installdir -->
+      <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)">
+        <RegistryValue Name="root_dir"      Value="[INSTALLDIR]" Type="string"/>
         <RegistryValue Name="config_dir"    Value="[CONFIGDIR]"  Type="string"/>
       </RegistryKey>
     </Component>
     <Component Id="write_to_registry_to_remove_all_config_on_uninstall" Directory="TARGETDIR">
-      <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCT)" ForceDeleteOnUninstall="yes" >
+      <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" ForceDeleteOnUninstall="yes" >
         <RegistryValue Name="REMOVE_CONFIG" Value="1"            Type="string"/>
       </RegistryKey>
     </Component>
@@ -159,10 +151,9 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
               Before='DeleteConfig_DECAC'                                         >REMOVE ~= "ALL"</Custom>
       <Custom Action='DeleteConfig_DECAC'          After='RemoveFiles'            >REMOVE ~= "ALL"</Custom>
 
-
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
-    </InstallExecuteSequence>   <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  -->
+    </InstallExecuteSequence>
 
 
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
@@ -189,6 +180,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       <ComponentGroupRef Id="DiscoveredConfigFiles" />
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
+      <ComponentRef Id="CONFIGDIR_Permissions" />
     </ComponentGroup>
     <Feature Id="leave_registry_on_uninstall" Level="0"><Condition Level="1"
                 >not Installed or (REMOVE ~= "ALL")</Condition>
@@ -277,44 +269,39 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <Binary                                            Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->
-    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];MINION_D_DIR=[MINION_D_DIR];PKIMINIONDIR=[PKIMINIONDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
+    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
     <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];" />
 
-    <!--  Default directory layout, Admin could modify by setting properties.  -->
-    <!-- write INSTALLDIR instead of INSTALLFOLDER -->
-    <!-- write CONFIGDIR  instead of ROOTDIR -->
+    <!--  Default directory layout, Admin could modify by setting all affected directory id's  -->
     <Directory Id="TARGETDIR" Name="SourceDir">                   <!-- Fixed expression. Location of the msi file -->
       <Directory Id="$(var.PROGRAMFILES)">                        <!-- C:\Program Files  or  C:\Program Files (x86) -->
         <Directory Id="installparent" Name="$(var.MANUFACTURER)">
-          <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)"/>   <!-- Admin could modify  -->
+          <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)"/>
             <Directory Id="BINDIR"  Name="bin" />
         </Directory>
       </Directory>
       <Directory Id="CommonAppDataFolder">                        <!-- C:\ProgramData -->
         <Directory Id="configparent" Name="$(var.MANUFACTURER)">
-          <Directory Id="CONFIGDIR" Name="$(var.PRODUCTDIR)">     <!-- Admin could modify  -->
-            <Directory Id="CONFDIR" Name="conf" >
-              <Directory Id="MINION_D_DIR"  Name="minion.d" />
-              <Directory Id="PKIDIR" Name="pki" >
-                <Directory Id="PKIMINIONDIR" Name="minion" />
-              </Directory>
-            </Directory>
-            <Directory Id="VARFOLDER"  Name="var" />
+          <Directory Id="CONFIGDIR" Name="$(var.PRODUCTDIR)">
+            <Directory Id="CONFDIR" Name="conf" />
           </Directory>
         </Directory>
       </Directory>
     </Directory>
-    <!-- Set INSTALLDIR to previous install (before GUI and before install sequence) -->
-    <SetProperty Id="INSTALLDIR" Value="[PINSTALLDIR]" Sequence="both"    Before="CostFinalize" Action="sid1">PINSTALLDIR</SetProperty>
-    <!-- Set CONFIGDIR to previous install or old layout  (only before install sequence) -->
-    <SetProperty Id="CONFIGDIR"  Value="[PCONFIGDIR]"  Sequence="execute" Before="CostFinalize" Action="scd1">not MOVE_CONF and     PCONFIGDIR</SetProperty>
-    <SetProperty Id="CONFIGDIR"  Value="[OCONFIGDIR]"  Sequence="execute" Before="CostFinalize" Action="scd2">not MOVE_CONF and not PCONFIGDIR</SetProperty>
+    <!-- Set CONFIGDIR to C:\salt unless MOVE_CONF (only before install sequence)  -->
+    <SetProperty Id="CONFIGDIR"  Value="C:\salt\"       Sequence="execute" Before="CostFinalize" Action="scd1">not MOVE_CONF</SetProperty>
+    <SetProperty Id="CONFDIR"    Value="C:\salt\conf\"  Sequence="execute" Before="CostFinalize" Action="scd2">not MOVE_CONF</SetProperty>
 
-    <!-- Set ownership of INSTALLDIR to 'Localized qualified name of the Administrators group' -->
+    <!-- Set ownership to 'Localized qualified name of the Administrators group' -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
     <Component Id="INSTALLDIR_Permissions"  Directory="INSTALLDIR" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
       <CreateFolder>
-        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" /> 
+        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
+      </CreateFolder>
+    </Component>
+    <Component Id="CONFIGDIR_Permissions"   Directory="CONFIGDIR" Guid="84554438-6807-4d92-b602-7fce831b01a3">
+      <CreateFolder>
+        <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
       </CreateFolder>
     </Component>
 
