@@ -82,13 +82,6 @@
     <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 
 
-    <!-- Search for C salt config minion file-->
-    <Property Id="C_SALT_CONF_MINION_EXISTS">
-      <DirectorySearch Id="ds1" Path="C:\salt\conf">
-        <FileSearch Name="minion"/>
-      </DirectorySearch>
-    </Property>
-
     <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry-->
     <Property Id="PINSTALLDIR">
       <!-- C:\Program Files\Salt Project\Salt -->
@@ -228,16 +221,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       <Publish Dialog="HostsDlg"              Control="Cancel" Event="SpawnDialog" Value="CancelDlg"          >1</Publish>
 
       <Publish Dialog="DirectoryDlg"          Control="Back"   Event="NewDialog"   Value="HostsDlg"           >1</Publish>
-      <Publish Dialog="DirectoryDlg"          Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg"     >NOT C_SALT_CONF_MINION_EXISTS</Publish>
-      <Publish Dialog="DirectoryDlg"          Control="Next"   Event="NewDialog"   Value="MoveConfigDlg"      >    C_SALT_CONF_MINION_EXISTS</Publish>
+      <Publish Dialog="DirectoryDlg"          Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg"     >1</Publish>
       <Publish Dialog="DirectoryDlg"          Control="Cancel" Event="SpawnDialog" Value="CancelDlg"          >1</Publish>
 
-      <Publish Dialog="MoveConfigDlg"         Control="Back"   Event="NewDialog"   Value="DirectoryDlg"       >1</Publish>
-      <Publish Dialog="MoveConfigDlg"         Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg"     >1</Publish>
-      <Publish Dialog="MoveConfigDlg"         Control="Cancel" Event="SpawnDialog" Value="CancelDlg"          >1</Publish>
-
-      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="DirectoryDlg"       >NOT C_SALT_CONF_MINION_EXISTS</Publish>
-      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="MoveConfigDlg"      >    C_SALT_CONF_MINION_EXISTS</Publish>
+      <Publish Dialog="VerifyReadyDlg"        Control="Back"   Event="NewDialog"   Value="DirectoryDlg"       >1</Publish>
 
 
       <Dialog Id="HostsDlg" Width="370" Height="270" Title="[ProductName] Setup">
@@ -253,6 +240,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         <Control Id="MinionId"     Type="Edit"       X="30"  Y="100" Width="190" Height="15" Property="MINION_ID" />
         <Control Id="StartService" Type="CheckBox"   X="20"  Y="140" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="20"  Y="155" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
+        <Control Id="move_conf"    Type="CheckBox"   X="20"  Y="170" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'."/>
 
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
@@ -277,22 +265,6 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
       </Dialog>
-
-      <Dialog Id="MoveConfigDlg" Width="370" Height="270" Title="[ProductName] Setup">
-        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Configuration directory" />
-        <Control Id="Description"  Type="Text"       X="25"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please decide to move configuration." />
-        <Control Id="BannerBitmap" Type="Bitmap"     X="0"   Y="0"   Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
-        <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
-        <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
-
-        <Control Id="m1" Type="CheckBox"   X="30"  Y="55" Width="320" Height="15" Property="MOVE_CONF" CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'."/>
-
-        <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
-        <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
-        <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
-      </Dialog>
-
-
     </UI>
 
 
