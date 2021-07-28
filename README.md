@@ -41,29 +41,33 @@ Salt Minion-specific and generic msi-properties:
  `MINION_ID`            | Hostname                | The minion id.
  `MINION_CONFIG`        |                         | Content to be written to the `minion` config file. See below.
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
- `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. __ONLY FROM COMMANDLINE__
+ `MOVE_CONF`            |                         | Set to 1 to move configuration from `C:\salt` to `%ProgramData%`.
+ `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. Implied by `MINION_CONFIG`.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
- `INSTALLFOLDER`        | `C:\salt\`              | Where to install the Minion  __DO NOT CHANGE (yet)__  --- __BLOCKED BY__ [issue#38430](https://github.com/saltstack/salt/issues/38430)
+ `INSTALLDIR`           | Windows default         | Where to install (`INSTALLFOLDER` is deprecated)
  `ARPSYSTEMCOMPONENT`   |                         | Set to 1 to hide "Salt Minion" in "Programs and Features".
 
 
-Master and id are read from file `C:\salt\conf\minion`
+Master and id are read from file `conf\minion`
 
-You can set a new master with `MASTER`.
+You can set a master with `MASTER`.
 
-You can set a new master public key with `MASTER_KEY`, after you converted it into one line like so:
+You can set a master public key with `MASTER_KEY`, after you converted it into one line like so:
 
 - Remove the first and the last line (`-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----`).
 - Remove linebreaks.
 
 ### `MINION_CONFIG`
 
-If `MINION_CONFIG` is set:
+If `MINION_CONFIG` is given:
 
-- Its content is written to file `c:\salt\conf\minion`, with `^` replaced by line breaks,
-- all `minion.d\*.conf` files are deleted,
-- the `minion_id` file is deleted.
+- Its content is written to configuraton file `%ProgramData%\conf\minion`, with `^` replaced by line breaks
+- All prior configuration is deleted:
+  - all `minion.d\*.conf` files
+  - the `minion_id` file
+- Implies `MOVE_CONF=1`: configuration is written to `%ProgramData%`.
+- Implies `REMOVE_CONFIG=1`: uninstall will remove all configuration.
 
 Example `MINION_CONFIG="master: Anna^id: Ben"` results in:
 

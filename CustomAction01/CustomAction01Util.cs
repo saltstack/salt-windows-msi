@@ -1,16 +1,38 @@
 ﻿using Microsoft.Deployment.WindowsInstaller;
 using Microsoft.Tools.WindowsInstallerXml;
+using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Management;  // Reference C:\Windows\Microsoft.NET\Framework\v2.0.50727\System.Management.dll
+using System.ServiceProcess;
+using System.Text.RegularExpressions;
+
 
 namespace MinionConfigurationExtension {
-    public class MinionConfigurationUtilities : WixExtension {
+    public class cutil : WixExtension {
         //
         // DECAC means you must access data helper properties at session.CustomActionData[*]
         // IMCAC means ou can directly access msi properties at session[*]
 
+
+        public static void del_dir(Session session, string a_dir, string sub_dir) {
+            string abs_path = a_dir;
+            if (sub_dir.Length > 0) {
+                abs_path = Path.Combine(a_dir, sub_dir);
+            }
+            if (a_dir.Length>0 && Directory.Exists(a_dir) && Directory.Exists(abs_path)) {
+                try {
+                    session.Log("...del_dir " + abs_path);
+                    Directory.Delete(abs_path, true);
+                } catch (Exception ex) {
+                    cutil.just_ExceptionLog("", session, ex);
+                }
+            }
+        }
+
         public static void Write_file(Session session, string path, string filename, string filecontent) {
-            System.IO.Directory.CreateDirectory(path);  // Ensures that the path exists
+            System.IO.Directory.CreateDirectory(path);  // Creates all directories and subdirectories in the specified path unless they already exist
             File.WriteAllText(Path.Combine(path, filename), filecontent);       //  throws an Exception if path does not exist
             session.Log(@"...Write_file " + Path.Combine(path, filename));
         }
@@ -85,33 +107,32 @@ namespace MinionConfigurationExtension {
         }
 
 
-        public static string get_property_DECAC(Session session, string key) {
-            session.Log("   ...CustomActionData key {0}", key);
-            string val = session.CustomActionData[key];
-            session.Log("   ...CustomActionData val {0}", val);
-            session.Log("   ...CustomActionData len {0}", val.Length);
+
+        public static string get_property_IMCAC(Session session, string key ) {
+            // IMMEDIATE means
+            //   you can directly access msi properties at session[KEY]
+            // keys are case sensitive
+            // If key does not exist, its value will be empty
+            session.Log("...get_property_IMCAC key {0}", key);
+            string val = session[key];
+            session.Log("...get_property_IMCAC val {0}", val);
+            session.Log("...get_property_IMCAC len {0}", val.Length);
             return val;
         }
 
 
-        public static string getConfigFileLocation_DECAC(Session session) {
-            return Path.Combine(session.CustomActionData["root_dir"], @"conf\minion");
+        public static string get_property_DECAC(Session session, string key) {
+            // DEFERRED means
+            //   you may modify the system because the transaction has started
+            //   you must access msi properties via CustomActionData[KEY]
+            // If key does not exist, the msi will fail to install
+            session.Log("...get_property_DECAC key {0}", key);
+            string val = session.CustomActionData[key];
+            session.Log("...get_property_DECAC val {0}", val);
+            session.Log("...get_property_DECAC len {0}", val.Length);
+            return val;
         }
 
-
-        public static string getConfigdDirectoryLocation_DECAC(Session session) {
-            return Path.Combine(session.CustomActionData["root_dir"], @"conf\minion.d");
-        }
-
-
-        public static string getConfigFileLocation_IMCAC(Session session) {
-            return Path.Combine(session["INSTALLFOLDER"], @"conf\minion");
-        }
-
-
-        public static string getConfigdDirectoryLocation_IMCAC(Session session) {
-            return Path.Combine(session["INSTALLFOLDER"], @"conf\minion.d");
-        }
 
 
         public static void just_ExceptionLog(string description, Session session, Exception ex) {
@@ -121,6 +142,15 @@ namespace MinionConfigurationExtension {
             session.Log(ex.StackTrace.ToString());
         }
 
+        public static string get_file_that_exist(Session session, string[] files) {
+            foreach (var file in files) {
+                if (File.Exists(file)) {
+                    session.Log("...found " + file);
+                    return file;
+                }
+            }
+            return "";
+        }
 
         public static void shellout(Session session, string s) {
             // This is a handmade shellout routine

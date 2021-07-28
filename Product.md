@@ -145,10 +145,10 @@ You get error LGHT0204 when  After or Before are wrong. Example:
 Notes on ReadConfig_IMCAC
 
     Note 1:
-      Problem: INSTALLFOLDER was not set in ReadConfig_IMCAC
+      Problem: INSTALLDIR was not set in ReadConfig_IMCAC
       Solution:
       ReadConfig_IMCAC must not be called BEFORE FindRelatedProducts, but BEFORE MigrateFeatureStates because
-      INSTALLFOLDER in only set in CostFinalize, which comes after FindRelatedProducts
+      INSTALLDIR in only set in CostFinalize, which comes after FindRelatedProducts
       Maybe one could call ReadConfig_IMCAC AFTER FindRelatedProducts
     Note 2:
       ReadConfig_IMCAC is in both InstallUISequence and InstallExecuteSequence,
@@ -198,7 +198,7 @@ Images:
 - Dimensions of images must follow [WiX rules](http://wixtoolset.org/documentation/manual/v3/wixui/wixui_customizations.html)
 - WixUIDialogBmp must be transparent
 
-Create imgLeft.png from panel.bmp:
+Create Product-imgLeft.png from panel.bmp:
 
 - Open paint3D:
   - new image, ..., canvas options: Transparent canvas off, Resize image with canvas NO, Width 493 Height 312
