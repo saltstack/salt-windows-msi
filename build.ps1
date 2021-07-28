@@ -130,7 +130,7 @@ Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll"
 CheckExitCode
 
 
-Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVER_INSTALLDIR[$i]) to $($ARCHITECTURE[$i]) components *.wxs"
+Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVER_INSTALLDIR[$i]) for INSTALLDIR to *$($ARCHITECTURE[$i])*.wxs"
 # move conf folder up one dir because it must not be discoverd twice and xslt is difficult
 Move-Item $DISCOVER_CONFIGDIR $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder
 # https://wixtoolset.org/documentation/manual/v3/overview/heat.html
@@ -145,18 +145,20 @@ Move-Item $DISCOVER_CONFIGDIR $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_f
 # -ke      Keep empty directories.
 # -dr <DirectoryName>   Directory reference to root directories (cannot contains spaces e.g. -dr MyAppDirRef).
 # -t <xsl> Transform harvested output with XSL file.
-& "$($ENV:WIX)bin\heat" dir "$($DISCOVER_INSTALLDIR[$i])" -out "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" `
+# Selectively delete Guid ,so files remain on uninstall.
+& "$($ENV:WIX)bin\heat" dir "$($DISCOVER_INSTALLDIR[$i])" -out "Product-discovered-files-$($ARCHITECTURE[$i]).wxs" `
    -cg DiscoveredBinaryFiles -var var.DISCOVER_INSTALLDIR `
    -dr INSTALLDIR -t Product-discover-files.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -suid -srd -ke -template fragment
 Move-Item $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONFIGDIR
 CheckExitCode
 
+# Config shall remain, so delete all Guid (TODO)
 #  workaround remove -suid because heat cannot keep id's unique from previous run
-Write-Host -ForegroundColor Yellow "Discovering  $DISCOVER_CONFIGDIR to components *.wxs"
-& "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFIGDIR" -out "Product-config-discovered-files.wxs" `
+Write-Host -ForegroundColor Yellow "Discovering  $DISCOVER_CONFIGDIR for CONFDIR to *.wxs"
+& "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFIGDIR" -out "Product-discovered-files-config.wxs" `
    -cg DiscoveredConfigFiles -var var.DISCOVER_CONFIGDIR `
-   -dr CONFDIR -t Product-discover-files.xsl `
+   -dr CONFDIR -t Product-discover-files-config.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -srd -ke -template fragment
 CheckExitCode
 
@@ -176,7 +178,7 @@ Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
     -ext "$($ENV:WIX)bin\WixUIExtension.dll" `
     -ext "$($ENV:WIX)bin\WixNetFxExtension.dll" `
-    "Product.wxs" "Product-$($ARCHITECTURE[$i])-discovered-files.wxs" "Product-config-discovered-files.wxs" > build.tmp
+    "Product.wxs" "Product-discovered-files-$($ARCHITECTURE[$i]).wxs" "Product-discovered-files-config.wxs" > build.tmp
 CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODUCT-$VERSION-$($ARCH_AKA[$i]).msi"
@@ -192,7 +194,7 @@ Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODU
     -sw1076 `
     -sice:ICE03 `
     -cultures:en-us `
-    "Product.wixobj" "Product-$($ARCHITECTURE[$i])-discovered-files.wixobj" "Product-config-discovered-files.wixobj"
+    "Product.wixobj" "Product-discovered-files-$($ARCHITECTURE[$i]).wixobj" "Product-discovered-files-config.wixobj"
 CheckExitCode
 
 Remove-Item *.wixobj

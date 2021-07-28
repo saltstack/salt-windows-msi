@@ -1,8 +1,9 @@
 _cache.dir/*
 *.msi
+*.wixpdb
 *.wixobj
 *.pdb
 *.dll
-*-discovered-files.wxs
+Product-discovered-files*.wxs
 Salt-Minion-*-install.log
 Salt-Minion-*-uninstall.log
