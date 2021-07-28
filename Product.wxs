@@ -289,8 +289,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       </Directory>
     </Directory>
     <!-- Set CONFIGDIR to C:\salt unless MOVE_CONF (only before install sequence)  -->
-    <SetProperty Id="CONFIGDIR"  Value="C:\salt\"       Sequence="execute" Before="CostFinalize" Action="scd1">not MOVE_CONF</SetProperty>
-    <SetProperty Id="CONFDIR"    Value="C:\salt\conf\"  Sequence="execute" Before="CostFinalize" Action="scd2">not MOVE_CONF</SetProperty>
+    <SetProperty Id="CONFIGDIR" Value="C:\salt\" Sequence="execute" Before="CostFinalize" Action="scd1">not MOVE_CONF</SetProperty>
 
     <!-- Set ownership to 'Localized qualified name of the Administrators group' -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
