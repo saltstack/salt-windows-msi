@@ -290,6 +290,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </Directory>
     <!-- Set CONFIGDIR to C:\salt unless MOVE_CONF (only before install sequence)  -->
     <SetProperty Id="CONFIGDIR" Value="C:\salt\" Sequence="execute" Before="CostFinalize" Action="scd1">not MOVE_CONF</SetProperty>
+    <SetProperty Id="CONFDIR" Value="C:\salt\conf" Sequence="execute" Before="CostFinalize" Action="scd2">not MOVE_CONF</SetProperty>
 
     <!-- Set ownership to 'Localized qualified name of the Administrators group' -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
@@ -331,7 +332,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
           <RegistryKey Key="Parameters">
             <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLDIR]bin" />
             <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLDIR]bin\python.exe" />
-            <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s [INSTALLDIR]bin\Scripts\salt-minion -c [INSTALLDIR]conf -l quiet" />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value='-E -s "[INSTALLDIR]bin\Scripts\salt-minion" -c "[CONFIGDIR]conf" -l quiet' />
             <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
             <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
             <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
