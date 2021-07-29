@@ -330,8 +330,8 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         <util:EventSource Log="Application" Name="nssm" EventMessageFile="[#ssm.exe]" />
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
           <RegistryKey Key="Parameters">
-            <RegistryValue Type="expandable" Name="AppDirectory"         Value='"[INSTALLDIR]bin"' />
-            <RegistryValue Type="expandable" Name="Application"          Value='"[INSTALLDIR]bin\python.exe"' />
+            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLDIR]bin" />
+            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLDIR]bin\python.exe" />
             <RegistryValue Type="expandable" Name="AppParameters"        Value='-E -s "[INSTALLDIR]bin\Scripts\salt-minion" -c "[CONFIGDIR]conf" -l quiet' />
             <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
             <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
