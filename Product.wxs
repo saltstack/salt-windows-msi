@@ -13,13 +13,11 @@
     <Package InstallScope="perMachine" InstallerVersion="500" Compressed="yes"/>
 
 
-    <!--  Aborts -->
+    <!--  Abort installation if conditions are met -->
     <?if $(var.WIN64)="no" ?>
       <Condition Message="The 32bit variant must be installed on 32bit Windows.">not VersionNT64</Condition>
     <?endif?>
     <Condition Message="[AbortReason]">Installed or (not AbortReason)</Condition>
-
-    <!-- Conditions for installation -->
     <Condition Message="Installation requires Windows 7/Server 2012. Found MsiNTProductType [MsiNTProductType], VersionNT [VersionNT]">
       Installed
       OR  (MsiNTProductType = 1) AND (VersionNT >= 601)
@@ -27,10 +25,8 @@
       OR  (MsiNTProductType = 3) AND (VersionNT >= 602)
     </Condition>
     <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">Installed OR (PhysicalMemory > 125)</Condition>
-
     <!-- ReadConfig_IMCAC must run immediately as Admin, the msi cannot elevate before deferred, so the user must be Admin -->
     <Condition Message="Searching for configuration requires Administrator privileges. Please open from an elevated command prompt.">Privileged</Condition>
-
     <Condition Message='CONFIG_TYPE must not be "[CONFIG_TYPE]". Please use "Existing", "Custom" or "Default".'>
       Installed
       OR (CONFIG_TYPE = "Existing")
@@ -48,21 +44,22 @@
                                OR (NSIS_DISPLAYVERSION << "20")
                                OR (NSIS_DISPLAYVERSION << "30") OR NOT NSIS_DISPLAYVERSION) OR Installed]]>
     </Condition>
-
     <!-- Abort msi install if NSIS installed -->
     <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION]'>
       NOT (NSIS_UNINSTALLSTRING >> "uninst.exe")
     </Condition>
 
-    <!--
-        Properties unset by default:
+
+    <!-- Properties unset by default:
            MASTER
            MASTER_KEY
            MINION_ID
            MINION_CONFIG
            CUSTOM_CONFIG
            REMOVE_CONFIG
+           MOVE_CONF
     -->
+    <!-- Properties defaults -->
     <Property Id="CONFIG_TYPE"              Value="Existing"             />
     <Property Id="START_MINION"             Value="1"                    />
     <Property Id="ROOTDRIVE"                Value="C:\"/>  <!-- prevent msi to chose the drive with most space left -->
@@ -117,7 +114,7 @@
             Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="no" />
     </Property>
 
-    <!-- The sign of NSIS install  -->
+    <!-- Detect NSIS install -->
     <SetProperty Id="nsis_exe"              Before="LaunchConditions" Value="1">NSIS_UNINSTALLSTRING >> "uninst.exe"</SetProperty>
 
 
@@ -158,28 +155,31 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       -->
     <InstallExecuteSequence>
       <!-- stopSalt to release log file -->
-      <Custom Action='stopSalt'                   Before='InstallValidate'        >1</Custom>
+      <Custom Action='stopSalt'           Before='InstallValidate'        >1</Custom>
 
-      <Custom Action='ReadConfig_IMCAC'           Before='MigrateFeatureStates'   >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'      >nsis_exe</Custom>
+      <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'   >NOT Installed</Custom>
+      <Custom Action='del_NSIS_DECAC'      After='InstallInitialize'      >nsis_exe</Custom>
 
       <Custom Action='WriteConfig_CADH'
-              Before='WriteConfig_DECAC'                                          >NOT Installed</Custom>
-      <Custom Action='WriteConfig_DECAC'           After='WriteIniValues'         >NOT Installed</Custom>
+              Before='WriteConfig_DECAC'                                 >NOT Installed</Custom>
+      <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
       <Custom Action='DeleteConfig_CADH'
-              Before='DeleteConfig_DECAC'                                         >REMOVE ~= "ALL"</Custom>
-      <Custom Action='DeleteConfig_DECAC'          After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
+              Before='DeleteConfig_DECAC'                                >REMOVE ~= "ALL"</Custom>
+      <Custom Action='DeleteConfig_DECAC' After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
 
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
     </InstallExecuteSequence>
 
 
+    <!-- Prevent downgrade -->
     <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
 
+
+    <!-- Install VC++ runtime -->
     <DirectoryRef Id="TARGETDIR">
-    <!--Visual C++ runtimes depend on the target platform -->
+    <!-- Visual C++ runtimes depend on the target platform -->
     <?if $(var.WIN64)=yes ?>
       <Merge Id="MSM_VC140_CRT" SourceFile="c:\salt_msi_resources\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0"/>
     <?else ?>
@@ -216,6 +216,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </Feature>
 
 
+    <!-- Icons -->
     <Icon        Id="icon.ico"   SourceFile="Product-icon.ico" />
     <WixVariable Id="WixUIBannerBmp"  Value="Product-imgTop.jpg" />
     <WixVariable Id="WixUIDialogBmp"  Value="Product-imgLeft.png" />
@@ -281,7 +282,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </UI>
 
 
-    <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom action . -->
+    <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom actions. -->
     <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
     <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
@@ -325,8 +326,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </Component>
 
 
-
-    <!--  Windows service (nssm and without)-->
+    <!--  Install Windows service (nssm and without)-->
     <?if 1=1 ?>
     <ComponentGroup Id="service">
       <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLDIR" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">

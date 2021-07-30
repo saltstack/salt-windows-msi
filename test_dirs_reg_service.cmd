@@ -16,3 +16,5 @@ echo      "C:\Program Files\Salt Project\salt"
 dir /b    "C:\Program Files\Salt Project\salt" )
 
 Reg Query "HKLM\SOFTWARE\Salt Project\salt"
+
+sc query salt-minion
