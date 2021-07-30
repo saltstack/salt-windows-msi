@@ -128,14 +128,34 @@ objShell.Run "net stop salt-minion", 0, true
 objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </CustomAction>
 
-    <!-- Sequence with GUI   -->
+    <!--  The GUI Sequence  -->
+    <!--
+      Run with admin privilege.
+      No changes applied. msi asks for input from the user
+      https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installuisequence
+      This sequence may be left out.
+      -->
     <InstallUISequence>
       <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'     >NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit  unclear. -->
     </InstallUISequence>
 
-    <!-- Sequence without GUI (silent, headless)   -->
+
+    <!--  The Install Sequence (aka server side) -->
+    <!--
+      Run with localsystem privilege .
+      https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence
+      If the UI sequence took place, some (non-UI) actions can be are repeated (e.g. CostInitialize).
+
+      Actions before MigrateFeatureStates:
+        Custom action is placed before the transaction starts, coined "immediate".
+        You should not modifiy the system.
+      Actions after InstallFiles:
+        Custom action is placed after the transaction started, coined "deferred" and run in a sandbox.
+        Deferred custom actions (DECAC) need custum action helper (CADH) to access msi properties
+        You may modify the system.
+      -->
     <InstallExecuteSequence>
       <!-- stopSalt to release log file -->
       <Custom Action='stopSalt'                   Before='InstallValidate'        >1</Custom>
@@ -149,7 +169,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
 
       <Custom Action='DeleteConfig_CADH'
               Before='DeleteConfig_DECAC'                                         >REMOVE ~= "ALL"</Custom>
-      <Custom Action='DeleteConfig_DECAC'          After='RemoveFiles'            >REMOVE ~= "ALL"</Custom>
+      <Custom Action='DeleteConfig_DECAC'          After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
 
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
