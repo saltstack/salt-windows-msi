@@ -75,6 +75,11 @@ In the DECAC:
     session.CustomActionData["mister"]      THIS WILL CRASH
 
 
+### Enforce feature installation (e.g. REMOVE_CONFIG not writtten to registry)
+
+    <SetProperty Id="REINSTALL" Value='ALL' Before="LaunchConditions">1</SetProperty>   
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." MigrateFeatures="no"/>
+
 ### Conditional removal of lifetime data
 "Lifetime data" means any change that was not installed by the msi (during the life time of the application).
 
