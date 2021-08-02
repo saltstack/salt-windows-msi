@@ -90,13 +90,14 @@
     </Property>
 
     <!-- Write registry (declare components) and delete on uninstall -->
-    <Component Id="write_to_registry" Directory="TARGETDIR">
+    <Component Id="register_dirs" Directory="TARGETDIR">
       <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)">
         <RegistryValue Name="root_dir"      Value="[INSTALLDIR]" Type="string"/>
         <RegistryValue Name="config_dir"    Value="[CONFIGDIR]"  Type="string"/>
       </RegistryKey>
     </Component>
-    <Component Id="write_to_registry_to_remove_all_config_on_uninstall" Directory="TARGETDIR">
+    <Component Id="register_remove_config" Directory="TARGETDIR">
+      <Condition>REMOVE_CONFIG</Condition>
       <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" ForceDeleteOnUninstall="yes" >
         <RegistryValue Name="REMOVE_CONFIG" Value="1"            Type="string"/>
       </RegistryKey>
@@ -218,14 +219,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
       <ComponentRef Id="CONFIGDIR_Permissions" />
-      <ComponentRef Id="write_to_registry"/>
+      <ComponentRef Id="register_dirs"/>
+      <ComponentRef Id="register_remove_config"/>
     </ComponentGroup>
-    <Feature Id="remove_registry_on_uninstall" Level="0"><Condition Level="1"
-                >REMOVE_CONFIG or (REMOVE ~= "ALL")</Condition>
-      <!-- On install: only write key if requested (REMOVE_CONFIG) -->
-      <!-- On uninstall (REMOVE ~= "ALL"): always remove -->
-      <ComponentRef Id="write_to_registry_to_remove_all_config_on_uninstall"/>
-    </Feature>
+
 
 
     <!-- Icons -->
