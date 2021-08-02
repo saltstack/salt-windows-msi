@@ -218,13 +218,8 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
       <ComponentRef Id="CONFIGDIR_Permissions" />
-    </ComponentGroup>
-    <Feature Id="leave_registry_on_uninstall" Level="0"><Condition Level="1"
-                >not Installed or (REMOVE ~= "ALL")</Condition>
-      <!-- On install (not Installed): always write keys -->
-      <!-- On uninstall (REMOVE ~= "ALL"): always remove -->
       <ComponentRef Id="write_to_registry"/>
-    </Feature>
+    </ComponentGroup>
     <Feature Id="remove_registry_on_uninstall" Level="0"><Condition Level="1"
                 >REMOVE_CONFIG or (REMOVE ~= "ALL")</Condition>
       <!-- On install: only write key if requested (REMOVE_CONFIG) -->
