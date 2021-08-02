@@ -164,6 +164,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
               Before='WriteConfig_DECAC'                                 >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
+
+      <!-- on uninstall  -->
+      <Custom Action='kill_python_exe'    After='StopServices'           >REMOVE ~= "ALL"</Custom>
+
       <Custom Action='DeleteConfig_CADH'
               Before='DeleteConfig_DECAC'                                >REMOVE ~= "ALL"</Custom>
       <Custom Action='DeleteConfig_DECAC' After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
@@ -287,6 +291,7 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
     <Binary                                            Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->
