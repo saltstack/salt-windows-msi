@@ -299,7 +299,6 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       <Directory Id="$(var.PROGRAMFILES)">                        <!-- C:\Program Files  or  C:\Program Files (x86) -->
         <Directory Id="installparent" Name="$(var.MANUFACTURER)">
           <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)"/>
-            <Directory Id="BINDIR"  Name="bin" />
         </Directory>
       </Directory>
       <Directory Id="CommonAppDataFolder">                        <!-- C:\ProgramData -->
@@ -365,10 +364,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </ComponentGroup>
     <?else ?>
     <ComponentGroup Id="service">
-      <Component        Id="servicec1" Directory="BINDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
+      <Component        Id="servicec1" Directory="INSTALLDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
         <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes"/>
         <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
-                        Arguments="[BINDIR]Scripts\salt-minion -c [INSTALLDIR]conf -l quiet"
+                        Arguments="[INSTALLDIR]\bin\Scripts\salt-minion -c [INSTALLDIR]conf -l quiet"
                         Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
           <util:ServiceConfig
             FirstFailureActionType="none"
