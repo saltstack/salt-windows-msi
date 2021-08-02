@@ -154,7 +154,8 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         You may modify the system.
       -->
     <InstallExecuteSequence>
-      <!-- stopSalt to release log file -->
+      <!-- On uninstall  -->
+      <!--     stopSalt to release log file -->
       <Custom Action='stopSalt'           Before='InstallValidate'        >1</Custom>
 
       <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'   >NOT Installed</Custom>
@@ -164,17 +165,29 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
               Before='WriteConfig_DECAC'                                 >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
+      <!--     Optionally start the service  -->
+      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
 
-      <!-- on uninstall  -->
+      <!-- On uninstall  -->
       <Custom Action='kill_python_exe'    After='StopServices'           >REMOVE ~= "ALL"</Custom>
 
       <Custom Action='DeleteConfig_CADH'
               Before='DeleteConfig_DECAC'                                >REMOVE ~= "ALL"</Custom>
       <Custom Action='DeleteConfig_DECAC' After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
 
-      <!-- Optionally start the service  -->
-      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
     </InstallExecuteSequence>
+
+    <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom actions. -->
+    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
+    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
+    <Binary                                        Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
+    <!-- Custom Action Data Helper for deferred custom actions  -->
+    <!-- master and id must be named like in YAML configuration -->
+    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
+    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];" />
 
 
     <!-- Prevent downgrade -->
@@ -285,18 +298,6 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       </Dialog>
     </UI>
 
-
-    <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom actions. -->
-    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
-    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
-    <Binary                                            Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
-    <!-- Custom Action Data Helper for deferred custom actions  -->
-    <!-- master and id must be named like in YAML configuration -->
-    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
-    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];" />
 
     <!--  Default directory layout, Admin could modify by setting all affected directory id's  -->
     <Directory Id="TARGETDIR" Name="SourceDir">                   <!-- Fixed expression. Location of the msi file -->
