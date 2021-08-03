@@ -212,7 +212,9 @@ namespace MinionConfigurationExtension {
             service.WaitForStatus(ServiceControllerStatus.Stopped, timeout);
         }
 
-        public static void kill_python_exe(Session session) {
+
+       [CustomAction]
+        public static ActionResult kill_python_exe(Session session) {
             // because a running process can prevent removal of files
             // Get full path and command line from running process
             using (var wmi_searcher = new ManagementObjectSearcher
@@ -227,13 +229,13 @@ namespace MinionConfigurationExtension {
                             session.Log("...kill_python_exe " + ExecutablePath + " " + CommandLine);
                             Process proc11 = Process.GetProcessById(pid);
                             proc11.Kill();
-                            System.Threading.Thread.Sleep(10);
                         }
                     } catch (Exception) {
                         // ignore wmiresults without these properties
                     }
                 }
             }
+            return ActionResult.Success;
         }
 
         [CustomAction]
@@ -356,7 +358,6 @@ namespace MinionConfigurationExtension {
         public static ActionResult DeleteConfig_DECAC(Session session) {
             // This uninstalls the current install.
             session.Log("...BEGIN DeleteConfig_DECAC");
-            kill_python_exe(session);
 
             // Determine wether to delete everything and DIRS
             string REMOVE_CONFIG = cutil.get_property_DECAC(session, "REMOVE_CONFIG");

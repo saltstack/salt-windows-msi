@@ -140,7 +140,6 @@ Move-Item $DISCOVER_CONFIGDIR $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_f
 # -gg      Generate guids now. All components are given a guid when heat is run.
 # -sfrag   Suppress generation of fragments for directories and components.
 # -sreg    Suppress registry harvesting.
-# -suid    Suppress SILLY unique identifiers for files, components, & directories.
 # -srd     Suppress harvesting the root directory as an element.
 # -ke      Keep empty directories.
 # -dr <DirectoryName>   Directory reference to root directories (cannot contains spaces e.g. -dr MyAppDirRef).
@@ -149,12 +148,11 @@ Move-Item $DISCOVER_CONFIGDIR $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_f
 & "$($ENV:WIX)bin\heat" dir "$($DISCOVER_INSTALLDIR[$i])" -out "Product-discovered-files-$($ARCHITECTURE[$i]).wxs" `
    -cg DiscoveredBinaryFiles -var var.DISCOVER_INSTALLDIR `
    -dr INSTALLDIR -t Product-discover-files.xsl `
-   -nologo -indent 1 -gg -sfrag -sreg -suid -srd -ke -template fragment
+   -nologo -indent 1 -gg -sfrag -sreg -srd -ke -template fragment
 Move-Item $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONFIGDIR
 CheckExitCode
 
 # Config shall remain, so delete all Guid (TODO)
-#  workaround remove -suid because heat cannot keep id's unique from previous run
 Write-Host -ForegroundColor Yellow "Discovering  $DISCOVER_CONFIGDIR for CONFDIR to *.wxs"
 & "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFIGDIR" -out "Product-discovered-files-config.wxs" `
    -cg DiscoveredConfigFiles -var var.DISCOVER_CONFIGDIR `

@@ -1,6 +1,8 @@
 @echo off
 IF exist  "c:\salt\conf" (
-echo      "c:\salt\conf" 
+echo      "c:\salt"
+dir /b    "c:\salt"
+echo      "c:\salt\conf"
 dir /b /s "c:\salt\conf" )
 
 IF exist  "C:\ProgramData\Salt Project\salt\conf" (

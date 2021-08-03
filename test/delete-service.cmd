@@ -1,1 +1,0 @@
-sc delete salt-minion 

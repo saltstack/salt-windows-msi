@@ -90,13 +90,14 @@
     </Property>
 
     <!-- Write registry (declare components) and delete on uninstall -->
-    <Component Id="write_to_registry" Directory="TARGETDIR">
+    <Component Id="register_dirs" Directory="TARGETDIR">
       <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)">
         <RegistryValue Name="root_dir"      Value="[INSTALLDIR]" Type="string"/>
         <RegistryValue Name="config_dir"    Value="[CONFIGDIR]"  Type="string"/>
       </RegistryKey>
     </Component>
-    <Component Id="write_to_registry_to_remove_all_config_on_uninstall" Directory="TARGETDIR">
+    <Component Id="register_remove_config" Directory="TARGETDIR">
+      <Condition>REMOVE_CONFIG</Condition>
       <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" ForceDeleteOnUninstall="yes" >
         <RegistryValue Name="REMOVE_CONFIG" Value="1"            Type="string"/>
       </RegistryKey>
@@ -154,7 +155,8 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         You may modify the system.
       -->
     <InstallExecuteSequence>
-      <!-- stopSalt to release log file -->
+      <!-- On uninstall  -->
+      <!--     stopSalt to release log file -->
       <Custom Action='stopSalt'           Before='InstallValidate'        >1</Custom>
 
       <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'   >NOT Installed</Custom>
@@ -164,13 +166,29 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
               Before='WriteConfig_DECAC'                                 >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
+      <!--     Optionally start the service  -->
+      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
+
+      <!-- On uninstall  -->
+      <Custom Action='kill_python_exe'    After='StopServices'           >REMOVE ~= "ALL"</Custom>
+
       <Custom Action='DeleteConfig_CADH'
               Before='DeleteConfig_DECAC'                                >REMOVE ~= "ALL"</Custom>
       <Custom Action='DeleteConfig_DECAC' After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
 
-      <!-- Optionally start the service  -->
-      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
     </InstallExecuteSequence>
+
+    <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom actions. -->
+    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
+    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
+    <Binary                                        Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
+    <!-- Custom Action Data Helper for deferred custom actions  -->
+    <!-- master and id must be named like in YAML configuration -->
+    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
+    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];" />
 
 
     <!-- Prevent downgrade -->
@@ -201,19 +219,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
       <ComponentRef Id="CONFIGDIR_Permissions" />
+      <ComponentRef Id="register_dirs"/>
+      <ComponentRef Id="register_remove_config"/>
     </ComponentGroup>
-    <Feature Id="leave_registry_on_uninstall" Level="0"><Condition Level="1"
-                >not Installed or (REMOVE ~= "ALL")</Condition>
-      <!-- On install (not Installed): always write keys -->
-      <!-- On uninstall (REMOVE ~= "ALL"): always remove -->
-      <ComponentRef Id="write_to_registry"/>
-    </Feature>
-    <Feature Id="remove_registry_on_uninstall" Level="0"><Condition Level="1"
-                >REMOVE_CONFIG or (REMOVE ~= "ALL")</Condition>
-      <!-- On install: only write key if requested (REMOVE_CONFIG) -->
-      <!-- On uninstall (REMOVE ~= "ALL"): always remove -->
-      <ComponentRef Id="write_to_registry_to_remove_all_config_on_uninstall"/>
-    </Feature>
+
 
 
     <!-- Icons -->
@@ -282,23 +291,11 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </UI>
 
 
-    <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom actions. -->
-    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
-    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
-    <Binary                                            Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
-    <!-- Custom Action Data Helper for deferred custom actions  -->
-    <!-- master and id must be named like in YAML configuration -->
-    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
-    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];" />
-
     <!--  Default directory layout, Admin could modify by setting all affected directory id's  -->
     <Directory Id="TARGETDIR" Name="SourceDir">                   <!-- Fixed expression. Location of the msi file -->
       <Directory Id="$(var.PROGRAMFILES)">                        <!-- C:\Program Files  or  C:\Program Files (x86) -->
         <Directory Id="installparent" Name="$(var.MANUFACTURER)">
           <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)"/>
-            <Directory Id="BINDIR"  Name="bin" />
         </Directory>
       </Directory>
       <Directory Id="CommonAppDataFolder">                        <!-- C:\ProgramData -->
@@ -364,10 +361,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     </ComponentGroup>
     <?else ?>
     <ComponentGroup Id="service">
-      <Component        Id="servicec1" Directory="BINDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
+      <Component        Id="servicec1" Directory="INSTALLDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
         <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes"/>
         <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
-                        Arguments="[BINDIR]Scripts\salt-minion -c [INSTALLDIR]conf -l quiet"
+                        Arguments="[INSTALLDIR]\bin\Scripts\salt-minion -c [INSTALLDIR]conf -l quiet"
                         Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
           <util:ServiceConfig
             FirstFailureActionType="none"
