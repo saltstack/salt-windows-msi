@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+>> - Ends With
+<< - Starts With - Requires CDATA because < is a key character in xml
+
+CADH  - Custom Action Data Helper - Sends variables from the client to the server
+        One way only (send only)
+        Runs as Administrator
+DECAC - Deferred Custom Action - It is run by the msiserver service, local system
+        Runs as LOCAL_SYSTEM
+        Sandboxed
+IMCAC - Immediate Custom Action - It's immediate
+        Runs as Administrator
+
+-->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Product
       Manufacturer = "$(var.MANUFACTURER)"
@@ -25,7 +39,12 @@
       OR  (MsiNTProductType = 3) AND (VersionNT >= 602)
     </Condition>
     <Condition Message="Installation requires 125 MB RAM. Found [PhysicalMemory] MB">Installed OR (PhysicalMemory > 125)</Condition>
-    <!-- ReadConfig_IMCAC must run immediately as Admin, the msi cannot elevate before deferred, so the user must be Admin -->
+    <!--
+      ReadConfig_IMCAC must run immediately as Admin, the msi cannot elevate
+      before deferred, so the user must be Admin. We need to run with elevated
+      privileges in order to read the minion config, if it exists, and get the
+      currently configured master and minion id.
+    -->
     <Condition Message="Searching for configuration requires Administrator privileges. Please open from an elevated command prompt.">Privileged</Condition>
     <Condition Message='CONFIG_TYPE must not be "[CONFIG_TYPE]". Please use "Existing", "Custom" or "Default".'>
       Installed
@@ -120,11 +139,20 @@
 
 
     <CustomAction Id="stopSalt" Script="vbscript">
-On error resume next
-Set objShell = CreateObject("WScript.Shell")
-objShell.Run "net stop salt-minion", 0, true
-objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
+      <!--
+      We need to stop the salt-minion before validating the installation. Part
+      of validation looks at the log file. If it is locked, it will fail.
+      Something has a lock on the minion log file, either salt-minion or
+      ssm.exe
+      -->
+      On error resume next
+      Set objShell = CreateObject("WScript.Shell")
+      objShell.Run "net stop salt-minion", 0, true
     </CustomAction>
+    <!-- This is the import statement for the Custom Actions:
+            IMCAC, DECAC, etc...
+    -->
+    <Binary                                 Id='MinionConfigExt'        SourceFile='CustomAction01\CustomAction01.CA.dll'/>
 
     <!--  The GUI Sequence  -->
     <!--
@@ -142,9 +170,10 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
 
     <!--  The Install Sequence (aka server side) -->
     <!--
-      Run with localsystem privilege .
+      Run with localsystem privilege.
+
       https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installexecutesequence
-      If the UI sequence took place, some (non-UI) actions can be are repeated (e.g. CostInitialize).
+      If the UI sequence took place, some (non-UI) actions are repeated (e.g. CostInitialize).
 
       Actions before MigrateFeatureStates:
         Custom action is placed before the transaction starts, coined "immediate".
@@ -155,15 +184,17 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
         You may modify the system.
       -->
     <InstallExecuteSequence>
-      <!-- On uninstall  -->
-      <!--     stopSalt to release log file -->
-      <Custom Action='stopSalt'           Before='InstallValidate'        >1</Custom>
+      <!--
+      On uninstall
+        stopSalt to release log file, installValidate requires access to all
+        files, including the log file
+      -->
+      <Custom Action='stopSalt'           Before='InstallValidate'       >1</Custom>
 
-      <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'   >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'      After='InstallInitialize'      >nsis_exe</Custom>
+      <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'  >NOT Installed</Custom>
+      <Custom Action='del_NSIS_DECAC'     After='InstallInitialize'      >nsis_exe</Custom>
 
-      <Custom Action='WriteConfig_CADH'
-              Before='WriteConfig_DECAC'                                 >NOT Installed</Custom>
+      <Custom Action='WriteConfig_CADH'   Before='WriteConfig_DECAC'     >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
       <!--     Optionally start the service  -->
@@ -184,9 +215,9 @@ objShell.Run "cmd /c ping -n 5 127.0.0.1", 0, True
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
-    <Binary                                        Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->
+    <!-- Send all this stuff down to the sandbox -->
     <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
     <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];" />
 
