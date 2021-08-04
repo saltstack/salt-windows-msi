@@ -138,13 +138,13 @@ IMCAC - Immediate Custom Action - It's immediate
     <SetProperty Id="nsis_exe"              Before="LaunchConditions" Value="1">NSIS_UNINSTALLSTRING >> "uninst.exe"</SetProperty>
 
 
+    <!--
+    We need to stop the salt-minion before validating the installation. Part
+    of validation looks at the log file. If it is locked, it will fail.
+    Something has a lock on the minion log file, either salt-minion or
+    ssm.exe
+    -->
     <CustomAction Id="stopSalt" Script="vbscript">
-      <!--
-      We need to stop the salt-minion before validating the installation. Part
-      of validation looks at the log file. If it is locked, it will fail.
-      Something has a lock on the minion log file, either salt-minion or
-      ssm.exe
-      -->
       On error resume next
       Set objShell = CreateObject("WScript.Shell")
       objShell.Run "net stop salt-minion", 0, true
