@@ -138,17 +138,17 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- This is the import statement for the Custom Actions:
             IMCAC, DECAC, etc...
     -->
-    <Binary                                 Id='MinionConfigExt'        SourceFile='CustomAction01\CustomAction01.CA.dll'/>
+    <Binary Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
 
-    <!--  The GUI Sequence  -->
+    <!--  The GUI Sequence (ask for input from the user) -->
     <!--
-      Run with admin privilege.
-      No changes applied. msi asks for input from the user
+      You should not apply changes, only retrieve config.
+      Normally runs non-privileged, but reading salt config requires admin privilege.
       https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installuisequence
-      This sequence may be left out.
+      If this sequence is left out, this is a "silent install".
       -->
     <InstallUISequence>
-      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'     >NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC' Before='MigrateFeatureStates'>NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit  unclear. -->
     </InstallUISequence>
