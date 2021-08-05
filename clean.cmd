@@ -2,5 +2,4 @@
 del *.wixobj
 del CustomAction01\*.pdb
 del CustomAction01\*.dll
-del *-discovered-files.wxs
-
+del Product-discovered-files-*.wxs
