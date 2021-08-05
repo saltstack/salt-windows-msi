@@ -68,21 +68,11 @@ IMCAC - Immediate Custom Action - It's immediate
       NOT (NSIS_UNINSTALLSTRING >> "uninst.exe")
     </Condition>
 
-
-    <!-- Properties unset by default:
-           MASTER
-           MASTER_KEY
-           MINION_ID
-           MINION_CONFIG
-           CUSTOM_CONFIG
-           REMOVE_CONFIG
-           MOVE_CONF
-    -->
-    <!-- Properties defaults -->
-    <Property Id="CONFIG_TYPE"              Value="Existing"             />
-    <Property Id="START_MINION"             Value="1"                    />
+    <!-- Properties default values. For Properties unset by default see README.md -->
+    <Property Id="CONFIG_TYPE"              Value="Existing"/>
+    <Property Id="START_MINION"             Value="1"/>
     <Property Id="ROOTDRIVE"                Value="C:\"/>  <!-- prevent msi to chose the drive with most space left -->
-    <Property Id="ARPPRODUCTICON"           Value="icon.ico" />
+    <Property Id="ARPPRODUCTICON"           Value="icon.ico"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
