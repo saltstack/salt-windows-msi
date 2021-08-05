@@ -74,7 +74,6 @@ IMCAC - Immediate Custom Action - It's immediate
     <Property Id="ROOTDRIVE"                Value="C:\"/>  <!-- prevent msi to chose the drive with most space left -->
     <Property Id="ARPPRODUCTICON"           Value="icon.ico"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
-    <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLDIR"/>
 
