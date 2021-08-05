@@ -52,9 +52,6 @@ IMCAC - Immediate Custom Action - It's immediate
       OR (CONFIG_TYPE = "Custom")
       OR (CONFIG_TYPE = "Default")
     </Condition>
-    <Condition Message='START_MINION must not be [START_MINION]. Please use 1 or "" (two double quotes).'>
-      (START_MINION = 1) OR NOT START_MINION OR Installed
-    </Condition>
     <Condition Message='NSIS Salt Minion unexpected uninstall instruction [NSIS_UNINSTALLSTRING]'>
       NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe" OR NOT NSIS_UNINSTALLSTRING) OR Installed
     </Condition>
@@ -187,7 +184,7 @@ IMCAC - Immediate Custom Action - It's immediate
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
       <!--     Optionally start the service  -->
-      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
+      <StartServices Sequence="5900">START_MINION</StartServices>
 
       <!-- On uninstall  -->
       <Custom Action='kill_python_exe'    After='StopServices'           >REMOVE ~= "ALL"</Custom>
