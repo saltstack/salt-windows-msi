@@ -171,7 +171,7 @@ IMCAC - Immediate Custom Action - It's immediate
       -->
     <InstallExecuteSequence>
       <!--
-      On uninstall
+      On intall and uninstall
         stopSalt to release log file, installValidate requires access to all
         files, including the log file
       -->
