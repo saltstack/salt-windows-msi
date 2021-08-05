@@ -171,7 +171,7 @@ IMCAC - Immediate Custom Action - It's immediate
       -->
     <InstallExecuteSequence>
       <!--
-      On intall and uninstall
+      On install and uninstall
         stopSalt to release log file, installValidate requires access to all
         files, including the log file
       -->
@@ -183,11 +183,11 @@ IMCAC - Immediate Custom Action - It's immediate
       <Custom Action='WriteConfig_CADH'   Before='WriteConfig_DECAC'     >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
-      <!--     Optionally start the service  -->
+      <!-- Optionally start the service  -->
       <StartServices Sequence="5900">START_MINION</StartServices>
 
-      <!-- On uninstall  -->
-      <Custom Action='kill_python_exe'    After='StopServices'           >REMOVE ~= "ALL"</Custom>
+      <!-- On uninstall or upgrade, stop salt python.exe processes that would lock dll's -->
+      <Custom Action='kill_python_exe'    After='StopServices'           >(REMOVE ~= "ALL") or WIX_UPGRADE_DETECTED</Custom>
 
       <Custom Action='DeleteConfig_CADH'
               Before='DeleteConfig_DECAC'                                >REMOVE ~= "ALL"</Custom>
