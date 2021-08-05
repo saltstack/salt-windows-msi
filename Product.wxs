@@ -397,6 +397,6 @@ IMCAC - Immediate Custom Action - It's immediate
 
 
     <!-- Do not create cab files -->
-    <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
   </Product>
 </Wix>
