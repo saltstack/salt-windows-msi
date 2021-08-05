@@ -34,8 +34,8 @@ if ([convert]::ToInt32($major, 10) -ge 3000) {      # 3000 scheme
   $month = $minor
   $internalversion = "$year.$month.$bugfix"
 }
-Write-Host -ForegroundColor Yellow "Display version   $displayversion"
-Write-Host -ForegroundColor Yellow "Internal version  $internalversion"
+Write-Host -ForegroundColor Green "Display version   $displayversion"
+Write-Host -ForegroundColor Green "Internal version  $internalversion"
 
 # # # Detecting target platform from NSIS exe # # #
 $targetplatform = 0
@@ -46,7 +46,7 @@ if ($targetplatform -eq 0) {
   Write-Host -ForegroundColor Red "Have you build the NSIS Nullsoft exe installer?"
   exit(1)
 }
-Write-Host -ForegroundColor Yellow "Architecture      $targetplatform"
+Write-Host -ForegroundColor Green "Architecture      $targetplatform"
 
 # # # Detecting Python version from NSIS exe # # #
 $pythonversion = 0
@@ -114,7 +114,7 @@ Pop-Location
 CheckExitCode
 
 
-Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll"
+Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll (because InstallService runs in a sandbox)"
 # MakeSfxCA creates a self-extracting managed MSI CA DLL because
 # the custom action dll will run in a sandbox and needs all dll inside. This adds 700 kB.
 # Because MakeSfxCA cannot check if Wix will reference a non existing procedure, you must double check yourself.
@@ -130,7 +130,7 @@ Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll"
 CheckExitCode
 
 
-Write-Host -ForegroundColor Yellow "Discovering  $($DISCOVER_INSTALLDIR[$i]) for INSTALLDIR to *$($ARCHITECTURE[$i])*.wxs"
+Write-Host -ForegroundColor Yellow "Discovering  INSTALLDIR from $($DISCOVER_INSTALLDIR[$i]) to *$($ARCHITECTURE[$i])*.wxs"
 # move conf folder up one dir because it must not be discoverd twice and xslt is difficult
 Move-Item $DISCOVER_CONFIGDIR $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder
 # https://wixtoolset.org/documentation/manual/v3/overview/heat.html
@@ -153,7 +153,7 @@ Move-Item $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONF
 CheckExitCode
 
 # Config shall remain, so delete all Guid (TODO)
-Write-Host -ForegroundColor Yellow "Discovering  $DISCOVER_CONFIGDIR for CONFDIR to *.wxs"
+Write-Host -ForegroundColor Yellow "Discovering  CONFDIR    from $DISCOVER_CONFIGDIR to *.wxs"
 & "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFIGDIR" -out "Product-discovered-files-config.wxs" `
    -cg DiscoveredConfigFiles -var var.DISCOVER_CONFIGDIR `
    -dr CONFDIR -t Product-discover-files-config.xsl `
@@ -179,7 +179,7 @@ Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *
     "Product.wxs" "Product-discovered-files-$($ARCHITECTURE[$i]).wxs" "Product-discovered-files-config.wxs" > build.tmp
 CheckExitCode
 
-Write-Host -ForegroundColor Yellow "Linking      *.wixobj and *.CA.dll to $PRODUCT-$VERSION-$($ARCH_AKA[$i]).msi"
+Write-Host -ForegroundColor Yellow "Linking      $PRODUCT-$VERSION-$($ARCH_AKA[$i]).msi"
 # Options https://wixtoolset.org/documentation/manual/v3/overview/light.html
 & "$($ENV:WIX)bin\light"  -nologo `
     -out "$pwd\$PRODUCTFILE-Py$pythonversion-$($ARCH_AKA[$i]).msi" `
