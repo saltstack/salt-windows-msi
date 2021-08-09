@@ -52,9 +52,6 @@ IMCAC - Immediate Custom Action - It's immediate
       OR (CONFIG_TYPE = "Custom")
       OR (CONFIG_TYPE = "Default")
     </Condition>
-    <Condition Message='START_MINION must not be [START_MINION]. Please use 1 or "" (two double quotes).'>
-      (START_MINION = 1) OR NOT START_MINION OR Installed
-    </Condition>
     <Condition Message='NSIS Salt Minion unexpected uninstall instruction [NSIS_UNINSTALLSTRING]'>
       NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe" OR NOT NSIS_UNINSTALLSTRING) OR Installed
     </Condition>
@@ -68,23 +65,12 @@ IMCAC - Immediate Custom Action - It's immediate
       NOT (NSIS_UNINSTALLSTRING >> "uninst.exe")
     </Condition>
 
-
-    <!-- Properties unset by default:
-           MASTER
-           MASTER_KEY
-           MINION_ID
-           MINION_CONFIG
-           CUSTOM_CONFIG
-           REMOVE_CONFIG
-           MOVE_CONF
-    -->
-    <!-- Properties defaults -->
-    <Property Id="CONFIG_TYPE"              Value="Existing"             />
-    <Property Id="START_MINION"             Value="1"                    />
+    <!-- Properties default values. For Properties unset by default see README.md -->
+    <Property Id="CONFIG_TYPE"              Value="Existing"/>
+    <Property Id="START_MINION"             Value="1"/>
     <Property Id="ROOTDRIVE"                Value="C:\"/>  <!-- prevent msi to chose the drive with most space left -->
-    <Property Id="ARPPRODUCTICON"           Value="icon.ico" />
+    <Property Id="ARPPRODUCTICON"           Value="icon.ico"/>
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
-    <Property Id="MsiLogging"               Value="v"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLDIR"/>
 
@@ -152,17 +138,17 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- This is the import statement for the Custom Actions:
             IMCAC, DECAC, etc...
     -->
-    <Binary                                 Id='MinionConfigExt'        SourceFile='CustomAction01\CustomAction01.CA.dll'/>
+    <Binary Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
 
-    <!--  The GUI Sequence  -->
+    <!--  The GUI Sequence (ask for input from the user) -->
     <!--
-      Run with admin privilege.
-      No changes applied. msi asks for input from the user
+      You should not apply changes, only retrieve config.
+      Normally runs non-privileged, but reading salt config requires admin privilege.
       https://docs.microsoft.com/en-us/windows/win32/msi/suggested-installuisequence
-      This sequence may be left out.
+      If this sequence is left out, this is a "silent install".
       -->
     <InstallUISequence>
-      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'     >NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC' Before='MigrateFeatureStates'>NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit  unclear. -->
     </InstallUISequence>
@@ -185,7 +171,7 @@ IMCAC - Immediate Custom Action - It's immediate
       -->
     <InstallExecuteSequence>
       <!--
-      On uninstall
+      On install and uninstall
         stopSalt to release log file, installValidate requires access to all
         files, including the log file
       -->
@@ -197,11 +183,11 @@ IMCAC - Immediate Custom Action - It's immediate
       <Custom Action='WriteConfig_CADH'   Before='WriteConfig_DECAC'     >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
-      <!--     Optionally start the service  -->
-      <StartServices Sequence="5900"><![CDATA[START_MINION = "1"]]></StartServices>
+      <!-- Optionally start the service  -->
+      <StartServices Sequence="5900">START_MINION</StartServices>
 
-      <!-- On uninstall  -->
-      <Custom Action='kill_python_exe'    After='StopServices'           >REMOVE ~= "ALL"</Custom>
+      <!-- On uninstall or upgrade, stop salt python.exe processes that would lock dll's -->
+      <Custom Action='kill_python_exe'    After='StopServices'           >(REMOVE ~= "ALL") or WIX_UPGRADE_DETECTED</Custom>
 
       <Custom Action='DeleteConfig_CADH'
               Before='DeleteConfig_DECAC'                                >REMOVE ~= "ALL"</Custom>
@@ -411,6 +397,6 @@ IMCAC - Immediate Custom Action - It's immediate
 
 
     <!-- Do not create cab files -->
-    <MediaTemplate EmbedCab="yes" CompressionLevel="low" />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
   </Product>
 </Wix>
