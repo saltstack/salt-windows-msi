@@ -191,7 +191,7 @@ Which Microsoft Visual C++ compiler is needed where?
 | Software                         | msm         | from Visual Studio and in "vcredist" name
 |---                               |---          |---
 |  (CPython 2.7)                   | VC90_CRT    | 2008
-|  M2Crypto *                      | VC120_CRT   | 2013
+|  M2Crypto, OpenSSL               | VC120_CRT   | 2013
 |  (CPython 3.5, 3.6, 3.7, 3.8)    | VC140_CRT   | 2015
 
 The msi incorporates merge modules following this [how-to](https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html)
