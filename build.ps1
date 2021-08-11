@@ -70,7 +70,12 @@ $PRODUCTFILE    = "Salt-Minion-$displayversion"
 $VERSION        = $internalversion
 $DISCOVERFOLDER = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
 
-$msbuild = "C:\Program Files (x86)\MSBuild\14.0\"    # MSBuild only needed to compile C#
+# MSBUild needed to compile C#
+If ( (Get-CimInstance Win32_OperatingSystem).OSArchitecture -eq "64-bit" ) {
+    $msbuild = "C:\Program Files (x86)\MSBuild\14.0\"
+} else {
+    $msbuild = "C:\Program Files\MSBuild\14.0\"
+}
 
 # MSI related arrays for 64 and 32 bit values, selected by targetplatform
 if ($targetplatform -eq "32") {$i = 1} else {$i = 0}
