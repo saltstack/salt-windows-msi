@@ -9,6 +9,8 @@ The build client is where the msi installer is built.
 - .Net 3.5 SDK (for WiX)<sup>*</sup>
 - Microsoft_VC140_CRT_x64.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
 - Microsoft_VC140_CRT_x86.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
+- Microsoft_VC120_CRT_x64.msm from Visual Studio 2013 in `c:\salt_msi_resources\`<sup>**</sup>
+- Microsoft_VC120_CRT_x86.msm from Visual Studio 2013 in `c:\salt_msi_resources\`<sup>**</sup>
 - [Wix 3.11](http://wixtoolset.org/releases/)<sup>**</sup>
 - [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>**</sup>
 

@@ -4,3 +4,5 @@ _cache.dir/*
 *.pdb
 *.dll
 *-discovered-files.wxs
+*.un~
+.idea
