@@ -85,8 +85,8 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry-->
     <Property Id="PCONFIGDIR">
       <!-- C:\ProgramData\Salt Project\Salt -->
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="config_dir" Win64="$(var.WIN64)" Type="raw" Id="rsc"/>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="config_dir" Win64="no"           Type="raw" Id="rsc_nullsoft"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="$(var.WIN64)" Type="raw" Id="rsc"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="no"           Type="raw" Id="rsc_nullsoft"/>
     </Property>
     <Property Id="REMOVE_CONFIG">
       <!-- Read from registry the intention to remove config  -->
@@ -97,8 +97,8 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- Write registry (declare components) and delete on uninstall -->
     <Component Id="register_dirs" Directory="TARGETDIR">
       <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)">
-        <RegistryValue Name="root_dir"      Value="[INSTALLDIR]" Type="string"/>
-        <RegistryValue Name="config_dir"    Value="[CONFIGDIR]"  Type="string"/>
+        <RegistryValue Name="install_dir" Value="[INSTALLDIR]" Type="string"/>
+        <RegistryValue Name="root_dir"    Value="[CONFIGDIR]"  Type="string"/>
       </RegistryKey>
     </Component>
     <Component Id="register_remove_config" Directory="TARGETDIR">
