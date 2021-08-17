@@ -8,3 +8,5 @@ _cache.dir/*
 Product-discovered-files*.wxs
 Salt-Minion-*-install.log
 Salt-Minion-*-uninstall.log
+*-discovered-files.wxs
+.idea
