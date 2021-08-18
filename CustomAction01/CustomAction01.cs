@@ -43,19 +43,19 @@ namespace MinionConfigurationExtension {
               *
               */
             session.Log("...BEGIN ReadConfig_IMCAC");
-            string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");
-            string ProgramData    = System.Environment.GetEnvironmentVariable("ProgramData");
+            string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");  // Logic issue: this function is called before the GUI, but this property is set in the GUI.
+            string ProgramData    = cutil.get_property_IMCAC(session, "CommonAppDataFolder");
 
-            string CONFIGDIROld = @"C:\salt";
-            string CONFIGDIRNew =  Path.Combine(ProgramData, @"\Salt Project\Salt");
+            string ROOTDIR_old = @"C:\salt";
+            string ROOTDIR_new =  Path.Combine(ProgramData, @"Salt Project\Salt");
             // Create msi proporties
-            session["CONFIGDIROld"] = CONFIGDIROld;
-            session["CONFIGDIRNew"] = CONFIGDIRNew;
+            session["ROOTDIR_old"] = ROOTDIR_old;
+            session["ROOTDIR_new"] = ROOTDIR_new;
 
             string abortReason = "";
             if (MOVE_CONF == "1") {
-                if (Directory.Exists(CONFIGDIROld) && Directory.Exists(CONFIGDIRNew)) {
-                    abortReason = CONFIGDIROld + " and " + CONFIGDIRNew + " must not both exist when MOVE_CONF=1.  ";
+                if (Directory.Exists(ROOTDIR_old) && Directory.Exists(ROOTDIR_new)) {
+                    abortReason = ROOTDIR_old + " and " + ROOTDIR_new + " must not both exist when MOVE_CONF=1.  ";
                 }
             }
             if (abortReason.Length > 0) {
@@ -63,15 +63,15 @@ namespace MinionConfigurationExtension {
             }
 
             session.Log("...Searching minion config file for reading master and id");
-            string main_config = cutil.get_file_that_exist(session, new string[] {
-                CONFIGDIRNew + @"\conf\minion",
-                CONFIGDIROld + @"\conf\minion"});
-            string MINION_CONFIGDIR = "";
+            string minion_config_file = cutil.get_file_that_exist(session, new string[] {
+                ROOTDIR_new + @"\conf\minion",
+                ROOTDIR_old + @"\conf\minion"});
+            string minion_config_dir = "";
 
 
-            if (main_config.Length > 0) {
-                MINION_CONFIGDIR = main_config + ".d";
-                FileSecurity fileSecurity = File.GetAccessControl(main_config);
+            if (minion_config_file.Length > 0) {
+                minion_config_dir = minion_config_file + ".d";
+                FileSecurity fileSecurity = File.GetAccessControl(minion_config_file);
                 IdentityReference sid = fileSecurity.GetOwner(typeof(SecurityIdentifier));
                 NTAccount ntAccount = sid.Translate(typeof(NTAccount)) as NTAccount;
                 session.Log("...owner of the minion config file " + ntAccount.Value);
@@ -84,10 +84,10 @@ namespace MinionConfigurationExtension {
             String master_from_previous_installation = "";
             String id_from_previous_installation = "";
             // Read master and id from main config file (if such a file exists)
-            read_master_and_id_from_file_IMCAC(session, main_config, ref master_from_previous_installation, ref id_from_previous_installation);
+            read_master_and_id_from_file_IMCAC(session, minion_config_file, ref master_from_previous_installation, ref id_from_previous_installation);
             // Read master and id from minion.d/*.conf (if they exist)
-            if (Directory.Exists(MINION_CONFIGDIR)) {
-                var conf_files = System.IO.Directory.GetFiles(MINION_CONFIGDIR, "*.conf");
+            if (Directory.Exists(minion_config_dir)) {
+                var conf_files = System.IO.Directory.GetFiles(minion_config_dir, "*.conf");
                 foreach (var conf_file in conf_files) {
                     if (conf_file.Equals("_schedule.conf")) { continue; }            // skip _schedule.conf
                     read_master_and_id_from_file_IMCAC(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
@@ -145,8 +145,8 @@ namespace MinionConfigurationExtension {
             // Saving should only occur in WriteConfig_DECAC,
             // IMCAC is easier and no harm because there is no public master key in the installer.
             string MASTER_KEY = cutil.get_property_IMCAC(session, "MASTER_KEY");
-            string CONFIGDIR  = cutil.get_property_IMCAC(session, "CONFIGDIR");
-            string pki_minion_dir = Path.Combine(CONFIGDIR, @"conf\minion.d\pki\minion");
+            string ROOTDIR    = cutil.get_property_IMCAC(session, "ROOTDIR");
+            string pki_minion_dir = Path.Combine(ROOTDIR, @"conf\minion.d\pki\minion");
             var master_key_file = Path.Combine(pki_minion_dir, "minion_master.pub");
             session.Log("...master_key_file           = " + master_key_file);
             bool MASTER_KEY_set = MASTER_KEY != "";
@@ -328,7 +328,7 @@ namespace MinionConfigurationExtension {
             session.Log("...save_custom_config_file_if_config_type_demands_DECAC");
             string config_type    = cutil.get_property_DECAC(session, "config_type");
             string custom_config1 = cutil.get_property_DECAC(session, "custom_config");
-            string CONFIGDIR      = cutil.get_property_DECAC(session, "CONFIGDIR");
+            string CONFDIR        = cutil.get_property_DECAC(session, "CONFDIR");
 
             string custom_config_final = "";
             if (!(config_type == "Custom" && custom_config1.Length > 0 )) {
@@ -353,7 +353,7 @@ namespace MinionConfigurationExtension {
             Backup_configuration_files_from_previous_installation(session);
             // lay down a custom config passed via the command line
             string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(custom_config_final));
-            cutil.Write_file(session, CONFIGDIR + @"\conf", "minion", content_of_custom_config_file);
+            cutil.Write_file(session, CONFDIR, "minion", content_of_custom_config_file);
         }
 
        [CustomAction]
@@ -365,15 +365,15 @@ namespace MinionConfigurationExtension {
             string REMOVE_CONFIG = cutil.get_property_DECAC(session, "REMOVE_CONFIG");
             string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string bindir        = Path.Combine(INSTALLDIR, "bin");
-            string CONFIGDIR     = cutil.get_property_DECAC(session, "CONFIGDIR");
+            string ROOTDIR       = cutil.get_property_DECAC(session, "ROOTDIR");
 
             // The registry subkey deletes itself
             cutil.del_dir(session, bindir, "");     // msi only deletes what it installed, not *.pyc.
             if (REMOVE_CONFIG == "1") {
-                cutil.del_dir(session, CONFIGDIR, "");
+                cutil.del_dir(session, ROOTDIR, "");
             } else {
-                cutil.del_dir(session, CONFIGDIR, "var");
-                cutil.del_dir(session, CONFIGDIR, "srv");
+                cutil.del_dir(session, ROOTDIR, "var");
+                cutil.del_dir(session, ROOTDIR, "srv");
             }
 
             session.Log("...END DeleteConfig_DECAC");

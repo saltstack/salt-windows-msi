@@ -66,7 +66,7 @@ $PRODUCTFILE    = "Salt-Minion-$displayversion"
 $PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
 $DISCOVER_INSTALLDIR = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
-$DISCOVER_CONFIGDIR  = "..\salt\pkg\windows\buildenv\conf"
+$DISCOVER_CONFDIR    = "..\salt\pkg\windows\buildenv\conf"
 
 # MSBUild needed to compile C#
 If ( (Get-CimInstance Win32_OperatingSystem).OSArchitecture -eq "64-bit" ) {
@@ -137,7 +137,7 @@ CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Discovering  INSTALLDIR from $($DISCOVER_INSTALLDIR[$i]) to *$($ARCHITECTURE[$i])*.wxs"
 # move conf folder up one dir because it must not be discoverd twice and xslt is difficult
-Move-Item $DISCOVER_CONFIGDIR $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder
+Move-Item $DISCOVER_CONFDIR $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folder
 # https://wixtoolset.org/documentation/manual/v3/overview/heat.html
 # -cg <ComponentGroupName> Component group name (cannot contain spaces e.g -cg MyComponentGroup).
 # -sfrag   Suppress generation of fragments for directories and components.
@@ -154,13 +154,13 @@ Move-Item $DISCOVER_CONFIGDIR $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_f
    -cg DiscoveredBinaryFiles -var var.DISCOVER_INSTALLDIR `
    -dr INSTALLDIR -t Product-discover-files.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -srd -ke -template fragment
-Move-Item $DISCOVER_CONFIGDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONFIGDIR
+Move-Item $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONFDIR
 CheckExitCode
 
 # Config shall remain, so delete all Guid (TODO)
-Write-Host -ForegroundColor Yellow "Discovering  CONFDIR    from $DISCOVER_CONFIGDIR to *.wxs"
-& "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFIGDIR" -out "Product-discovered-files-config.wxs" `
-   -cg DiscoveredConfigFiles -var var.DISCOVER_CONFIGDIR `
+Write-Host -ForegroundColor Yellow "Discovering  CONFDIR    from $DISCOVER_CONFDIR to *.wxs"
+& "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFDIR" -out "Product-discovered-files-config.wxs" `
+   -cg DiscoveredConfigFiles -var var.DISCOVER_CONFDIR `
    -dr CONFDIR -t Product-discover-files-config.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -srd -ke -template fragment
 CheckExitCode
@@ -177,7 +177,7 @@ Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *
     -dDisplayVersion="$displayversion" `
     -dInternalVersion="$internalversion" `
     -dDISCOVER_INSTALLDIR="$($DISCOVER_INSTALLDIR[$i])" `
-    -dDISCOVER_CONFIGDIR="$DISCOVER_CONFIGDIR" `
+    -dDISCOVER_CONFDIR="$DISCOVER_CONFDIR" `
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
     -ext "$($ENV:WIX)bin\WixUIExtension.dll" `
     -ext "$($ENV:WIX)bin\WixNetFxExtension.dll" `
@@ -189,7 +189,7 @@ Write-Host -ForegroundColor Yellow "Linking      $PRODUCT-$VERSION-$($ARCH_AKA[$
 & "$($ENV:WIX)bin\light"  -nologo `
     -out "$pwd\$PRODUCTFILE-Py$pythonversion-$($ARCH_AKA[$i]).msi" `
     -dDISCOVER_INSTALLDIR="$($DISCOVER_INSTALLDIR[$i])" `
-    -dDISCOVER_CONFIGDIR="$DISCOVER_CONFIGDIR" `
+    -dDISCOVER_CONFDIR="$DISCOVER_CONFDIR" `
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
     -ext "$($ENV:WIX)bin\WixUIExtension.dll" `
     -ext "$($ENV:WIX)bin\WixNetFxExtension.dll" `

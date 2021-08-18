@@ -82,9 +82,9 @@ IMCAC - Immediate Custom Action - It's immediate
     <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 
 
-    <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry-->
-    <Property Id="PCONFIGDIR">
-      <!-- C:\ProgramData\Salt Project\Salt -->
+    <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry -->
+    <Property Id="PREVIOUS_ROOTDIR">
+      <!-- Currently unused -->
       <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="$(var.WIN64)" Type="raw" Id="rsc"/>
       <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="no"           Type="raw" Id="rsc_nullsoft"/>
     </Property>
@@ -98,7 +98,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <Component Id="register_dirs" Directory="TARGETDIR">
       <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)">
         <RegistryValue Name="install_dir" Value="[INSTALLDIR]" Type="string"/>
-        <RegistryValue Name="root_dir"    Value="[CONFIGDIR]"  Type="string"/>
+        <RegistryValue Name="root_dir"    Value="[ROOTDIR]"    Type="string"/>
       </RegistryKey>
     </Component>
     <Component Id="register_remove_config" Directory="TARGETDIR">
@@ -204,8 +204,8 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->
     <!-- Send all this stuff down to the sandbox -->
-    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
-    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];CONFIGDIR=[CONFIGDIR];" />
+    <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
+    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
 
 
     <!-- Prevent downgrade -->
@@ -238,7 +238,7 @@ IMCAC - Immediate Custom Action - It's immediate
       <ComponentGroupRef Id="DiscoveredConfigFiles" />
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
-      <ComponentRef Id="CONFIGDIR_Permissions" />
+      <ComponentRef Id="ROOTDIR_Permissions" />
       <ComponentRef Id="register_dirs"/>
       <ComponentRef Id="register_remove_config"/>
     </ComponentGroup>
@@ -319,16 +319,16 @@ IMCAC - Immediate Custom Action - It's immediate
         </Directory>
       </Directory>
       <Directory Id="CommonAppDataFolder">                        <!-- C:\ProgramData -->
-        <Directory Id="configparent" Name="$(var.MANUFACTURER)">
-          <Directory Id="CONFIGDIR" Name="$(var.PRODUCTDIR)">
+        <Directory Id="rootparent" Name="$(var.MANUFACTURER)">
+          <Directory Id="ROOTDIR" Name="$(var.PRODUCTDIR)">
             <Directory Id="CONFDIR" Name="conf" />
           </Directory>
         </Directory>
       </Directory>
     </Directory>
-    <!-- Set CONFIGDIR to C:\salt unless MOVE_CONF (only before install sequence)  -->
-    <SetDirectory Id="CONFIGDIR" Value="C:\salt\"      Sequence="execute">not MOVE_CONF</SetDirectory>
-    <SetDirectory Id="CONFDIR"   Value="C:\salt\conf\" Sequence="execute">not MOVE_CONF</SetDirectory>
+    <!-- Set ROOTDIR to C:\salt unless MOVE_CONF (only before install sequence)  -->
+    <SetDirectory Id="ROOTDIR" Value="C:\salt\"      Sequence="execute">not MOVE_CONF</SetDirectory>
+    <SetDirectory Id="CONFDIR" Value="C:\salt\conf\" Sequence="execute">not MOVE_CONF</SetDirectory>
     <!-- Set ownership to 'Localized qualified name of the Administrators group' -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
     <Component Id="INSTALLDIR_Permissions"  Directory="INSTALLDIR" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
@@ -336,7 +336,7 @@ IMCAC - Immediate Custom Action - It's immediate
         <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
       </CreateFolder>
     </Component>
-    <Component Id="CONFIGDIR_Permissions"   Directory="CONFIGDIR" Guid="84554438-6807-4d92-b602-7fce831b01a3">
+    <Component Id="ROOTDIR_Permissions" Directory="ROOTDIR" Guid="84554438-6807-4d92-b602-7fce831b01a3">
       <CreateFolder>
         <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
       </CreateFolder>
@@ -368,7 +368,7 @@ IMCAC - Immediate Custom Action - It's immediate
           <RegistryKey Key="Parameters">
             <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLDIR]bin" />
             <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLDIR]bin\python.exe" />
-            <RegistryValue Type="expandable" Name="AppParameters"        Value='-E -s "[INSTALLDIR]bin\Scripts\salt-minion" -c "[CONFIGDIR]conf" -l quiet' />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value='-E -s "[INSTALLDIR]bin\Scripts\salt-minion" -c "[CONFDIR]" -l quiet' />
             <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
             <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
             <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
@@ -384,7 +384,7 @@ IMCAC - Immediate Custom Action - It's immediate
       <Component        Id="servicec1" Directory="INSTALLDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
         <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes"/>
         <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
-                        Arguments="[INSTALLDIR]\bin\Scripts\salt-minion -c [INSTALLDIR]conf -l quiet"
+                        Arguments="[INSTALLDIR]\bin\Scripts\salt-minion -c [CONFDIR] -l quiet"
                         Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
           <util:ServiceConfig
             FirstFailureActionType="none"
