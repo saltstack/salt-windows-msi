@@ -342,9 +342,9 @@ IMCAC - Immediate Custom Action - It's immediate
         </Directory>
       </Directory>
     </Directory>
-    <!-- Set ROOTDIR to C:\salt unless MOVE_CONF (only before install sequence)  -->
-    <SetDirectory Id="ROOTDIR" Value="C:\salt\"      Sequence="execute">not MOVE_CONF</SetDirectory>
-    <SetDirectory Id="CONFDIR" Value="C:\salt\conf\" Sequence="execute">not MOVE_CONF</SetDirectory>
+    <!-- Set ROOTDIR to C:\salt if OLD_CONF_EXISTS and not MOVE_CONF (only before install sequence)  -->
+    <SetDirectory Id="ROOTDIR" Value="C:\salt\"      Sequence="execute">OLD_CONF_EXISTS and (not MOVE_CONF)</SetDirectory>
+    <SetDirectory Id="CONFDIR" Value="C:\salt\conf\" Sequence="execute">OLD_CONF_EXISTS and (not MOVE_CONF)</SetDirectory>
     <!-- Set ownership to 'Localized qualified name of the Administrators group' -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
     <Component Id="INSTALLDIR_Permissions"  Directory="INSTALLDIR" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
