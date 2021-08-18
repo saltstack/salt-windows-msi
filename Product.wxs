@@ -296,8 +296,10 @@ IMCAC - Immediate Custom Action - It's immediate
         <Control Id="MinionId"     Type="Edit"       X="30"  Y="100" Width="190" Height="15" Property="MINION_ID" />
         <Control Id="StartService" Type="CheckBox"   X="20"  Y="140" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="20"  Y="155" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
-        <Control Id="move_conf"    Type="CheckBox"   X="20"  Y="170" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'."/>
-        <Control Id="remove_conf"  Type="CheckBox"   X="20"  Y="185" Width="280" Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;Remove configuration on uninstall"/>
+        <Control Id="remove_conf"  Type="CheckBox"   X="20"  Y="170" Width="280" Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;Remove configuration on uninstall"/>
+        <Control Id="move_conf"    Type="CheckBox"   X="20"  Y="185" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'.">
+          <Condition Action="hide">not OLD_CONF_EXISTS</Condition>
+        </Control>
 
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
