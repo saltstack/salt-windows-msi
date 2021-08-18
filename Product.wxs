@@ -82,6 +82,20 @@ IMCAC - Immediate Custom Action - It's immediate
     <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 
 
+    <!-- Search for old config minion file -->
+    <Property Id="OLD_CONF_EXISTS">
+      <DirectorySearch Id="conf_old" Path="C:\salt\conf">
+        <FileSearch Name="minion"/>
+      </DirectorySearch>
+    </Property>
+
+    <!-- Search for new config minion file -->
+    <Property Id="NEW_CONF_EXISTS">
+      <DirectorySearch Id="conf_new" Path="C:\ProgramData\Salt Project\Salt\conf">
+        <FileSearch Name="minion"/>
+      </DirectorySearch>
+    </Property>
+
     <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry -->
     <Property Id="PREVIOUS_ROOTDIR">
       <!-- Currently unused -->
