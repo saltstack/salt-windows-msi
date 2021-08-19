@@ -76,8 +76,6 @@ IMCAC - Immediate Custom Action - It's immediate
 
     <!-- Allow command line alias for Property  -->
     <SetProperty Id="INSTALLDIR"  Value='[INSTALLFOLDER]'   Before="LaunchConditions">INSTALLFOLDER</SetProperty>
-    <!-- MINION_CONFIG implies MOVE_CONF  -->
-    <SetProperty Id="MOVE_CONF"     Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
     <!-- MINION_CONFIG implies REMOVE_CONFIG  -->
     <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 

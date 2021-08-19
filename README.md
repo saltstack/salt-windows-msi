@@ -66,7 +66,6 @@ If `MINION_CONFIG` is given:
 - All prior configuration is deleted:
   - all `minion.d\*.conf` files
   - the `minion_id` file
-- Implies `MOVE_CONF=1`: configuration is written to `%ProgramData%`.
 - Implies `REMOVE_CONFIG=1`: uninstall will remove all configuration.
 
 Example `MINION_CONFIG="master: Anna^id: Ben"` results in:
