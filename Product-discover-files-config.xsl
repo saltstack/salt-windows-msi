@@ -29,7 +29,7 @@ xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl">
 </xsl:template>
 
 
-<!-- This is the XSL madness copied for the case you harvest not CONFIGDIR but CONFDIR -->
+<!-- This is the XSL madness copied for the case you harvest not ROOTDIR but CONFDIR -->
 <!--key to detect minion file -->
 <!--                                     ends-with  WORKAROUND  substring(A,                length(A)                      - length(B) + 1)    -->
 <xsl:key name="conf_minion_key2" match="wix:Component['minion' = substring(wix:File/@Source, string-length(wix:File/@Source) - 5)]" use="@Id"/>
