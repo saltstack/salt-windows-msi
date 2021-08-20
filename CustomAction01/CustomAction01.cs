@@ -19,29 +19,27 @@ namespace MinionConfigurationExtension {
         [CustomAction]
         public static ActionResult ReadConfig_IMCAC(Session session) {
             /*
-             * When installatioin starts,there might be a previous installation.
-             * From the previous installation, we read only two properties, that we present in the installer:
-              *  - master
-              *  - id
-              *
-              *  This function reads these two properties from
-              *   - the 2 msi properties:
-              *     - MASTER
-              *     - MINION_ID
-              *   - files from a provious installations:
-              *     - the number of file the function searches depend on CONFIGURATION_TYPE
-              *   - dependend on CONFIGURATION_TYPE, default values can be:
-              *     - master = "salt"
-              *     - id = %hostname%
-              *
-              *
-              *  This function writes its results in the 2 msi properties:
-              *   - MASTER
-              *   - MINION_ID
-              *
-              *   A GUI installation will show these msi properties because this function is called before the GUI.
-              *
-              */
+            When installatioin starts,there might be a previous installation.
+            From the previous installation we read only two properties that we present in the installer:
+              - master
+              - id
+
+            This function reads these two properties from
+              - the 2 msi properties:
+                - MASTER
+                - MINION_ID
+              - files from a provious installations:
+                - the number of file the function searches depend on CONFIGURATION_TYPE
+              - dependend on CONFIGURATION_TYPE, default values can be:
+                - master = "salt"
+                - id = %hostname%
+
+            This function writes its results in the 2 msi properties:
+              - MASTER
+              - MINION_ID
+
+            A GUI installation will show these msi properties because this function is called before the GUI.
+            */
             session.Log("...BEGIN ReadConfig_IMCAC");
             string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");  // Logic issue: this function is called before the GUI, but this property is set in the GUI.
             string ProgramData    = cutil.get_property_IMCAC(session, "CommonAppDataFolder");
@@ -381,6 +379,35 @@ namespace MinionConfigurationExtension {
         }
 
 
+       [CustomAction]
+        public static ActionResult MoveConfig_DECAC(Session session) {
+            // This moves the root_dir from the old location (C:\salt) to the
+            // new location (%ProgramData%\Salt Project\Salt)
+            session.Log("...BEGIN MoveConfig_DECAC");
+
+            // Get %ProgramData%
+            string ProgramData   = System.Environment.GetEnvironmentVariable("ProgramData");
+
+            string RootDirOld = @"C:\salt";
+            string RootDirNew = Path.Combine(ProgramData, @"Salt Project\Salt");
+            string RootDirNewParent = Path.Combine(ProgramData, @"Salt Project");
+
+            session.Log("...RootDirOld       " + RootDirOld + " exists: " + Directory.Exists(RootDirOld));
+            session.Log("...RootDirNew       " + RootDirNew + " exists: " + Directory.Exists(RootDirNew));
+            session.Log("...RootDirNewParent " + RootDirNewParent + " exists: " + Directory.Exists(RootDirNewParent));
+
+            // Create parent dir if it doesn't exist
+            if (! Directory.Exists(RootDirNewParent)) {
+                Directory.CreateDirectory(RootDirNewParent);
+            }
+
+            // Requires that the parent directory exists
+            // Requires that the NewDir does NOT exist
+            Directory.Move(RootDirOld, RootDirNew);
+
+            session.Log("...END MoveConfig_DECAC");
+            return ActionResult.Success;
+        }
 
 
         private static void apply_minion_config_DECAC(Session session, string MINION_CONFIG) {

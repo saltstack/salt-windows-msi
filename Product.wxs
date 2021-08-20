@@ -96,6 +96,7 @@ IMCAC - Immediate Custom Action - It's immediate
 
     <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry -->
     <Property Id="PREVIOUS_ROOTDIR">
+      <!-- C:\ProgramData\Salt Project\Salt -->
       <!-- Currently unused -->
       <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="$(var.WIN64)" Type="raw" Id="rsc"/>
       <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="no"           Type="raw" Id="rsc_nullsoft"/>
@@ -178,7 +179,7 @@ IMCAC - Immediate Custom Action - It's immediate
         You should not modifiy the system.
       Actions after InstallFiles:
         Custom action is placed after the transaction started, coined "deferred" and run in a sandbox.
-        Deferred custom actions (DECAC) need custum action helper (CADH) to access msi properties
+        Deferred custom actions (DECAC) need custom action helper (CADH) to access msi properties
         You may modify the system.
       -->
     <InstallExecuteSequence>
@@ -191,6 +192,9 @@ IMCAC - Immediate Custom Action - It's immediate
 
       <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'  >NOT Installed</Custom>
       <Custom Action='del_NSIS_DECAC'     After='InstallInitialize'      >nsis_exe</Custom>
+
+      <Custom Action='MoveConfig_CADH'    Before='MoveConfig_DECAC'      >NOT Installed</Custom>
+      <Custom Action='MoveConfig_DECAC'   Before='CreateFolders'         >(NOT Installed) and MOVE_CONF</Custom>
 
       <Custom Action='WriteConfig_CADH'   Before='WriteConfig_DECAC'     >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
@@ -208,8 +212,10 @@ IMCAC - Immediate Custom Action - It's immediate
     </InstallExecuteSequence>
 
     <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom actions. -->
+    <!-- These are the entry points into the DLL -->
     <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
     <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="MoveConfig_DECAC"     BinaryKey='MinionConfigExt' DllEntry='MoveConfig_DECAC'       Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
@@ -217,6 +223,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- master and id must be named like in YAML configuration -->
     <!-- Send all this stuff down to the sandbox -->
     <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
+    <CustomAction Id="MoveConfig_CADH"   Property="MoveConfig_DECAC"   Value="CONFDIR=[CONFDIR];" />
     <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
 
 
