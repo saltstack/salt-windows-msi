@@ -292,10 +292,21 @@ IMCAC - Immediate Custom Action - It's immediate
         <Control Id="MasterId"     Type="Edit"       X="30"  Y="70"  Width="190" Height="15" Property="MASTER" />
         <Control Id="MinionLabel"  Type="Text"       X="20"  Y="85"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion:" />
         <Control Id="MinionId"     Type="Edit"       X="30"  Y="100" Width="190" Height="15" Property="MINION_ID" />
-        <Control Id="StartService" Type="CheckBox"   X="20"  Y="140" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
-        <Control Id="HideInARP"    Type="CheckBox"   X="20"  Y="155" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
-        <Control Id="remove_conf"  Type="CheckBox"   X="20"  Y="170" Width="280" Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;Remove configuration on uninstall"/>
-        <Control Id="move_conf"    Type="CheckBox"   X="20"  Y="185" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'.">
+        <Control Id="cbt_type"     Type="Text"       X="20"  Y="125"  Width="40" Height="15" Transparent="yes" NoPrefix="yes" Text="Config type">
+          <Condition Action="hide">MINION_CONFIG</Condition>
+        </Control>
+        <Control Id="cbo_type"     Type="ComboBox"   X="70"  Y="125"  Width="50" Height="15" Property="CONFIG_TYPE" >
+            <ComboBox Property="CONFIG_TYPE">
+                <ListItem Value="Existing" />
+                <ListItem Value="Custom" />
+                <ListItem Value="Default" />
+            </ComboBox>
+          <Condition Action="hide">MINION_CONFIG</Condition>
+        </Control>
+        <Control Id="StartService" Type="CheckBox"   X="25"  Y="150" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
+        <Control Id="HideInARP"    Type="CheckBox"   X="25"  Y="165" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
+        <Control Id="remove_conf"  Type="CheckBox"   X="25"  Y="180" Width="280" Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;Remove configuration on uninstall"/>
+        <Control Id="move_conf"    Type="CheckBox"   X="25"  Y="195" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'.">
           <Condition Action="hide">not OLD_CONF_EXISTS</Condition>
         </Control>
 
