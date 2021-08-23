@@ -359,8 +359,8 @@ IMCAC - Immediate Custom Action - It's immediate
       </Directory>
     </Directory>
     <!-- Set ROOTDIR to C:\salt if OLD_CONF_EXISTS and not MOVE_CONF (only before install sequence)  -->
-    <SetDirectory Id="ROOTDIR" Value="C:\salt\"      Sequence="execute">OLD_CONF_EXISTS and (not MOVE_CONF)</SetDirectory>
-    <SetDirectory Id="CONFDIR" Value="C:\salt\conf\" Sequence="execute">OLD_CONF_EXISTS and (not MOVE_CONF)</SetDirectory>
+    <SetDirectory Id="ROOTDIR" Value="C:\salt"      Sequence="execute">OLD_CONF_EXISTS and (not MOVE_CONF)</SetDirectory>
+    <SetDirectory Id="CONFDIR" Value="C:\salt\conf" Sequence="execute">OLD_CONF_EXISTS and (not MOVE_CONF)</SetDirectory>
     <!-- Set ownership to 'Localized qualified name of the Administrators group' -->
     <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
     <Component Id="INSTALLDIR_Permissions"  Directory="INSTALLDIR" Guid="B30E119F-0286-4453-8AB7-C6E916FA2843">
@@ -400,7 +400,7 @@ IMCAC - Immediate Custom Action - It's immediate
           <RegistryKey Key="Parameters">
             <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLDIR]bin" />
             <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLDIR]bin\python.exe" />
-            <RegistryValue Type="expandable" Name="AppParameters"        Value='-E -s "[INSTALLDIR]bin\Scripts\salt-minion" -c "[CONFDIR]" -l quiet' />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value='-E -s "[INSTALLDIR]bin\Scripts\salt-minion" -c "[ROOTDIR]conf" -l quiet' />
             <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
             <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
             <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
@@ -416,7 +416,7 @@ IMCAC - Immediate Custom Action - It's immediate
       <Component        Id="servicec1" Directory="INSTALLDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
         <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes"/>
         <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
-                        Arguments="[INSTALLDIR]\bin\Scripts\salt-minion -c [CONFDIR] -l quiet"
+                        Arguments="[INSTALLDIR]\bin\Scripts\salt-minion -c [ROOTDIR]conf -l quiet"
                         Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
           <util:ServiceConfig
             FirstFailureActionType="none"
