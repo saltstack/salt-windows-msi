@@ -141,11 +141,13 @@ End If
       <!-- stopSalt because log file must be released -->
       <Custom Action='stopSalt'                   Before='InstallValidate'          >1</Custom>
 
-      <Custom Action='ReadConfig_IMCAC'            Before='MigrateFeatureStates'    >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'               After='InstallInitialize'       >nsis_exe</Custom>
+      <Custom Action='ReadConfig_IMCAC'           Before='MigrateFeatureStates'     >NOT Installed</Custom>
+      <Custom Action='del_NSIS_DECAC'              After='InstallInitialize'        >nsis_exe</Custom>
 
-      <Custom Action='WriteConfig_CADH'
-              Before='WriteConfig_DECAC'                                            >NOT Installed</Custom>
+      <Custom Action='MoveInsecureConfig_CADH'    Before='MoveInsecureConfig_DECAC' >NOT Installed</Custom>
+      <Custom Action='MoveInsecureConfig_DECAC'    After='CreateFolders'            >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
+
+      <Custom Action='WriteConfig_CADH'           Before='WriteConfig_DECAC'        >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'           After='WriteIniValues'           >NOT Installed</Custom>
 
       <Custom Action='delete_VARFOLDER_DECAX'      After='InstallFinalize'          >REMOVE ~= "ALL"</Custom>
@@ -188,6 +190,7 @@ End If
 
     <!-- GUI -->
     <UI>
+      <TextStyle Id="WixUI_Font_Warning" FaceName="Tahoma" Size="8" Red="200" Bold="yes" />
       <UIRef Id="WixUI_Mondo" />
       <Publish Dialog="LicenseAgreementDlg"   Control="Next"   Event="NewDialog"   Value="ProductUIsettings" Order="3">LicenseAccepted = "1"</Publish>
       <Publish Dialog="ProductUIsettings"     Control="Next"   Event="NewDialog"   Value="VerifyReadyDlg">1</Publish>
@@ -207,6 +210,9 @@ End If
         <Control Id="MinionId"     Type="Edit"       X="30"  Y="100" Width="190" Height="15" Property="MINION_ID" />
         <Control Id="StartService" Type="CheckBox"   X="20"  Y="140" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="20"  Y="155" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
+        <Control Id="InvalidConf"  Type="Text"       X="20"  Y="200" Width="320" Height="30" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Warning}Insecure config found at C:\salt\conf. If you continue, the config directory will be renamed and the default config will be used.">
+            <Condition Action="hide">not INSECURE_CONFIG_FOUND</Condition>
+        </Control>
 
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
@@ -216,11 +222,13 @@ End If
 
 
     <!--  Immediate (*_IMCAC) and defferred (*_DECAC) custom action declarations. -->
-    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'  Execute='firstSequence'/> 
-    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'    Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
-    <Binary       Id='MinionConfigExt'      SourceFile='CustomAction01\CustomAction01.CA.dll'/>
-    <CustomAction Id="WriteConfig_CADH"     Property="WriteConfig_DECAC" Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER]" />
+    <CustomAction Id="ReadConfig_IMCAC"          BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'         Execute='firstSequence'/> 
+    <CustomAction Id="del_NSIS_DECAC"            BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'           Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="MoveInsecureConfig_DECAC"  BinaryKey='MinionConfigExt' DllEntry='MoveInsecureConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="WriteConfig_DECAC"         BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'        Execute='deferred' Return='check' Impersonate='no'/>
+    <Binary       Id='MinionConfigExt'           SourceFile='CustomAction01\CustomAction01.CA.dll'/>
+    <CustomAction Id="MoveInsecureConfig_CADH"   Property="MoveInsecureConfig_DECAC" Value="INSECURE_CONFIG_FOUND=[INSECURE_CONFIG_FOUND]" />
+    <CustomAction Id="WriteConfig_CADH"          Property="WriteConfig_DECAC" Value="root_dir=[INSTALLFOLDER];master=[MASTER];id=[MINION_ID];config_type=[CONFIG_TYPE];minion_config=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];sourcedir=[SOURCEDIR];conffolder=[CONFFOLDER];minion_d_conf_folder=[MINION_D_CONF_FOLDER];INSECURE_CONFIG_FOUND=[INSECURE_CONFIG_FOUND];" />
 
 
     <!--  Windows service (nssm and without)-->

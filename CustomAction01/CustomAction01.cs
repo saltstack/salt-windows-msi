@@ -4,6 +4,10 @@ using Microsoft.Win32;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
+using System.Security.AccessControl;
+using System.Security.Principal;
+using System.Collections.Generic;
 
 
 
@@ -37,6 +41,37 @@ namespace MinionConfigurationExtension {
               *   A GUI installation will show these msi properties because this function is called before the GUI.
               *
               */
+            string minion_config_dir = @"C:\salt\conf";
+            string minion_config_file = Path.Combine(minion_config_dir, "minion");
+
+            // Check for existing config
+            if (File.Exists(minion_config_file)) {
+
+                // Owner must be one of "Local System" or "Administrators"
+                // It looks like the NullSoft installer sets the owner to
+                // Administrators while the MIS installer sets the owner to
+                // Local System. Salt only sets the owner of the `C:\salt`
+                // directory when it starts and doesn't concern itself with the
+                // conf directory. So we have to check for both.
+                List<string> valid_sids = new List<string>();
+                valid_sids.Add("S-1-5-18");      //Local System
+                valid_sids.Add("S-1-5-32-544");  //Administrators
+
+                // Get the SID for the conf directory
+                FileSecurity fileSecurity = File.GetAccessControl(minion_config_dir);
+                IdentityReference sid = fileSecurity.GetOwner(typeof(SecurityIdentifier));
+                session.Log("...owner of the minion config file " + sid.Value);
+
+                // Check to see if it's in the list of valid SIDs
+                if (!valid_sids.Contains(sid.Value)) {
+                    // If it's not in the list we don't want to use it. Do the following:
+                    // - set INSECURE_CONFIG_FOUND to True
+                    // - set CONFIG_TYPE to Default
+                    session["INSECURE_CONFIG_FOUND"] = "True";
+                    session["CONFIG_TYPE"] = "Default";
+                }
+            }
+
             session.Log("...BEGIN ReadConfig_IMCAC");
             session.Log("...VERSION MinionConfigurationExtensionCA 1");
             String master_from_previous_installation = "";
@@ -252,6 +287,21 @@ namespace MinionConfigurationExtension {
                 save_custom_config_file_if_config_type_demands_DECAC(session);
             }
             session.Log("...END WriteConfig_DECAC");
+            return ActionResult.Success;
+        }
+
+
+        [CustomAction]
+        public static ActionResult MoveInsecureConfig_DECAC(Session session) {
+            // This appends .insecure to an insecure config directory
+            // C:\salt\conf.insecure
+
+            session.Log("...BEGIN MoveInsecureConf_DECAC");
+
+            Directory.Move(@"C:\salt\conf", @"C:\salt\conf.insecure");
+
+            session.Log("...EDN MoveInsecureConf_DECAC");
+
             return ActionResult.Success;
         }
 
