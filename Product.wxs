@@ -192,6 +192,8 @@ IMCAC - Immediate Custom Action - It's immediate
       <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'  >NOT Installed</Custom>
       <Custom Action='del_NSIS_DECAC'     After='InstallInitialize'      >nsis_exe</Custom>
 
+      <Custom Action='BackupConfig_DECAC' Before='CreateFolders'         >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
+
       <Custom Action='WriteConfig_CADH'   Before='WriteConfig_DECAC'     >NOT Installed</Custom>
       <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
 
@@ -212,6 +214,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="BackupConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='BackupConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->

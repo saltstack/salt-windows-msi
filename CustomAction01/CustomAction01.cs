@@ -110,10 +110,6 @@ namespace MinionConfigurationExtension {
                     session["MINION_ID"] = Environment.MachineName;
                     session.Log("...MINION_ID set to hostname because it was unset and CONFIG_TYPE=Default");
                 }
-
-                // Would be more logical in WriteConfig, but here is easier and no harm
-                Backup_configuration_files_from_previous_installation(session);
-
             } else {
                 /////////////////master
                 if (session["MASTER"] == "") {
@@ -350,7 +346,6 @@ namespace MinionConfigurationExtension {
                     return;
                 }
             }
-            Backup_configuration_files_from_previous_installation(session);
             // lay down a custom config passed via the command line
             string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(custom_config_final));
             cutil.Write_file(session, CONFDIR, "minion", content_of_custom_config_file);
@@ -521,13 +516,17 @@ namespace MinionConfigurationExtension {
         }
 
 
-        private static void Backup_configuration_files_from_previous_installation(Session session) {
-            session.Log("...Backup_configuration_files_from_previous_installation");
+        [CustomAction]
+        public static ActionResult  BackupConfig_DECAC(Session session) {
+            session.Log("...BackupConfig_DECAC BEGIN");
             string timestamp_bak = "-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".bak";
             session.Log("...timestamp_bak = " + timestamp_bak);
             cutil.Move_file(session, @"C:\salt\conf\minion", timestamp_bak);
             cutil.Move_file(session, @"C:\salt\conf\minion_id", timestamp_bak);
             cutil.Move_dir(session, @"C:\salt\conf\minion.d", timestamp_bak);
+            session.Log("...BackupConfig_DECAC END");
+
+            return ActionResult.Success;
         }
     }
 }
