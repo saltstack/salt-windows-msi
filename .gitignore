@@ -4,6 +4,7 @@ _cache.dir/*
 *.wixobj
 *.pdb
 *.dll
+*.swp
 *.un~
 Product-discovered-files*.wxs
 Salt-Minion-*-install.log
