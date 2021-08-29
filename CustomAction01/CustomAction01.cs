@@ -42,7 +42,7 @@ namespace MinionConfigurationExtension {
             */
             session.Log("...BEGIN ReadConfig_IMCAC");
             string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");  // Logic issue: this function is called before the GUI, but this property is set in the GUI.
-            string ProgramData    = cutil.get_property_IMCAC(session, "CommonAppDataFolder");
+            string ProgramData    = System.Environment.GetEnvironmentVariable("ProgramData");
 
             string ROOTDIR_old = @"C:\salt";
             string ROOTDIR_new =  Path.Combine(ProgramData, @"Salt Project\Salt");
