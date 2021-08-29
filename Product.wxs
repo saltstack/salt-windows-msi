@@ -161,7 +161,7 @@ IMCAC - Immediate Custom Action - It's immediate
       If this sequence is left out, this is a "silent install".
       -->
     <InstallUISequence>
-      <Custom Action='ReadConfig_IMCAC' Before='MigrateFeatureStates'>NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC' Before='LaunchConditions'>NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit  unclear. -->
     </InstallUISequence>
@@ -190,7 +190,7 @@ IMCAC - Immediate Custom Action - It's immediate
       -->
       <Custom Action='stopSalt'           Before='InstallValidate'       >1</Custom>
 
-      <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'  >NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC'   Before='InstallInitialize'     >NOT Installed</Custom>
       <Custom Action='del_NSIS_DECAC'     After='InstallInitialize'      >nsis_exe</Custom>
 
       <Custom Action='BackupConfig_DECAC' Before='CreateFolders'         >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
