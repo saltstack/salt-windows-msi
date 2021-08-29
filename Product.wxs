@@ -194,7 +194,6 @@ IMCAC - Immediate Custom Action - It's immediate
       <Custom Action='del_NSIS_DECAC'     After='InstallInitialize'      >nsis_exe</Custom>
 
       <Custom Action='BackupConfig_DECAC' Before='CreateFolders'         >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
-      <Custom Action='MoveConfig_CADH'    Before='MoveConfig_DECAC'      >NOT Installed</Custom>
       <Custom Action='MoveConfig_DECAC'   Before='CreateFolders'         >(NOT Installed) and MOVE_CONF</Custom>
 
       <Custom Action='WriteConfig_CADH'   Before='WriteConfig_DECAC'     >NOT Installed</Custom>
@@ -225,7 +224,6 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- master and id must be named like in YAML configuration -->
     <!-- Send all this stuff down to the sandbox -->
     <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
-    <CustomAction Id="MoveConfig_CADH"   Property="MoveConfig_DECAC"   Value="CONFDIR=[CONFDIR];" />
     <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
 
 
