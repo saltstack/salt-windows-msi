@@ -34,11 +34,11 @@ namespace MinionConfigurationExtension {
                 - master = "salt"
                 - id = %hostname%
 
-            This function writes its results in the 2 msi properties:
+            This function writes msi properties:
               - MASTER
               - MINION_ID
 
-            A GUI installation will show these msi properties because this function is called before the GUI.
+            A GUI installation can show these msi properties because this function is called before the GUI.
             */
             session.Log("...BEGIN ReadConfig_IMCAC");
             string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");  // Logic issue: this function is called before the GUI, but this property is set in the GUI.
@@ -73,9 +73,6 @@ namespace MinionConfigurationExtension {
                 IdentityReference sid = fileSecurity.GetOwner(typeof(SecurityIdentifier));
                 NTAccount ntAccount = sid.Translate(typeof(NTAccount)) as NTAccount;
                 session.Log("...owner of the minion config file " + ntAccount.Value);
-
-                //NO WindowsPrincipal MyPrincipal = new WindowsPrincipal(sid);
-                // Groups??
             }
 
             // Set the default values for master and id
