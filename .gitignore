@@ -5,7 +5,7 @@ _cache.dir/*
 *.pdb
 *.dll
 *.swp
-*.un~
+*~
 Product-discovered-files*.wxs
 Salt-Minion-*-install.log
 Salt-Minion-*-uninstall.log
