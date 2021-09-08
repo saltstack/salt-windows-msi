@@ -193,6 +193,7 @@ IMCAC - Immediate Custom Action - It's immediate
       <Custom Action='ReadConfig_IMCAC'   Before='InstallInitialize'     >NOT Installed</Custom>
       <Custom Action='del_NSIS_DECAC'     After='InstallInitialize'      >nsis_exe</Custom>
 
+      <Custom Action='MoveInsecureConfig_DECAC'   Before='CreateFolders'            >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
       <Custom Action='BackupConfig_DECAC' Before='CreateFolders'         >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
       <Custom Action='MoveConfig_DECAC'   Before='CreateFolders'         >(NOT Installed) and MOVE_CONF</Custom>
 
@@ -215,6 +216,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- These are the entry points into the DLL -->
     <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
     <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="MoveInsecureConfig_DECAC"  BinaryKey='MinionConfigExt' DllEntry='MoveInsecureConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="MoveConfig_DECAC"     BinaryKey='MinionConfigExt' DllEntry='MoveConfig_DECAC'       Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
@@ -300,8 +302,8 @@ IMCAC - Immediate Custom Action - It's immediate
         <Control Id="MinionLabel"  Type="Text"       X="20"  Y="85"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion:" />
         <Control Id="MinionId"     Type="Edit"       X="30"  Y="100" Width="190" Height="15" Property="MINION_ID" />
         <Control Id="cbt_type"     Type="Text"       X="20"  Y="125"  Width="40" Height="15" Transparent="yes" NoPrefix="yes" Text="Config type">
-          <Condition Action="show">not (MINION_CONFIG)</Condition>
-          <Condition Action="hide">     MINION_CONFIG</Condition>
+          <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND)</Condition>
+          <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND</Condition>
         </Control>
         <Control Id="cbo_type"     Type="ComboBox"   X="70"  Y="125"  Width="50" Height="15" Property="CONFIG_TYPE" >
             <ComboBox Property="CONFIG_TYPE">
@@ -309,8 +311,8 @@ IMCAC - Immediate Custom Action - It's immediate
                 <ListItem Value="Custom" />
                 <ListItem Value="Default" />
             </ComboBox>
-          <Condition Action="show">not (MINION_CONFIG)</Condition>
-          <Condition Action="hide">     MINION_CONFIG</Condition>
+          <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND)</Condition>
+          <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND</Condition>
         </Control>
         <Control Id="StartService" Type="CheckBox"   X="25"  Y="150" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="25"  Y="165" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>

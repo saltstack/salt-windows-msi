@@ -9,7 +9,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
-
+using System.Collections.Generic;
 
 
 namespace MinionConfigurationExtension {
@@ -64,15 +64,49 @@ namespace MinionConfigurationExtension {
             string minion_config_file = cutil.get_file_that_exist(session, new string[] {
                 ROOTDIR_new + @"\conf\minion",
                 ROOTDIR_old + @"\conf\minion"});
-            string minion_config_dir = "";
+            string minion_config_dir = Path.GetDirectoryName(minion_config_file);
 
 
-            if (minion_config_file.Length > 0) {
-                minion_config_dir = minion_config_file + ".d";
-                FileSecurity fileSecurity = File.GetAccessControl(minion_config_file);
+            if (File.Exists(minion_config_file)) {
+                string minion_dot_d_dir = minion_config_file + ".d";
+                session.Log("...minion_dot_d_dir = " + minion_dot_d_dir);
+                if (Directory.Exists(minion_dot_d_dir)) {
+                    session.Log("... folder exists minion_dot_d_dir = " + minion_dot_d_dir);
+                    DirectorySecurity dirSecurity = Directory.GetAccessControl(minion_dot_d_dir);
+                    IdentityReference sid = dirSecurity.GetOwner(typeof(SecurityIdentifier));
+                    session.Log("...owner of the minion config dir " + sid.Value);
+                } else {
+                    session.Log("... folder  does not exists minion_dot_d_dir = " + minion_dot_d_dir);
+                }
+            }
+
+            // Check for existing config
+            if (File.Exists(minion_config_file)) {
+
+                // Owner must be one of "Local System" or "Administrators"
+                // It looks like the NullSoft installer sets the owner to
+                // Administrators while the MIS installer sets the owner to
+                // Local System. Salt only sets the owner of the `C:\salt`
+                // directory when it starts and doesn't concern itself with the
+                // conf directory. So we have to check for both.
+                List<string> valid_sids = new List<string>();
+                valid_sids.Add("S-1-5-18");      //Local System
+                valid_sids.Add("S-1-5-32-544");  //Administrators
+
+                // Get the SID for the conf directory
+                FileSecurity fileSecurity = File.GetAccessControl(minion_config_dir);
                 IdentityReference sid = fileSecurity.GetOwner(typeof(SecurityIdentifier));
-                NTAccount ntAccount = sid.Translate(typeof(NTAccount)) as NTAccount;
-                session.Log("...owner of the minion config file " + ntAccount.Value);
+                session.Log("...owner of the minion config file " + sid.Value);
+
+                // Check to see if it's in the list of valid SIDs
+                if (!valid_sids.Contains(sid.Value)) {
+                    // If it's not in the list we don't want to use it. Do the following:
+                    // - set INSECURE_CONFIG_FOUND to True
+                    // - set CONFIG_TYPE to Default
+                    session.Log("...Insecure config found, using default config");
+                    session["INSECURE_CONFIG_FOUND"] = "True";
+                    session["CONFIG_TYPE"] = "Default";
+                }
             }
 
             // Set the default values for master and id
@@ -312,6 +346,22 @@ namespace MinionConfigurationExtension {
                 save_custom_config_file_if_config_type_demands_DECAC(session);
             }
             session.Log("...END WriteConfig_DECAC");
+            return ActionResult.Success;
+        }
+
+
+        [CustomAction]
+        public static ActionResult MoveInsecureConfig_DECAC(Session session) {
+            // This appends .insecure-yyyy-MM-ddTHH-mm-ss to an insecure config directory
+            // C:\salt\conf.insecure-2021-10-01T12:23:32
+
+            session.Log("...BEGIN MoveInsecureConf_DECAC");
+
+            string timestamp_bak = ".insecure-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss");
+            cutil.Move_dir(session, @"C:\salt\conf", timestamp_bak);
+
+            session.Log("...END MoveInsecureConf_DECAC");
+
             return ActionResult.Success;
         }
 
