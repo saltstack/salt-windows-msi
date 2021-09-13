@@ -5,6 +5,14 @@
 Set-PSDebug -Strict
 Set-strictmode -version latest
 
+
+# Until 2022 or executed on each dev box: move old cache to new cache dir
+if (Test-Path C:\salt_msi_resources) {
+  Move-Item C:\salt_msi_resources\* .\_cache.dir -force
+  Remove-Item C:\salt_msi_resources
+}
+
+
 # # # Detecting Salt version from Git # # #
 if (-Not (Test-Path ..\salt)) {
   Write-Host -ForegroundColor Red No directory ..\salt
@@ -67,6 +75,7 @@ $PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
 $DISCOVER_INSTALLDIR = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
 $DISCOVER_CONFDIR    = "..\salt\pkg\windows\buildenv\conf"
+$WEBCACHE_DIR        = "$pwd\_cache.dir"
 
 # MSBUild needed to compile C#
 If ( (Get-CimInstance Win32_OperatingSystem).OSArchitecture -eq "64-bit" ) {
@@ -177,6 +186,7 @@ Write-Host -ForegroundColor Yellow "Compiling    *.wxs to $($ARCHITECTURE[$i]) *
     -dDisplayVersion="$displayversion" `
     -dInternalVersion="$internalversion" `
     -dDISCOVER_INSTALLDIR="$($DISCOVER_INSTALLDIR[$i])" `
+    -dWEBCACHE_DIR="$WEBCACHE_DIR" `
     -dDISCOVER_CONFDIR="$DISCOVER_CONFDIR" `
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
     -ext "$($ENV:WIX)bin\WixUIExtension.dll" `
