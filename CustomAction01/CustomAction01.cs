@@ -9,7 +9,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
 using System.Text.RegularExpressions;
-
+using System.Collections.Generic;
 
 
 namespace MinionConfigurationExtension {
@@ -34,15 +34,15 @@ namespace MinionConfigurationExtension {
                 - master = "salt"
                 - id = %hostname%
 
-            This function writes its results in the 2 msi properties:
+            This function writes msi properties:
               - MASTER
               - MINION_ID
 
-            A GUI installation will show these msi properties because this function is called before the GUI.
+            A GUI installation can show these msi properties because this function is called before the GUI.
             */
             session.Log("...BEGIN ReadConfig_IMCAC");
             string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");  // Logic issue: this function is called before the GUI, but this property is set in the GUI.
-            string ProgramData    = cutil.get_property_IMCAC(session, "CommonAppDataFolder");
+            string ProgramData    = System.Environment.GetEnvironmentVariable("ProgramData");
 
             string ROOTDIR_old = @"C:\salt";
             string ROOTDIR_new =  Path.Combine(ProgramData, @"Salt Project\Salt");
@@ -64,18 +64,49 @@ namespace MinionConfigurationExtension {
             string minion_config_file = cutil.get_file_that_exist(session, new string[] {
                 ROOTDIR_new + @"\conf\minion",
                 ROOTDIR_old + @"\conf\minion"});
-            string minion_config_dir = "";
+            string minion_config_dir = Path.GetDirectoryName(minion_config_file);
 
 
-            if (minion_config_file.Length > 0) {
-                minion_config_dir = minion_config_file + ".d";
-                FileSecurity fileSecurity = File.GetAccessControl(minion_config_file);
+            if (File.Exists(minion_config_file)) {
+                string minion_dot_d_dir = minion_config_file + ".d";
+                session.Log("...minion_dot_d_dir = " + minion_dot_d_dir);
+                if (Directory.Exists(minion_dot_d_dir)) {
+                    session.Log("... folder exists minion_dot_d_dir = " + minion_dot_d_dir);
+                    DirectorySecurity dirSecurity = Directory.GetAccessControl(minion_dot_d_dir);
+                    IdentityReference sid = dirSecurity.GetOwner(typeof(SecurityIdentifier));
+                    session.Log("...owner of the minion config dir " + sid.Value);
+                } else {
+                    session.Log("... folder  does not exists minion_dot_d_dir = " + minion_dot_d_dir);
+                }
+            }
+
+            // Check for existing config
+            if (File.Exists(minion_config_file)) {
+
+                // Owner must be one of "Local System" or "Administrators"
+                // It looks like the NullSoft installer sets the owner to
+                // Administrators while the MIS installer sets the owner to
+                // Local System. Salt only sets the owner of the `C:\salt`
+                // directory when it starts and doesn't concern itself with the
+                // conf directory. So we have to check for both.
+                List<string> valid_sids = new List<string>();
+                valid_sids.Add("S-1-5-18");      //Local System
+                valid_sids.Add("S-1-5-32-544");  //Administrators
+
+                // Get the SID for the conf directory
+                FileSecurity fileSecurity = File.GetAccessControl(minion_config_dir);
                 IdentityReference sid = fileSecurity.GetOwner(typeof(SecurityIdentifier));
-                NTAccount ntAccount = sid.Translate(typeof(NTAccount)) as NTAccount;
-                session.Log("...owner of the minion config file " + ntAccount.Value);
+                session.Log("...owner of the minion config file " + sid.Value);
 
-                //NO WindowsPrincipal MyPrincipal = new WindowsPrincipal(sid);
-                // Groups??
+                // Check to see if it's in the list of valid SIDs
+                if (!valid_sids.Contains(sid.Value)) {
+                    // If it's not in the list we don't want to use it. Do the following:
+                    // - set INSECURE_CONFIG_FOUND to True
+                    // - set CONFIG_TYPE to Default
+                    session.Log("...Insecure config found, using default config");
+                    session["INSECURE_CONFIG_FOUND"] = "True";
+                    session["CONFIG_TYPE"] = "Default";
+                }
             }
 
             // Set the default values for master and id
@@ -108,10 +139,6 @@ namespace MinionConfigurationExtension {
                     session["MINION_ID"] = Environment.MachineName;
                     session.Log("...MINION_ID set to hostname because it was unset and CONFIG_TYPE=Default");
                 }
-
-                // Would be more logical in WriteConfig, but here is easier and no harm
-                Backup_configuration_files_from_previous_installation(session);
-
             } else {
                 /////////////////master
                 if (session["MASTER"] == "") {
@@ -322,6 +349,22 @@ namespace MinionConfigurationExtension {
             return ActionResult.Success;
         }
 
+
+        [CustomAction]
+        public static ActionResult MoveInsecureConfig_DECAC(Session session) {
+            // This appends .insecure-yyyy-MM-ddTHH-mm-ss to an insecure config directory
+            // C:\salt\conf.insecure-2021-10-01T12:23:32
+
+            session.Log("...BEGIN MoveInsecureConf_DECAC");
+
+            string timestamp_bak = ".insecure-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss");
+            cutil.Move_dir(session, @"C:\salt\conf", timestamp_bak);
+
+            session.Log("...END MoveInsecureConf_DECAC");
+
+            return ActionResult.Success;
+        }
+
         private static void save_custom_config_file_if_config_type_demands_DECAC(Session session) {
             session.Log("...save_custom_config_file_if_config_type_demands_DECAC");
             string config_type    = cutil.get_property_DECAC(session, "config_type");
@@ -348,7 +391,6 @@ namespace MinionConfigurationExtension {
                     return;
                 }
             }
-            Backup_configuration_files_from_previous_installation(session);
             // lay down a custom config passed via the command line
             string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(custom_config_final));
             cutil.Write_file(session, CONFDIR, "minion", content_of_custom_config_file);
@@ -548,13 +590,17 @@ namespace MinionConfigurationExtension {
         }
 
 
-        private static void Backup_configuration_files_from_previous_installation(Session session) {
-            session.Log("...Backup_configuration_files_from_previous_installation");
+        [CustomAction]
+        public static ActionResult  BackupConfig_DECAC(Session session) {
+            session.Log("...BackupConfig_DECAC BEGIN");
             string timestamp_bak = "-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".bak";
             session.Log("...timestamp_bak = " + timestamp_bak);
             cutil.Move_file(session, @"C:\salt\conf\minion", timestamp_bak);
             cutil.Move_file(session, @"C:\salt\conf\minion_id", timestamp_bak);
             cutil.Move_dir(session, @"C:\salt\conf\minion.d", timestamp_bak);
+            session.Log("...BackupConfig_DECAC END");
+
+            return ActionResult.Success;
         }
     }
 }

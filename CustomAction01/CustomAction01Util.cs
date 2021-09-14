@@ -58,7 +58,7 @@ namespace MinionConfigurationExtension {
         }
 
 
-        public static void Move_dir(Session session, string ffn, string timestamp_bak) {
+        public static void Move_dir(Session session, string ffn, string timestamp_bak, bool delete_target = false) {
             string target = ffn + timestamp_bak;
             session.Log("...Move_dir?   " + ffn);
 
@@ -66,8 +66,13 @@ namespace MinionConfigurationExtension {
                 session.Log("...Move_dir!   " + ffn);
                 if (Directory.Exists(target)) {
                     session.Log("...target exists   " + target);
+                    if (delete_target) {
+                        session.Log("...deleting target");
+                        Directory.Delete(target, true);
+                        Directory.Move(ffn, target);
+                    }
                 } else {
-                    Directory.Move(ffn, ffn + timestamp_bak);
+                    Directory.Move(ffn, target);
                 }
             }
         }

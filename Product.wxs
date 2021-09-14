@@ -161,7 +161,7 @@ IMCAC - Immediate Custom Action - It's immediate
       If this sequence is left out, this is a "silent install".
       -->
     <InstallUISequence>
-      <Custom Action='ReadConfig_IMCAC' Before='MigrateFeatureStates'>NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC' Before='LaunchConditions'>NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit  unclear. -->
     </InstallUISequence>
@@ -190,10 +190,11 @@ IMCAC - Immediate Custom Action - It's immediate
       -->
       <Custom Action='stopSalt'           Before='InstallValidate'       >1</Custom>
 
-      <Custom Action='ReadConfig_IMCAC'   Before='MigrateFeatureStates'  >NOT Installed</Custom>
+      <Custom Action='ReadConfig_IMCAC'   Before='InstallInitialize'     >NOT Installed</Custom>
       <Custom Action='del_NSIS_DECAC'     After='InstallInitialize'      >nsis_exe</Custom>
 
-      <Custom Action='MoveConfig_CADH'    Before='MoveConfig_DECAC'      >NOT Installed</Custom>
+      <Custom Action='MoveInsecureConfig_DECAC'   Before='CreateFolders'            >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
+      <Custom Action='BackupConfig_DECAC' Before='CreateFolders'         >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
       <Custom Action='MoveConfig_DECAC'   Before='CreateFolders'         >(NOT Installed) and MOVE_CONF</Custom>
 
       <Custom Action='WriteConfig_CADH'   Before='WriteConfig_DECAC'     >NOT Installed</Custom>
@@ -215,15 +216,16 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- These are the entry points into the DLL -->
     <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
     <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="MoveInsecureConfig_DECAC"  BinaryKey='MinionConfigExt' DllEntry='MoveInsecureConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="MoveConfig_DECAC"     BinaryKey='MinionConfigExt' DllEntry='MoveConfig_DECAC'       Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="BackupConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='BackupConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->
     <!-- Send all this stuff down to the sandbox -->
     <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
-    <CustomAction Id="MoveConfig_CADH"   Property="MoveConfig_DECAC"   Value="CONFDIR=[CONFDIR];" />
     <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
 
 
@@ -273,6 +275,7 @@ IMCAC - Immediate Custom Action - It's immediate
 
     <!-- GUI -->
     <UI>
+      <TextStyle Id="WixUI_Font_Warning" FaceName="Tahoma" Size="8" Red="200" Bold="yes" />
       <UIRef Id="WixUI_Mondo" />
 
       <Publish Dialog="LicenseAgreementDlg"   Control="Next"   Event="NewDialog"   Value="HostsDlg" Order="3">LicenseAccepted = "1"</Publish>
@@ -300,7 +303,8 @@ IMCAC - Immediate Custom Action - It's immediate
         <Control Id="MinionLabel"  Type="Text"       X="20"  Y="85"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion:" />
         <Control Id="MinionId"     Type="Edit"       X="30"  Y="100" Width="190" Height="15" Property="MINION_ID" />
         <Control Id="cbt_type"     Type="Text"       X="20"  Y="125"  Width="40" Height="15" Transparent="yes" NoPrefix="yes" Text="Config type">
-          <Condition Action="hide">MINION_CONFIG</Condition>
+          <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND)</Condition>
+          <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND</Condition>
         </Control>
         <Control Id="cbo_type"     Type="ComboBox"   X="70"  Y="125"  Width="50" Height="15" Property="CONFIG_TYPE" >
             <ComboBox Property="CONFIG_TYPE">
@@ -308,13 +312,23 @@ IMCAC - Immediate Custom Action - It's immediate
                 <ListItem Value="Custom" />
                 <ListItem Value="Default" />
             </ComboBox>
-          <Condition Action="hide">MINION_CONFIG</Condition>
+          <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND)</Condition>
+          <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND</Condition>
         </Control>
         <Control Id="StartService" Type="CheckBox"   X="25"  Y="150" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="25"  Y="165" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
         <Control Id="remove_conf"  Type="CheckBox"   X="25"  Y="180" Width="280" Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;Remove configuration on uninstall"/>
         <Control Id="move_conf"    Type="CheckBox"   X="25"  Y="195" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'.">
-          <Condition Action="hide">not OLD_CONF_EXISTS</Condition>
+          <Condition Action="show">     OLD_CONF_EXISTS</Condition>
+          <Condition Action="hide">not (OLD_CONF_EXISTS)</Condition>
+        </Control>
+        <Control Id="Insecure1"    Type="Text"       X="20"  Y="125" Width="320" Height="30" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Warning}Insecure config found at C:\salt\conf. If you continue, the config directory will be renamed and the default config will be used.">
+            <Condition Action="show">     INSECURE_CONFIG_FOUND and (not MINION_CONFIG) </Condition>
+            <Condition Action="hide">not (INSECURE_CONFIG_FOUND and (not MINION_CONFIG))</Condition>
+        </Control>
+        <Control Id="Insecure2"    Type="Text"       X="20"  Y="125" Width="320" Height="30" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Warning}Insecure config found at C:\salt\conf. If you continue, the config directory will be renamed and the MINION_CONFIG property will be used.">
+            <Condition Action="show">     INSECURE_CONFIG_FOUND and      MINION_CONFIG </Condition>
+            <Condition Action="hide">not (INSECURE_CONFIG_FOUND and      MINION_CONFIG)</Condition>
         </Control>
 
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
