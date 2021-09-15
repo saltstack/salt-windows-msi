@@ -398,10 +398,12 @@ namespace MinionConfigurationExtension {
 
        [CustomAction]
         public static ActionResult DeleteConfig_DECAC(Session session) {
-            // This uninstalls the current install.
+            // This removes ROOTDIR or subfolders of ROOTDIR, depending on property REMOVE_CONFIG
+            // Called on install, upgrade and uninstall
             session.Log("...BEGIN DeleteConfig_DECAC");
 
             // Determine wether to delete everything and DIRS
+            string CLEAN_INSTALL = cutil.get_property_DECAC(session, "CLEAN_INSTALL");
             string REMOVE_CONFIG = cutil.get_property_DECAC(session, "REMOVE_CONFIG");
             string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string bindir        = Path.Combine(INSTALLDIR, "bin");
@@ -409,7 +411,7 @@ namespace MinionConfigurationExtension {
 
             // The registry subkey deletes itself
             cutil.del_dir(session, bindir, "");     // msi only deletes what it installed, not *.pyc.
-            if (REMOVE_CONFIG == "1") {
+            if (REMOVE_CONFIG.Length>0 || CLEAN_INSTALL.Length>0) {
                 cutil.del_dir(session, ROOTDIR, "");
             } else {
                 cutil.del_dir(session, ROOTDIR, "var");

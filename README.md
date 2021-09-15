@@ -43,6 +43,7 @@ Salt Minion-specific and generic msi-properties:
  `START_MINION`         | `1`                     | Set to `""` to prevent the start of the `salt-minion` service.
  `MOVE_CONF`            |                         | Set to 1 to move configuration from `C:\salt` to `%ProgramData%`.
  `REMOVE_CONFIG`        |                         | Set to 1 to remove configuration on uninstall. Implied by `MINION_CONFIG`.
+ `CLEAN_INSTALL`        |                         | Set to 1 to remove configuration and cache before install or upgrade.
  `CONFIG_TYPE`          | `Existing`              | Or `Custom` or `Default`. See below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
  `INSTALLDIR`           | Windows default         | Where to install (`INSTALLFOLDER` is deprecated)
