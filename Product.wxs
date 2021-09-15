@@ -184,31 +184,37 @@ IMCAC - Immediate Custom Action - It's immediate
       -->
     <InstallExecuteSequence>
       <!--
-      On install and uninstall
+      On install and uninstall:
         stopSalt to release log file, installValidate requires access to all
         files, including the log file
       -->
-      <Custom Action='stopSalt'           Before='InstallValidate'       >1</Custom>
+      <Custom Action='stopSalt'                  Before='InstallValidate'       >1</Custom>
 
-      <Custom Action='ReadConfig_IMCAC'   Before='InstallInitialize'     >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'     After='InstallInitialize'      >nsis_exe</Custom>
+      <Custom Action='ReadConfig_IMCAC'          Before='InstallInitialize'     >NOT Installed</Custom>
+      <Custom Action='del_NSIS_DECAC'            After='InstallInitialize'      >nsis_exe</Custom>
 
-      <Custom Action='MoveInsecureConfig_DECAC'   Before='CreateFolders'            >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
-      <Custom Action='BackupConfig_DECAC' Before='CreateFolders'         >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
-      <Custom Action='MoveConfig_DECAC'   Before='CreateFolders'         >(NOT Installed) and MOVE_CONF</Custom>
+      <!-- If CLEAN_INSTALL, on install or upgrade: delete config and cache -->
+      <Custom Action='DeleteConfig2_CADH'
+              Before='DeleteConfig2_DECAC'                                      >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
+      <Custom Action='DeleteConfig2_DECAC'        After='InstallInitialize'     >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
 
-      <Custom Action='WriteConfig_CADH'   Before='WriteConfig_DECAC'     >NOT Installed</Custom>
-      <Custom Action='WriteConfig_DECAC'  After='WriteIniValues'         >NOT Installed</Custom>
+      <Custom Action='MoveInsecureConfig_DECAC'   Before='CreateFolders'        >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
+      <Custom Action='BackupConfig_DECAC'         Before='CreateFolders'        >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
+      <Custom Action='MoveConfig_DECAC'           Before='CreateFolders'        >(NOT Installed) and MOVE_CONF</Custom>
+
+      <Custom Action='WriteConfig_CADH'           Before='WriteConfig_DECAC'    >NOT Installed</Custom>
+      <Custom Action='WriteConfig_DECAC'          After='WriteIniValues'        >NOT Installed</Custom>
 
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900">START_MINION</StartServices>
 
-      <!-- On uninstall or upgrade, stop salt python.exe processes that would lock dll's -->
-      <Custom Action='kill_python_exe'    After='StopServices'           >(REMOVE ~= "ALL") or WIX_UPGRADE_DETECTED</Custom>
+      <!-- On uninstall or upgrade: stop salt python.exe processes that would lock dll's -->
+      <Custom Action='kill_python_exe'            After='StopServices'           >(REMOVE ~= "ALL") or WIX_UPGRADE_DETECTED</Custom>
 
+      <!-- On uninstall (not upgrade): delete config and cache -->
       <Custom Action='DeleteConfig_CADH'
-              Before='DeleteConfig_DECAC'                                >REMOVE ~= "ALL"</Custom>
-      <Custom Action='DeleteConfig_DECAC' After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
+              Before='DeleteConfig_DECAC'                                        >REMOVE ~= "ALL"</Custom>
+      <Custom Action='DeleteConfig_DECAC'         After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
 
     </InstallExecuteSequence>
 
@@ -220,13 +226,15 @@ IMCAC - Immediate Custom Action - It's immediate
     <CustomAction Id="MoveConfig_DECAC"     BinaryKey='MinionConfigExt' DllEntry='MoveConfig_DECAC'       Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="DeleteConfig2_DECAC"  BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="BackupConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='BackupConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
     <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->
     <!-- Send all this stuff down to the sandbox -->
     <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
-    <CustomAction Id="DeleteConfig_CADH" Property="DeleteConfig_DECAC" Value="REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
+    <CustomAction Id="DeleteConfig_CADH"  Property="DeleteConfig_DECAC"  Value="CLEAN_INSTALL=[CLEAN_INSTALL];REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
+    <CustomAction Id="DeleteConfig2_CADH" Property="DeleteConfig2_DECAC" Value="CLEAN_INSTALL=[CLEAN_INSTALL];REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
 
 
     <!-- Prevent downgrade -->
@@ -317,8 +325,10 @@ IMCAC - Immediate Custom Action - It's immediate
         </Control>
         <Control Id="StartService" Type="CheckBox"   X="25"  Y="150" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="25"  Y="165" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
-        <Control Id="remove_conf"  Type="CheckBox"   X="25"  Y="180" Width="280" Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;Remove configuration on uninstall"/>
-        <Control Id="move_conf"    Type="CheckBox"   X="25"  Y="195" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from 'C:\salt' to 'C:\ProgramData\Salt Project'.">
+        <Control Id="conf_txt"     Type="Text"       X="36"  Y="182" Width="130" Height="15"                                                 Text="Remove configuration and cache on"/>
+        <Control Id="clean_inst"   Type="CheckBox"   X="170" Y="180" Width="50"  Height="15" Property="CLEAN_INSTALL"      CheckBoxValue="1" Text="u&amp;pgrade"/>
+        <Control Id="remove_conf"  Type="CheckBox"   X="220" Y="180" Width="50"  Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;uninstall"/>
+        <Control Id="move_conf"    Type="CheckBox"   X="25"  Y="195" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from &quot;C:\salt&quot; to &quot;C:\ProgramData\Salt Project&quot;">
           <Condition Action="show">     OLD_CONF_EXISTS</Condition>
           <Condition Action="hide">not (OLD_CONF_EXISTS)</Condition>
         </Control>
