@@ -9,14 +9,14 @@ The build client is where the msi installer is built.
 - .Net 3.5 SDK (for WiX)<sup>*</sup>
 - [Wix 3](http://wixtoolset.org/releases/)<sup>**</sup>
 - [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>**</sup>
-- Microsoft_VC140_CRT_x64.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
-- Microsoft_VC140_CRT_x86.msm from Visual Studio 2015 in `c:\salt_msi_resources\`<sup>**</sup>
-- Microsoft_VC120_CRT_x64.msm from Visual Studio 2013 in `c:\salt_msi_resources\`<sup>**</sup>
-- Microsoft_VC120_CRT_x86.msm from Visual Studio 2013 in `c:\salt_msi_resources\`<sup>**</sup>
+- Microsoft_VC140_CRT_x64.msm from Visual Studio 2015<sup>**</sup>
+- Microsoft_VC140_CRT_x86.msm from Visual Studio 2015<sup>**</sup>
+- Microsoft_VC120_CRT_x64.msm from Visual Studio 2013<sup>**</sup>
+- Microsoft_VC120_CRT_x86.msm from Visual Studio 2013<sup>**</sup>
 
-<sup>*</sup> `build_env.cmd` will open `optionalfeatures` if necessary.
-
-<sup>**</sup> `build_env.cmd` will download and install if necessary.
+Notes:
+- <sup>*</sup> `build_env.cmd` will open `optionalfeatures` if necessary.
+- <sup>**</sup> `build_env.cmd` will download to `.\_cache.dir` and install if necessary.
 
 How to include 64bit `rc.exe` (resource compiler) from the Windows SDK into path
 
