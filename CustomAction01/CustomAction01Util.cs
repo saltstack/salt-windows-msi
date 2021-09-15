@@ -149,6 +149,7 @@ namespace MinionConfigurationExtension {
 
         public static string get_file_that_exist(Session session, string[] files) {
             foreach (var file in files) {
+                session.Log("...looking for " + file);
                 if (File.Exists(file)) {
                     session.Log("...found " + file);
                     return file;

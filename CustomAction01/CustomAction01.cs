@@ -64,7 +64,7 @@ namespace MinionConfigurationExtension {
             string minion_config_file = cutil.get_file_that_exist(session, new string[] {
                 ROOTDIR_new + @"\conf\minion",
                 ROOTDIR_old + @"\conf\minion"});
-            string minion_config_dir = Path.GetDirectoryName(minion_config_file);
+            string minion_config_dir = "";
 
 
             if (File.Exists(minion_config_file)) {
@@ -82,7 +82,7 @@ namespace MinionConfigurationExtension {
 
             // Check for existing config
             if (File.Exists(minion_config_file)) {
-
+                minion_config_dir = Path.GetDirectoryName(minion_config_file);
                 // Owner must be one of "Local System" or "Administrators"
                 // It looks like the NullSoft installer sets the owner to
                 // Administrators while the MIS installer sets the owner to
