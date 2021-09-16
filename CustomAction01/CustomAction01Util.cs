@@ -15,8 +15,15 @@ namespace MinionConfigurationExtension {
         // DECAC means you must access data helper properties at session.CustomActionData[*]
         // IMCAC means ou can directly access msi properties at session[*]
 
+        public static void del_file(Session session, string file) {
+            try {
+                File.Delete(file);
+            } catch (Exception ex) {
+                just_ExceptionLog("", session, ex);
+            }
+        }
 
-        public static void del_dir(Session session, string a_dir, string sub_dir) {
+        public static void del_dir(Session session, string a_dir, string sub_dir = "") {
             string abs_path = a_dir;
             if (sub_dir.Length > 0) {
                 abs_path = Path.Combine(a_dir, sub_dir);
@@ -30,6 +37,45 @@ namespace MinionConfigurationExtension {
                 }
             }
         }
+
+
+        public static void del_registry_key(Session session, String HKLM_reg_path) {
+            try {
+                session.Log("Going to delete HKLM registry key " +  HKLM_reg_path);
+                RegistryKey HKLM = Registry.LocalMachine;
+                if (HKLM.OpenSubKey(HKLM_reg_path) == null) {
+                    session.Log("does not exist");
+                }else{
+                    session.Log("does exist. Now deleting");
+                    HKLM.DeleteSubKeyTree(HKLM_reg_path);
+                }
+            } catch (Exception ex) {
+                cutil.just_ExceptionLog("", session, ex);
+            }
+        }
+        public static void del_registry_SOFTWARE_key(Session session, String SOFTWARE_reg_path) {
+            try {
+                session.Log("Going to delete SOFTWARE registry key " +  SOFTWARE_reg_path);
+                del_registry_key(session, "SOFTWARE\\" + SOFTWARE_reg_path);
+                del_registry_key(session, "SOFTWARE\\WoW6432Node\\" + SOFTWARE_reg_path);
+            } catch (Exception ex) {
+                cutil.just_ExceptionLog("", session, ex);
+                }
+        }
+
+        public static RegistryKey get_registry_SOFTWARE_key(Session session, String SOFTWARE_reg_path) {
+            try {
+                session.Log("Going to get SOFTWARE registry key " +  SOFTWARE_reg_path);
+                RegistryKey HKLM = Registry.LocalMachine;
+                RegistryKey r64 =  HKLM.OpenSubKey("SOFTWARE\\" + SOFTWARE_reg_path);
+                if (r64 != null) return r64;
+                return HKLM.OpenSubKey("SOFTWARE\\WoW6432Node\\" + SOFTWARE_reg_path);
+            } catch (Exception ex) {
+                cutil.just_ExceptionLog("", session, ex);
+            }
+            return null;
+        }
+
 
         public static void Write_file(Session session, string path, string filename, string filecontent) {
             System.IO.Directory.CreateDirectory(path);  // Creates all directories and subdirectories in the specified path unless they already exist
