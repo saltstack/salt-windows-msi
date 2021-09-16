@@ -277,7 +277,7 @@ namespace MinionConfigurationExtension {
              *   remove registry
              *   remove files, except /salt/conf and /salt/var
              *
-             *   Instead of the above, we cannot use uninst.exe because the service would no longer start.
+             *   Sadly the msi cannot use uninst.exe because the service would no longer start.
             */
             session.Log("...BEGIN del_NSIS_DECAC");
             RegistryKey reg = Registry.LocalMachine;
@@ -401,7 +401,7 @@ namespace MinionConfigurationExtension {
 
        [CustomAction]
         public static ActionResult DeleteConfig_DECAC(Session session) {
-            // This removes ROOTDIR or subfolders of ROOTDIR, depending on property REMOVE_CONFIG
+            // This removes not only config, but ROOTDIR or subfolders of ROOTDIR, depending on properties CLEAN_INSTALL and REMOVE_CONFIG
             // Called on install, upgrade and uninstall
             session.Log("...BEGIN DeleteConfig_DECAC");
 
@@ -411,12 +411,23 @@ namespace MinionConfigurationExtension {
             string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string bindir        = Path.Combine(INSTALLDIR, "bin");
             string ROOTDIR       = cutil.get_property_DECAC(session, "ROOTDIR");
-
+            string ProgramData   = System.Environment.GetEnvironmentVariable("ProgramData");
+            string ROOTDIR_old   = @"C:\salt";
+            string ROOTDIR_new   =  Path.Combine(ProgramData, @"Salt Project\Salt");
             // The registry subkey deletes itself
+
+            if (CLEAN_INSTALL.Length > 0) {
+                session.Log("...CLEAN_INSTALL -- remove both old and new root_dirs");
+                cutil.del_dir(session, ROOTDIR_old, "");
+                cutil.del_dir(session, ROOTDIR_new, "");
+            }
+
             cutil.del_dir(session, bindir, "");     // msi only deletes what it installed, not *.pyc.
-            if (REMOVE_CONFIG.Length>0 || CLEAN_INSTALL.Length>0) {
+            if (REMOVE_CONFIG.Length > 0) {
+                session.Log("...REMOVE_CONFIG -- remove the current root_dir");
                 cutil.del_dir(session, ROOTDIR, "");
             } else {
+                session.Log("...Not REMOVE_CONFIG -- remove var and srv from the current root_dir");
                 cutil.del_dir(session, ROOTDIR, "var");
                 cutil.del_dir(session, ROOTDIR, "srv");
             }
