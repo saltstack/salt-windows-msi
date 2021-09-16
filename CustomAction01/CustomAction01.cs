@@ -145,6 +145,7 @@ namespace MinionConfigurationExtension {
                     session.Log("...MASTER       kept config   =" + master_from_previous_installation);
                     if (master_from_previous_installation != "") {
                         session["MASTER"] = master_from_previous_installation;
+                        session["CONFIG_FOUND"] = "True";
                         session.Log("...MASTER set to kept config");
                     } else {
                         session["MASTER"] = "salt";
