@@ -278,36 +278,64 @@ namespace MinionConfigurationExtension {
              *   remove registry
              *   remove files, except /salt/conf and /salt/var
              *
-             *   Sadly the msi cannot use uninst.exe because the service would no longer start.
+             *   The msi cannot use uninst.exe because the service would no longer start.
             */
             session.Log("...BEGIN del_NSIS_DECAC");
             RegistryKey reg = Registry.LocalMachine;
-            // ?When this is under    SOFTWARE\WoW6432Node
             string Salt_uninstall_regpath64 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
             string Salt_uninstall_regpath32 = @"SOFTWARE\WoW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
             var SaltRegSubkey64 = reg.OpenSubKey(Salt_uninstall_regpath64);
             var SaltRegSubkey32 = reg.OpenSubKey(Salt_uninstall_regpath32);
+            var uninst64exe = "";
+            var uninst32exe = "";
+            var uninstexe = "";
+            if (SaltRegSubkey64 != null) uninst64exe = SaltRegSubkey64.GetValue("UninstallString").ToString();
+            if (SaltRegSubkey32 != null) uninst32exe = SaltRegSubkey32.GetValue("UninstallString").ToString();
+            if (uninst64exe.Length > 0) uninstexe =  uninst64exe;
+            if (uninstexe.Length > 0) uninstexe =  uninst32exe;
+            session.Log("delete_NSIS_files:: searching uninstexe ... " + uninstexe);
+            if (File.Exists(uninstexe)) {
+                string Salt_regpath64 = @"SOFTWARE\Salt Project\Salt";
+                string Salt_regpath32 = @"SOFTWARE\WoW6432Node\Salt Project\Salt";
+                var SaltProject64 = reg.OpenSubKey(Salt_regpath64);
+                var SaltProject32 = reg.OpenSubKey(Salt_regpath32);
+                var bindir64 = "";
+                var bindir32 = "";
+                var bindir = "";
+                if (SaltProject64 != null) bindir64 = SaltProject64.GetValue("bin_dir").ToString();
+                if (SaltProject32 != null) bindir32 = SaltProject32.GetValue("bin_dir").ToString();
+                if (bindir64.Length > 0) bindir =  bindir64;
+                if (bindir.Length > 0) bindir =  bindir32;
 
-            bool NSIS_is_installed64 = (SaltRegSubkey64 != null) && SaltRegSubkey64.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
-            bool NSIS_is_installed32 = (SaltRegSubkey32 != null) && SaltRegSubkey32.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
-            session.Log("delete_NSIS_files:: NSIS_is_installed64 = " + NSIS_is_installed64);
-            session.Log("delete_NSIS_files:: NSIS_is_installed32 = " + NSIS_is_installed32);
-            if (NSIS_is_installed64 || NSIS_is_installed32) {
-                session.Log("delete_NSIS_files:: Going to stop service salt-minion ...");
-                cutil.shellout(session, "sc stop salt-minion");
-                session.Log("delete_NSIS_files:: Going to delete service salt-minion ...");
-                cutil.shellout(session, "sc delete salt-minion"); // shellout waits, but does sc? Does this work?
+                session.Log("delete_NSIS_files:: searching bindir ... " + bindir);
+                if(Directory.Exists(bindir)){
+                    session.Log("delete_NSIS_files:: Going to stop service salt-minion ...");
+                    cutil.shellout(session, "sc stop salt-minion");
+                    session.Log("delete_NSIS_files:: Going to delete service salt-minion ...");
+                    cutil.shellout(session, "sc delete salt-minion");
 
-                session.Log("delete_NSIS_files:: Going to delete ARP registry64 entry for salt-minion ...");
-                try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
-                session.Log("delete_NSIS_files:: Going to delete ARP registry32 entry for salt-minion ...");
-                try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
+                    session.Log("delete_NSIS_files:: Going to delete ARP registry64 entry for salt-minion ...");
+                    try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
+                    session.Log("delete_NSIS_files:: Going to delete ARP registry32 entry for salt-minion ...");
+                    try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
 
-                session.Log("delete_NSIS_files:: Going to delete files ...");
-                try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
-                try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
-                try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
-                try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
+                    session.Log("delete_NSIS_files:: Going to delete registry64 entry Salt Project ...");
+                    try { reg.DeleteSubKeyTree(Salt_regpath64); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
+                    session.Log("delete_NSIS_files:: Going to delete registry32 entry Salt Project ...");
+                    try { reg.DeleteSubKeyTree(Salt_regpath32); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
+
+                    session.Log("delete_NSIS_files:: Going to delete bindir ... " + bindir);
+                    try { Directory.Delete(bindir, true); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
+                    session.Log("delete_NSIS_files:: Going to delete uninst.exe ...");
+                    try { File.Delete(uninstexe); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
+                    session.Log("delete_NSIS_files:: Going to delete ssm.exe ...");
+                    try { File.Delete(bindir + @"\ssm.exe"); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
+                    var bindirparent = Path.GetDirectoryName(bindir);
+                    if (Directory.Exists(bindirparent)){
+                        session.Log(@"delete_NSIS_files:: Going to delete bindir\..\salt\*.* ...");
+                        try { foreach (FileInfo fi in new DirectoryInfo(bindirparent).GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
+                    }
+                }
             }
             session.Log("...END del_NSIS_DECAC");
             return ActionResult.Success;
