@@ -41,7 +41,6 @@ namespace MinionConfigurationExtension {
             A GUI installation can show these msi properties because this function is called before the GUI.
             */
             session.Log("...BEGIN ReadConfig_IMCAC");
-            string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");  // Logic issue: this function is called before the GUI, but this property is set in the GUI.
             string ProgramData    = System.Environment.GetEnvironmentVariable("ProgramData");
 
             string ROOTDIR_old = @"C:\salt";
@@ -51,17 +50,20 @@ namespace MinionConfigurationExtension {
             session["ROOTDIR_new"] = ROOTDIR_new;
 
             string abortReason = "";
-            if (MOVE_CONF == "1") {
-                if (Directory.Exists(ROOTDIR_old) && Directory.Exists(ROOTDIR_new)) {
-                    abortReason = ROOTDIR_old + " and " + ROOTDIR_new + " must not both exist when MOVE_CONF=1.  ";
-                }
-            }
+            // Insert the first abort reason here
             if (abortReason.Length > 0) {
                 session["AbortReason"] = abortReason;
             }
 
             session.Log("...Searching minion config file for reading master and id");
+            string PREVIOUS_ROOTDIR = session["PREVIOUS_ROOTDIR"];          // From registry
+            string previous_conf_config = "";
+            if (PREVIOUS_ROOTDIR.Length > 0){
+                previous_conf_config = PREVIOUS_ROOTDIR + @"\conf\minion";
+            }
+            // Search for configuration in this order: registry, new layout, old layout
             string minion_config_file = cutil.get_file_that_exist(session, new string[] {
+                previous_conf_config,
                 ROOTDIR_new + @"\conf\minion",
                 ROOTDIR_old + @"\conf\minion"});
             string minion_config_dir = "";
