@@ -318,9 +318,6 @@ namespace MinionConfigurationExtension {
             session.Log("Going to delete uninst.exe ...");
             cutil.del_file(session, uninstexe);
 
-            session.Log("Going to delete ssm.exe ..." + bin_dir + @"\ssm.exe");
-            cutil.del_file(session, bin_dir + @"\ssm.exe");
-
             var bindirparent = Path.GetDirectoryName(bin_dir);
             session.Log(@"Going to delete bindir\..\salt\*.*    ...   " + bindirparent);
             if (Directory.Exists(bindirparent)){
