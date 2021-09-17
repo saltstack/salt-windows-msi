@@ -52,16 +52,6 @@ IMCAC - Immediate Custom Action - It's immediate
       OR (CONFIG_TYPE = "Custom")
       OR (CONFIG_TYPE = "Default")
     </Condition>
-    <Condition Message='NSIS Salt Minion unexpected uninstall instruction [NSIS_UNINSTALLSTRING]'>
-      NOT Installed AND (nsis_install_found OR NOT NSIS_UNINSTALLSTRING) OR Installed
-    </Condition>
-    <Condition Message='NSIS Salt Minion unexpected version [NSIS_DISPLAYVERSION]'>
-      <![CDATA[NOT Installed AND ((NSIS_DISPLAYVERSION << "v")
-                               OR (NSIS_DISPLAYVERSION << "20")
-                               OR (NSIS_DISPLAYVERSION << "30") OR NOT NSIS_DISPLAYVERSION) OR Installed]]>
-    </Condition>
-    <!-- Abort msi install if NSIS installed -->
-    <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION]'>NOT nsis_install_found</Condition>
 
     <!-- Properties default values. For Properties unset by default see README.md -->
     <Property Id="CONFIG_TYPE"              Value="Existing"/>
