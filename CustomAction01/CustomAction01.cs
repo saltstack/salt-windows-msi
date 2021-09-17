@@ -312,9 +312,6 @@ namespace MinionConfigurationExtension {
             session.Log("Going to delete SOFTWARE registry entry ...");
             cutil.del_registry_SOFTWARE_key(session, SOFTWAREstring);
 
-            session.Log("Going to delete bindir ... " + bin_dir);
-            cutil.del_dir(session, bin_dir);
-
             session.Log("Going to delete uninst.exe ...");
             cutil.del_file(session, uninstexe);
 
@@ -323,6 +320,10 @@ namespace MinionConfigurationExtension {
             if (Directory.Exists(bindirparent)){
                 try { foreach (FileInfo fi in new DirectoryInfo(bindirparent).GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
             }
+
+            session.Log("Going to delete bindir ... " + bin_dir);
+            cutil.del_dir(session, bin_dir);
+
             session.Log("...END del_NSIS_DECAC");
             return ActionResult.Success;
         }
