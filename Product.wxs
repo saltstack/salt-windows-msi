@@ -147,6 +147,11 @@ IMCAC - Immediate Custom Action - It's immediate
     of validation looks at the log file. If it is locked, it will fail.
     Something has a lock on the minion log file, either salt-minion or
     ssm.exe
+
+    Message is:
+    Another application has exclusive access to the file \salt\var\log\salt\minion
+    Please shut down the application
+
     -->
     <CustomAction Id="stopSalt" Script="vbscript">
       On error resume next
