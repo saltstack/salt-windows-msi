@@ -286,7 +286,15 @@ IMCAC - Immediate Custom Action - It's immediate
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
 
 
-    <!-- GUI -->
+      <!-- GUI
+        Built-in dialogs description ... https://wixtoolset.org//documentation/manual/v3/wixui/dialog_reference/wixui_dialogs.html
+        Dialogs appearing (* == built-in):
+          WelcomeDlg*
+          LicenseAgreementDlg*
+          HostsDlg
+          DirectoryDlg = InstallDirDlg*
+          VerifyReadyDlg*
+    -->
     <UI>
       <TextStyle Id="WixUI_Font_Warning" FaceName="Tahoma" Size="8" Red="200" Bold="yes" />
       <UIRef Id="WixUI_Mondo" />
