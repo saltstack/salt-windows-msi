@@ -116,6 +116,10 @@ On the upgrade custom action condition:
 
 [Custom action introduction](https://docs.microsoft.com/en-us/archive/blogs/alexshev/from-msi-to-wix-part-5-custom-actions-introduction)
 
+### Articles
+"Installation Phases and In-Script Execution Options for Custom Actions in Windows Installer"
+http://www.installsite.org/pages/en/isnews/200108/
+
 
 ## Standard action sequence
 

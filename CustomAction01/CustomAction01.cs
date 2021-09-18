@@ -245,6 +245,7 @@ namespace MinionConfigurationExtension {
         public static ActionResult kill_python_exe(Session session) {
             // because a running process can prevent removal of files
             // Get full path and command line from running process
+            // see https://github.com/saltstack/salt/issues/42862
             session.Log("...BEGIN kill_python_exe");
             using (var wmi_searcher = new ManagementObjectSearcher
                 ("SELECT ProcessID, ExecutablePath, CommandLine FROM Win32_Process WHERE Name = 'python.exe'")) {
