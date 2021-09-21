@@ -41,7 +41,6 @@ namespace MinionConfigurationExtension {
             A GUI installation can show these msi properties because this function is called before the GUI.
             */
             session.Log("...BEGIN ReadConfig_IMCAC");
-            string MOVE_CONF      = cutil.get_property_IMCAC(session, "MOVE_CONF");  // Logic issue: this function is called before the GUI, but this property is set in the GUI.
             string ProgramData    = System.Environment.GetEnvironmentVariable("ProgramData");
 
             string ROOTDIR_old = @"C:\salt";
@@ -51,20 +50,23 @@ namespace MinionConfigurationExtension {
             session["ROOTDIR_new"] = ROOTDIR_new;
 
             string abortReason = "";
-            if (MOVE_CONF == "1") {
-                if (Directory.Exists(ROOTDIR_old) && Directory.Exists(ROOTDIR_new)) {
-                    abortReason = ROOTDIR_old + " and " + ROOTDIR_new + " must not both exist when MOVE_CONF=1.  ";
-                }
-            }
+            // Insert the first abort reason here
             if (abortReason.Length > 0) {
                 session["AbortReason"] = abortReason;
             }
 
             session.Log("...Searching minion config file for reading master and id");
+            string PREVIOUS_ROOTDIR = session["PREVIOUS_ROOTDIR"];          // From registry
+            string previous_conf_config = "";
+            if (PREVIOUS_ROOTDIR.Length > 0){
+                previous_conf_config = PREVIOUS_ROOTDIR + @"\conf\minion";
+            }
+            // Search for configuration in this order: registry, new layout, old layout
             string minion_config_file = cutil.get_file_that_exist(session, new string[] {
+                previous_conf_config,
                 ROOTDIR_new + @"\conf\minion",
                 ROOTDIR_old + @"\conf\minion"});
-            string minion_config_dir = Path.GetDirectoryName(minion_config_file);
+            string minion_config_dir = "";
 
 
             if (File.Exists(minion_config_file)) {
@@ -82,7 +84,7 @@ namespace MinionConfigurationExtension {
 
             // Check for existing config
             if (File.Exists(minion_config_file)) {
-
+                minion_config_dir = Path.GetDirectoryName(minion_config_file);
                 // Owner must be one of "Local System" or "Administrators"
                 // It looks like the NullSoft installer sets the owner to
                 // Administrators while the MIS installer sets the owner to
@@ -145,6 +147,7 @@ namespace MinionConfigurationExtension {
                     session.Log("...MASTER       kept config   =" + master_from_previous_installation);
                     if (master_from_previous_installation != "") {
                         session["MASTER"] = master_from_previous_installation;
+                        session["CONFIG_FOUND"] = "True";
                         session.Log("...MASTER set to kept config");
                     } else {
                         session["MASTER"] = "salt";
@@ -242,6 +245,7 @@ namespace MinionConfigurationExtension {
         public static ActionResult kill_python_exe(Session session) {
             // because a running process can prevent removal of files
             // Get full path and command line from running process
+            // see https://github.com/saltstack/salt/issues/42862
             session.Log("...BEGIN kill_python_exe");
             using (var wmi_searcher = new ManagementObjectSearcher
                 ("SELECT ProcessID, ExecutablePath, CommandLine FROM Win32_Process WHERE Name = 'python.exe'")) {
@@ -274,7 +278,7 @@ namespace MinionConfigurationExtension {
              *   remove registry
              *   remove files, except /salt/conf and /salt/var
              *
-             *   Instead of the above, we cannot use uninst.exe because the service would no longer start.
+             *   Sadly the msi cannot use uninst.exe because the service would no longer start.
             */
             session.Log("...BEGIN del_NSIS_DECAC");
             RegistryKey reg = Registry.LocalMachine;
@@ -398,7 +402,7 @@ namespace MinionConfigurationExtension {
 
        [CustomAction]
         public static ActionResult DeleteConfig_DECAC(Session session) {
-            // This removes ROOTDIR or subfolders of ROOTDIR, depending on property REMOVE_CONFIG
+            // This removes not only config, but ROOTDIR or subfolders of ROOTDIR, depending on properties CLEAN_INSTALL and REMOVE_CONFIG
             // Called on install, upgrade and uninstall
             session.Log("...BEGIN DeleteConfig_DECAC");
 
@@ -408,12 +412,23 @@ namespace MinionConfigurationExtension {
             string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string bindir        = Path.Combine(INSTALLDIR, "bin");
             string ROOTDIR       = cutil.get_property_DECAC(session, "ROOTDIR");
-
+            string ProgramData   = System.Environment.GetEnvironmentVariable("ProgramData");
+            string ROOTDIR_old   = @"C:\salt";
+            string ROOTDIR_new   =  Path.Combine(ProgramData, @"Salt Project\Salt");
             // The registry subkey deletes itself
+
+            if (CLEAN_INSTALL.Length > 0) {
+                session.Log("...CLEAN_INSTALL -- remove both old and new root_dirs");
+                cutil.del_dir(session, ROOTDIR_old, "");
+                cutil.del_dir(session, ROOTDIR_new, "");
+            }
+
             cutil.del_dir(session, bindir, "");     // msi only deletes what it installed, not *.pyc.
-            if (REMOVE_CONFIG.Length>0 || CLEAN_INSTALL.Length>0) {
+            if (REMOVE_CONFIG.Length > 0) {
+                session.Log("...REMOVE_CONFIG -- remove the current root_dir");
                 cutil.del_dir(session, ROOTDIR, "");
             } else {
+                session.Log("...Not REMOVE_CONFIG -- remove var and srv from the current root_dir");
                 cutil.del_dir(session, ROOTDIR, "var");
                 cutil.del_dir(session, ROOTDIR, "srv");
             }

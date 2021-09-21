@@ -1,4 +1,4 @@
-# This msi installer requires an Py3 NSIS exe. e.g.:
+# This builds the msi installer and requires a NSIS exe installer. e.g.:
 #   Salt-Minion-3002.6-Py3-AMD64-Setup.exe
 #   Salt-Minion-3002.6-Py3-x86-Setup.exe
 #
@@ -13,10 +13,122 @@ if (Test-Path C:\salt_msi_resources) {
 }
 
 
-# # # Detecting Salt version from Git # # #
+#### #### Verify, download or install resources
+#################################################################################################################
+
+function VerifyOrDownload ($local_file, $URL, $SHA256) {
+  #### Verify or download file
+  $filename = Split-Path $local_file -leaf
+  Write-Host -ForegroundColor Green -NoNewline ("{0,-38}" -f  $filename)
+  if (Test-Path $local_file) {
+    if ((Get-FileHash $local_file).Hash -eq $SHA256) {
+        Write-Host -ForegroundColor Green " Verified"
+      } else {
+        Write-Host -ForegroundColor Red " UNEXPECTED HASH   $((Get-FileHash $local_file).Hash)"
+        exit -2
+      }
+    } else {
+      [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
+      (New-Object System.Net.WebClient).DownloadFile($URL, $local_file)
+      Write-Host -ForegroundColor Green " Downloaded"
+  }
+}
+
+function ProductcodeExists($productCode) {
+  # Verify product code in registry
+  Test-Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$productCode
+}
+
+
+#### Ensure cache dir exists
+$WEBCACHE_DIR = "$pwd\_cache.dir"
+((Test-Path -Path $WEBCACHE_DIR) -Or (New-Item -ItemType directory -Path $WEBCACHE_DIR)) | out-null
+
+
+## Verify or install WiX toolset from https://wixtoolset.org/releases
+##   Wix 3.11.2  released Sep 19, 2019
+
+if (ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") {
+    Write-Host -ForegroundColor Green  ("{0,-38} Installed" -f  "Wix 3.11.2")
+} else {
+    ## Verify or install dotnet 3
+    $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
+    $dotnet3enabled = $dotnet3state -Eq "Enabled"
+    if (-Not ($dotnet3enabled)) {
+        Write-Host -ForegroundColor Yellow "    ***  Please enable .Net Framework 3.5 (rquired for or WiX 3)***"
+        if([Environment]::OSVersion.Version -ge (new-object 'Version' 10,0)) {
+          # Windows 10 or higher
+          Start-Process optionalfeatures -Wait -NoNewWindow
+        }
+        Read-Host -Prompt "Press any key to continue"
+    }
+
+    $wixInstaller = "$WEBCACHE_DIR/wix3-11-2-Setup.exe"
+    VerifyOrDownload $wixInstaller `
+        "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe" `
+        "32BB76C478FCB356671D4AAF006AD81CA93EEA32C22A9401B168FC7471FECCD2"
+    Write-Host -ForegroundColor Yellow "    *** Please install the Wix toolset (by clicking the fancy Install button) ***"
+    Start-Process $wixInstaller -Wait -NoNewWindow
+}
+if ($null -eq $ENV:WIX) {
+    Write-Host -ForegroundColor Yellow "    *** Please open a new Shell for the Wix enviornment variable ***"
+}
+
+
+
+## Build tools 2015
+#  https://www.microsoft.com/en-us/download/details.aspx?id=48159
+#  There is a bugfix upgrade
+#  14.0.23107    from link     {8C918E5B-E238-401F-9F6E-4FB84B024CA2}   Appears in appwiz.cpl
+#  14.0.25420    from where?   {79750C81-714E-45F2-B5DE-42DEF00687B8}   Doesn't appear in appwiz.cpl
+#
+if ((ProductcodeExists "{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") -or
+    (ProductcodeExists "{79750C81-714E-45F2-B5DE-42DEF00687B8}")) {
+      Write-Host -ForegroundColor Green ("{0,-38} Installed" -f  "Build Tools 2015")
+} else {
+    $BuildToolsInstaller = "$WEBCACHE_DIR/BuildTools_Full.exe"
+    VerifyOrDownload $BuildToolsInstaller `
+        "https://download.microsoft.com/download/E/E/D/EEDF18A8-4AED-4CE0-BEBE-70A83094FC5A/BuildTools_Full.exe" `
+        "92CFB3DE1721066FF5A93F14A224CC26F839969706248B8B52371A8C40A9445B"
+
+    Write-Host -ForegroundColor Yellow "    *** Please install Microsoft Build Tools 2015 (and wait up to 40 seconds for all processes to end) ***"
+    #Start-Process $BuildToolsInstaller -Wait -NoNewWindow   // waits forever (for the "process group"?)
+    $p = start-process -passthru $BuildToolsInstaller
+    $p.WaitForExit()
+}
+
+
+## See Product.md for which Microsoft Visual C++ compiler to use for what
+
+## VC++ Runtime 2013
+VerifyOrDownload "$pwd\_cache.dir\Microsoft_VC120_CRT_x64.msm" `
+    "http://repo.saltstack.com/windows/dependencies/64/Microsoft_VC120_CRT_x64.msm" `
+    "15FD10A495287505184B8913DF8D6A9CA461F44F78BC74115A0C14A5EDD1C9A7"
+VerifyOrDownload "$pwd\_cache.dir\Microsoft_VC120_CRT_x86.msm" `
+    "http://repo.saltstack.com/windows/dependencies/32/Microsoft_VC120_CRT_x86.msm" `
+    "26340B393F52888B908AC3E67B935A80D390E1728A31FF38EBCEC01117EB2579"
+
+## VC++ Runtime 2015
+VerifyOrDownload "$pwd\_cache.dir\Microsoft_VC140_CRT_x64.msm" `
+    "http://repo.saltstack.com/windows/dependencies/64/Microsoft_VC140_CRT_x64.msm" `
+    "E1344D5943FB2BBB7A56470ED0B7E2B9B212CD9210D3CC6FA82BC3DA8F11EDA8"
+
+VerifyOrDownload "$pwd\_cache.dir\Microsoft_VC140_CRT_x86.msm" `
+    "http://repo.saltstack.com/windows/dependencies/32/Microsoft_VC140_CRT_x86.msm" `
+    "0D36CFE6E9ABD7F530DBAA4A83841CDBEF9B2ADCB625614AF18208FDCD6B92A4"
+
+
+#### Detecting Salt version from Git
+#################################################################################################################
+[string]$gitexe = where.exe git
+if ($gitexe.length -eq 0) {
+  Write-Host -ForegroundColor Red "Please install git"
+  exit -1
+}
+
 if (-Not (Test-Path ..\salt)) {
-  Write-Host -ForegroundColor Red No directory ..\salt
-  Write-Host -ForegroundColor Red Have you build the NSIS Nullsoft exe installer?
+  Write-Host -ForegroundColor Red "No directory ..\salt"
+  Write-Host -ForegroundColor Red "Have you build the NSIS Nullsoft exe installer?"
   exit(1)
 }
 Push-Location ..\salt
@@ -45,7 +157,7 @@ if ([convert]::ToInt32($major, 10) -ge 3000) {      # 3000 scheme
 Write-Host -ForegroundColor Green "Display version   $displayversion"
 Write-Host -ForegroundColor Green "Internal version  $internalversion"
 
-# # # Detecting target platform from NSIS exe # # #
+#### Detecting target platform from NSIS exe
 $targetplatform = 0
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*AMD64*.exe) {$targetplatform="64"}
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*x86*.exe)   {$targetplatform="32"}
@@ -56,7 +168,7 @@ if ($targetplatform -eq 0) {
 }
 Write-Host -ForegroundColor Green "Architecture      $targetplatform"
 
-# # # Detecting Python version from NSIS exe # # #
+#### Detecting Python version from NSIS exe
 $pythonversion = 0
 if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py3*.exe) {$pythonversion=3}
 if ($pythonversion -eq 0) {
@@ -66,7 +178,8 @@ if ($pythonversion -eq 0) {
 }
 
 
-# # # build # # #
+#### #### Build
+#################################################################################################################
 # Product related values
 $MANUFACTURER   = "Salt Project"
 $PRODUCT        = "Salt Minion"
@@ -75,9 +188,8 @@ $PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
 $DISCOVER_INSTALLDIR = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
 $DISCOVER_CONFDIR    = "..\salt\pkg\windows\buildenv\conf"
-$WEBCACHE_DIR        = "$pwd\_cache.dir"
 
-# MSBUild needed to compile C#
+# MSBuild needed to compile C#
 If ( (Get-CimInstance Win32_OperatingSystem).OSArchitecture -eq "64-bit" ) {
     $msbuild = "C:\Program Files (x86)\MSBuild\14.0\"
 } else {
@@ -89,7 +201,7 @@ if ($targetplatform -eq "32") {$i = 1} else {$i = 0}
 $WIN64        = "yes",                  "no"                   # Used in wxs
 $ARCHITECTURE = "x64",                  "x86"                  # WiX dictionary values
 $ARCH_AKA     = "AMD64",                "x86"                  # For filename
-$PLATFORM     = "x64",                  "Win32"
+$PLATFORM     = "x64",                  "Win32"                # Unused
 $PROGRAMFILES = "ProgramFiles64Folder", "ProgramFilesFolder"   # msi dictionary values
 
 function CheckExitCode() {   # Exit on failure

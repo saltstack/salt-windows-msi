@@ -53,7 +53,7 @@ IMCAC - Immediate Custom Action - It's immediate
       OR (CONFIG_TYPE = "Default")
     </Condition>
     <Condition Message='NSIS Salt Minion unexpected uninstall instruction [NSIS_UNINSTALLSTRING]'>
-      NOT Installed AND (NSIS_UNINSTALLSTRING >> "uninst.exe" OR NOT NSIS_UNINSTALLSTRING) OR Installed
+      NOT Installed AND (nsis_install_found OR NOT NSIS_UNINSTALLSTRING) OR Installed
     </Condition>
     <Condition Message='NSIS Salt Minion unexpected version [NSIS_DISPLAYVERSION]'>
       <![CDATA[NOT Installed AND ((NSIS_DISPLAYVERSION << "v")
@@ -61,9 +61,7 @@ IMCAC - Immediate Custom Action - It's immediate
                                OR (NSIS_DISPLAYVERSION << "30") OR NOT NSIS_DISPLAYVERSION) OR Installed]]>
     </Condition>
     <!-- Abort msi install if NSIS installed -->
-    <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION]'>
-      NOT (NSIS_UNINSTALLSTRING >> "uninst.exe")
-    </Condition>
+    <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION]'>NOT nsis_install_found</Condition>
 
     <!-- Properties default values. For Properties unset by default see README.md -->
     <Property Id="CONFIG_TYPE"              Value="Existing"/>
@@ -73,12 +71,17 @@ IMCAC - Immediate Custom Action - It's immediate
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLDIR"/>
+    <Property Id="hosts_source"             Value="Default hosts"/>    <!-- Displayed in GUI -->
 
     <!-- Allow command line alias for Property  -->
     <SetProperty Id="INSTALLDIR"  Value='[INSTALLFOLDER]'   Before="LaunchConditions">INSTALLFOLDER</SetProperty>
     <!-- MINION_CONFIG implies REMOVE_CONFIG  -->
     <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 
+    <!-- Display source of hosts -->
+    <SetProperty Id="hosts_source"  Value='Hosts in use by version [NSIS_DISPLAYVERSION]'    Action="h1" After="LaunchConditions">NSIS_DISPLAYVERSION</SetProperty>
+    <SetProperty Id="hosts_source"  Value='Hosts in use by version [WIX_UPGRADE_DETECTED]'   Action="h2" After="LaunchConditions">WIX_UPGRADE_DETECTED</SetProperty>
+    <SetProperty Id="hosts_source"  Value='Hosts formerly used. No current install'          Action="h3" After="LaunchConditions">CONFIG_FOUND and (not NSIS_DISPLAYVERSION) and (not WIX_UPGRADE_DETECTED)</SetProperty>
 
     <!-- Search for old config minion file -->
     <Property Id="OLD_CONF_EXISTS">
@@ -94,17 +97,20 @@ IMCAC - Immediate Custom Action - It's immediate
       </DirectorySearch>
     </Property>
 
-    <!-- Search registry for previous msi and Nullsoft install dirs, assumes Nullsoft writes to 32bit registry -->
+    <!-- Search registry for previous msi and Nullsoft install dirs -->
     <Property Id="PREVIOUS_ROOTDIR">
-      <!-- C:\ProgramData\Salt Project\Salt -->
-      <!-- Currently unused -->
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="$(var.WIN64)" Type="raw" Id="rsc"/>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="no"           Type="raw" Id="rsc_nullsoft"/>
+      <!-- new layout is C:\ProgramData\Salt Project\Salt -->
+          <?if $(var.WIN64)=yes ?>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="yes" Type="raw" Id="p1"/>
+          <?endif ?>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="no"  Type="raw" Id="p2"/>
     </Property>
+    <!-- Search registry for option to remove config uninstall, set in previous install -->
     <Property Id="REMOVE_CONFIG">
-      <!-- Read from registry the intention to remove config  -->
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="$(var.WIN64)" Type="raw" Id="rsrmc"/>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="no"           Type="raw" Id="rsrmc_nullsoft"/>
+          <?if $(var.WIN64)=yes ?>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="yes" Type="raw" Id="p3"/>
+          <?endif ?>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="no"  Type="raw" Id="p4"/>
     </Property>
 
     <!-- Write registry (declare components) and delete on uninstall -->
@@ -122,19 +128,18 @@ IMCAC - Immediate Custom Action - It's immediate
     </Component>
 
 
-    <!-- Search previous NSIS installation.
-         Assume NSIS always (32 and 64 bit Salt-minion) writes into the 32bit WoW registry -->
-    <Property           Id="NSIS_UNINSTALLSTRING">
-        <RegistrySearch Id="NSIS_UNINSTALLSTRING"
-            Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="no" />
+    <!-- Search registry for NSIS install  -->
+    <Property         Id="NSIS_UNINSTALLSTRING">
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="no"  Id="n1"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="yes" Id="n2"/>
     </Property>
-        <Property       Id="NSIS_DISPLAYVERSION">
-        <RegistrySearch Id="NSIS_DISPLAYVERSION"
-            Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="no" />
+    <Property         Id="NSIS_DISPLAYVERSION">
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="no"  Id="n3"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="yes" Id="n4"/>
     </Property>
 
     <!-- Detect NSIS install -->
-    <SetProperty Id="nsis_exe"              Before="LaunchConditions" Value="1">NSIS_UNINSTALLSTRING >> "uninst.exe"</SetProperty>
+    <SetProperty Id="nsis_install_found" Before="LaunchConditions" Value="1">NSIS_UNINSTALLSTRING >> "uninst.exe"</SetProperty>
 
 
     <!--
@@ -142,6 +147,11 @@ IMCAC - Immediate Custom Action - It's immediate
     of validation looks at the log file. If it is locked, it will fail.
     Something has a lock on the minion log file, either salt-minion or
     ssm.exe
+
+    Message is:
+    Another application has exclusive access to the file \salt\var\log\salt\minion
+    Please shut down the application
+
     -->
     <CustomAction Id="stopSalt" Script="vbscript">
       On error resume next
@@ -191,7 +201,7 @@ IMCAC - Immediate Custom Action - It's immediate
       <Custom Action='stopSalt'                  Before='InstallValidate'       >1</Custom>
 
       <Custom Action='ReadConfig_IMCAC'          Before='InstallInitialize'     >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'            After='InstallInitialize'      >nsis_exe</Custom>
+      <Custom Action='del_NSIS_DECAC'            After='InstallInitialize'      >nsis_install_found</Custom>
 
       <!-- If CLEAN_INSTALL, on install or upgrade: delete config and cache -->
       <Custom Action='DeleteConfig2_CADH'
@@ -281,7 +291,15 @@ IMCAC - Immediate Custom Action - It's immediate
     <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
 
 
-    <!-- GUI -->
+      <!-- GUI
+        Built-in dialogs description ... https://wixtoolset.org//documentation/manual/v3/wixui/dialog_reference/wixui_dialogs.html
+        Dialogs appearing (* == built-in):
+          WelcomeDlg*
+          LicenseAgreementDlg*
+          HostsDlg
+          DirectoryDlg = InstallDirDlg*
+          VerifyReadyDlg*
+    -->
     <UI>
       <TextStyle Id="WixUI_Font_Warning" FaceName="Tahoma" Size="8" Red="200" Bold="yes" />
       <UIRef Id="WixUI_Mondo" />
@@ -300,8 +318,8 @@ IMCAC - Immediate Custom Action - It's immediate
 
 
       <Dialog Id="HostsDlg" Width="370" Height="270" Title="[ProductName] Setup">
-        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Hosts" />
-        <Control Id="Description"  Type="Text"       X="25"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please specify master and minion." />
+        <Control Id="Title"        Type="Text"       X="15"  Y="6"   Width="300" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}[hosts_source]" />
+        <Control Id="Description"  Type="Text"       X="25"  Y="23"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Please verify master and minion." />
         <Control Id="BannerBitmap" Type="Bitmap"     X="0"   Y="0"   Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
         <Control Id="BannerLine"   Type="Line"       X="0"   Y="44"  Width="370" Height="0" />
         <Control Id="BottomLine"   Type="Line"       X="0"   Y="234" Width="370" Height="0" />
@@ -311,8 +329,8 @@ IMCAC - Immediate Custom Action - It's immediate
         <Control Id="MinionLabel"  Type="Text"       X="20"  Y="85"  Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Minion:" />
         <Control Id="MinionId"     Type="Edit"       X="30"  Y="100" Width="190" Height="15" Property="MINION_ID" />
         <Control Id="cbt_type"     Type="Text"       X="20"  Y="125"  Width="45" Height="15" Transparent="yes" NoPrefix="yes" Text="Config type:">
-          <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND)</Condition>
-          <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND</Condition>
+          <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND or (not CONFIG_FOUND))</Condition>
+          <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND or (not CONFIG_FOUND)</Condition>
         </Control>
         <Control Id="cbo_type"     Type="ComboBox"   X="75"  Y="125"  Width="60" Height="15" Property="CONFIG_TYPE" >
             <ComboBox Property="CONFIG_TYPE">
@@ -320,8 +338,8 @@ IMCAC - Immediate Custom Action - It's immediate
                 <ListItem Value="Custom" />
                 <ListItem Value="Default" />
             </ComboBox>
-          <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND)</Condition>
-          <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND</Condition>
+          <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND or (not CONFIG_FOUND))</Condition>
+          <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND or (not CONFIG_FOUND)</Condition>
         </Control>
         <Control Id="StartService" Type="CheckBox"   X="25"  Y="150" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
         <Control Id="HideInARP"    Type="CheckBox"   X="25"  Y="165" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>

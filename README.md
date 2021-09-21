@@ -27,9 +27,9 @@ Example: uninstall and remove configuration
 
 > MsiExec.exe /X *.msi REMOVE_CONFIG=1
 
-## Features
+##  Notes
 
-- Creates a very verbose log file, by default %TEMP%\MSIxxxxx.LOG, where xxxxx are 5 random lowercase letters or numbers. The name of the log can be specified with `msiexec /log example.log`
+- Creates a very verbose log file, by default `%TEMP%\MSIxxxxx.LOG`, where xxxxx are 5 random lowercase letters or numbers. The name of the log can be specified with `msiexec /log example.log`
 - Upgrades NSIS installations __UNDER REVIEW__
 
 Salt Minion-specific and generic msi-properties:
@@ -61,7 +61,7 @@ You can set a master public key with `MASTER_KEY`, after you converted it into o
 
 ### `MINION_CONFIG`
 
-If `MINION_CONFIG` is given:
+If `MINION_CONFIG` is set:
 
 - Its content is written to configuraton file `%ProgramData%\conf\minion`, with `^` replaced by line breaks
 - All prior configuration is deleted:
@@ -69,10 +69,10 @@ If `MINION_CONFIG` is given:
   - the `minion_id` file
 - Implies `REMOVE_CONFIG=1`: uninstall will remove all configuration.
 
-Example `MINION_CONFIG="master: Anna^id: Ben"` results in:
+Example `MINION_CONFIG="master: Anna^id: Bob"` results in:
 
     master: Anna
-    id: Ben
+    id: Bob
 
 
 ### `CONFIG_TYPE`
