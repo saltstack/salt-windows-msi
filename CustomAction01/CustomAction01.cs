@@ -206,29 +206,55 @@ namespace MinionConfigurationExtension {
 
 
         private static void read_master_and_id_from_file_IMCAC(Session session, String configfile, ref String ref_master, ref String ref_id) {
+            /* How to match multimasters *
+                match `master: `MASTER*:
+                if MASTER:
+                  master = MASTER
+                else, a list of masters may follow:
+                  while match `- ` MASTER:
+                    master += MASTER
+            */
             session.Log("...searching master and id in " + configfile);
             bool configExists = File.Exists(configfile);
             session.Log("......file exists " + configExists);
             if (!configExists) { return; }
             string[] configLines = File.ReadAllLines(configfile);
-            Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
+            Regex line_key_maybe_value = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]*)\s*$");
+            Regex line_listvalue = new Regex(@"^\s*-\s*([0-9a-zA-Z_.-]+)\s*$");
+            bool look_for_keys_otherwise_look_for_multimasters = true;
+            List<string> multimasters = new List<string>();
             foreach (string line in configLines) {
-                if (r.IsMatch(line)) {
-                    Match m = r.Match(line);
+                if (look_for_keys_otherwise_look_for_multimasters && line_key_maybe_value.IsMatch(line)) {
+                    Match m = line_key_maybe_value.Match(line);
                     string key = m.Groups[1].ToString();
-                    string value = m.Groups[2].ToString();
-                    //session.Log("...ANY KEY " + key + " " + value);
+                    string maybe_value = m.Groups[2].ToString();
+                    //session.Log("...ANY KEY " + key + " " + maybe_value);
                     if (key == "master") {
-                        ref_master = value;
-                        session.Log("......master " + ref_master);
+                        if (maybe_value.Length > 0) {
+                            ref_master = maybe_value;
+                            session.Log("......master " + ref_master);
+                        } else {
+                            session.Log("...... now searching multimasters");
+                            look_for_keys_otherwise_look_for_multimasters = false;
+                        }
                     }
-                    if (key == "id") {
-                        ref_id = value;
+                    if (key == "id" && maybe_value.Length > 0) {
+                        ref_id = maybe_value;
                         session.Log("......id " + ref_id);
                     }
+                } else if (line_listvalue.IsMatch(line)) {
+                    Match m = line_listvalue.Match(line);
+                    multimasters.Add(m.Groups[1].ToString());
+                } else {
+                    look_for_keys_otherwise_look_for_multimasters = true;
                 }
             }
+            if (multimasters.Count > 0) {
+                ref_master = string.Join(",", multimasters.ToArray());
+                session.Log("......master " + ref_master);
+            }
         }
+
 
        [CustomAction]
         public static void stop_service(Session session, string a_service) {
