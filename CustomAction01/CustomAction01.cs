@@ -670,17 +670,6 @@ namespace MinionConfigurationExtension {
 
 
 
-        public static string getConfigFileLocation_DECAC(Session session) {
-            string CONFDIR           = cutil.get_property_DECAC(session, "CONFDIR");
-            return Path.Combine(CONFDIR, @"minion");
-        }
-
-
-
-
-
-
-
         [CustomAction]
         public static ActionResult  BackupConfig_DECAC(Session session) {
             session.Log("...BackupConfig_DECAC BEGIN");
