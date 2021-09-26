@@ -205,6 +205,7 @@ namespace MinionConfigurationExtension {
         }
 
 
+
         private static void read_master_and_id_from_file_IMCAC(Session session, String configfile, ref String ref_master, ref String ref_id) {
             /* How to match multimasters *
                 match `master: `MASTER*:
@@ -355,9 +356,21 @@ namespace MinionConfigurationExtension {
             // Must have this signature or cannot uninstall not even write to the log
             session.Log("...BEGIN WriteConfig_DECAC");
             // Get msi properties
+            string master = cutil.get_property_DECAC(session, "master");;
+            string id = cutil.get_property_DECAC(session, "id");;
             string MOVE_CONF     = cutil.get_property_DECAC(session, "MOVE_CONF");
             string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string MINION_CONFIG = cutil.get_property_DECAC(session, "MINION_CONFIG");
+            string CONFDIR           = cutil.get_property_DECAC(session, "CONFDIR");
+            string MINION_CONFIGFILE = Path.Combine(CONFDIR, "minion");
+            session.Log("... MINION_CONFIGFILE {0}", MINION_CONFIGFILE);
+            bool file_exists = File.Exists(MINION_CONFIGFILE);
+            session.Log("...file exists {0}", file_exists);
+            if (!file_exists) {
+                Directory.CreateDirectory(CONFDIR);  // Any and all directories specified in path are created
+                File.Create(MINION_CONFIGFILE).Close();
+            }
+
             // Get environment variables
             string ProgramData = System.Environment.GetEnvironmentVariable("ProgramData");
 
@@ -365,8 +378,11 @@ namespace MinionConfigurationExtension {
             if (MINION_CONFIG.Length > 0) {
                 apply_minion_config_DECAC(session, MINION_CONFIG);
             } else {
-                string master = "";
-                string id = "";
+
+                write_master_and_id_to_file_DECAC(session)
+
+
+
                 if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
                     append_to_config_DECAC(session, "master", master);
                 }
