@@ -25,6 +25,184 @@ namespace MinionConfigurationExtension {
 
     class Program {
 
+        private static void write_master_and_id_to_file_IMCAC(Session session, String configfile, List<string> multimasters, String id) {
+            /* How to
+             * read line
+             * if line master, read multimaster, replace
+             * if line id, replace
+             * copy through line
+            */
+            session.Log("...want to write master and id to " + configfile);
+            bool configExists = File.Exists(configfile);
+            session.Log("......file exists " + configExists);
+            string[] configLinesINPUT = new List<string>().ToArray();
+            List<string> configLinesOUTPUT = new List<string>();
+            if (configExists) {
+                configLinesINPUT = File.ReadAllLines(configfile);
+            }
+            session.Log("...found config lines count " + configLinesINPUT.Length);
+            session.Log("...got master count " + multimasters.Count);
+            session.Log("...got id " + id);
+
+            Regex line_contains_key = new Regex(@"^([a-zA-Z_]+):\s*");
+            Regex line_contains_one_multimaster = new Regex(@"^\s*-\s*([0-9a-zA-Z_.-]+)\s*$");
+            bool master_emitted = false;
+            bool id_emitted = false;
+
+            bool look_for_multimasters = false;
+            foreach (string line in configLinesINPUT) {
+                if (look_for_multimasters) {
+                    // consume multimasters
+                    {
+                        if (line_contains_one_multimaster.IsMatch(line)) {
+                            // consume another multimaster
+                        } else {
+                            if(multimasters.Count == 1) {
+                                configLinesOUTPUT.Add("master: " + multimasters[0]);
+                                master_emitted = true;
+                            }
+                            if (multimasters.Count > 1) {
+                                configLinesOUTPUT.Add("master:");
+                                foreach(string onemultimaster in multimasters) {
+                                    configLinesOUTPUT.Add("- " + onemultimaster);
+                                }
+                                master_emitted = true;
+                            }
+                            configLinesOUTPUT.Add(line); // copy through
+                            look_for_multimasters = false;
+                        }
+                    }
+                } else {
+                    // search master and id
+                    if (line_contains_key.IsMatch(line)) {
+                        Match m = line_contains_key.Match(line);
+                        string key = m.Groups[1].ToString();
+                        if (key == "master") {
+                            look_for_multimasters = true;
+                        } else if (key == "id") {
+                            configLinesOUTPUT.Add("id: " + id);
+                            id_emitted = true;
+                        } else {
+                            configLinesOUTPUT.Add(line); // copy through
+                        }
+                    } else {
+                        configLinesOUTPUT.Add(line); // copy through
+                    }
+                }
+            }
+
+            if (!master_emitted) {
+                // put master after hash master
+                Regex line_contains_hash_master = new Regex(@"^# master:");
+                List<string> configLinesOUTPUT_hash_master = new List<string>();
+                foreach (string output_line in configLinesOUTPUT) {
+                    configLinesOUTPUT_hash_master.Add(output_line);
+                    if(line_contains_hash_master.IsMatch(output_line)) {
+                        if (multimasters.Count == 1) {
+                            configLinesOUTPUT_hash_master.Add("master: " + multimasters[0]);
+                            master_emitted = true;
+                        }
+                        if (multimasters.Count > 1) {
+                            configLinesOUTPUT_hash_master.Add("master:");
+                            foreach (string onemultimaster in multimasters) {
+                                configLinesOUTPUT_hash_master.Add("- " + onemultimaster);
+                            }
+                            master_emitted = true;
+                        }
+                    }
+                }
+                configLinesOUTPUT = configLinesOUTPUT_hash_master;
+            }
+            if (!master_emitted) {
+                // put master at end
+                if (multimasters.Count == 1) {
+                    configLinesOUTPUT.Add("master: " + multimasters[0]);
+                }
+                if (multimasters.Count > 1) {
+                    configLinesOUTPUT.Add("master:");
+                    foreach (string onemultimaster in multimasters) {
+                        configLinesOUTPUT.Add("- " + onemultimaster);
+                    }
+                }
+            }
+
+            if (!id_emitted) {
+                // put after hash
+                Regex line_contains_hash_id = new Regex(@"^# id:");
+                List<string> configLinesOUTPUT_hash_id = new List<string>();
+                foreach (string output_line in configLinesOUTPUT) {
+                    configLinesOUTPUT_hash_id.Add(output_line);
+                    if (line_contains_hash_id.IsMatch(output_line)) {
+                            configLinesOUTPUT_hash_id.Add("id: " + id);
+                            id_emitted = true;
+                    }
+                }
+                configLinesOUTPUT = configLinesOUTPUT_hash_id;
+            }
+            if (!id_emitted) {
+                // put at end
+                configLinesOUTPUT.Add("id: " + id);
+            }
+
+
+            session.Log("...writing to " + configfile);
+            string output = string.Join("\r\n", configLinesOUTPUT.ToArray()) + "\r\n";
+            File.WriteAllText(configfile, output);
+
+        }
+
+
+        private static void read_master_and_id_from_file_IMCAC(Session session, String configfile, ref String ref_master, ref String ref_id) {
+            /* How to match multimasters *
+                match `master: `MASTER*:
+                if MASTER:
+                  master = MASTER
+                else, a list of masters may follow:
+                  while match `- ` MASTER:
+                    master += MASTER
+            */
+            session.Log("...searching master and id in " + configfile);
+            bool configExists = File.Exists(configfile);
+            session.Log("......file exists " + configExists);
+            if (!configExists) { return; }
+            string[] configLines = File.ReadAllLines(configfile);
+            Regex line_key_maybe_value = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]*)\s*$");
+            Regex line_listvalue = new Regex(@"^\s*-\s*([0-9a-zA-Z_.-]+)\s*$");
+            bool look_for_keys_otherwise_look_for_multimasters = true;
+            List<string> multimasters = new List<string>();
+            foreach (string line in configLines) {
+                if (look_for_keys_otherwise_look_for_multimasters && line_key_maybe_value.IsMatch(line)) {
+                    Match m = line_key_maybe_value.Match(line);
+                    string key = m.Groups[1].ToString();
+                    string maybe_value = m.Groups[2].ToString();
+                    //session.Log("...ANY KEY " + key + " " + maybe_value);
+                    if (key == "master") {
+                        if (maybe_value.Length > 0) {
+                            ref_master = maybe_value;
+                            session.Log("......master " + ref_master);
+                        } else {
+                            session.Log("...... now searching multimasters");
+                            look_for_keys_otherwise_look_for_multimasters = false;
+                        }
+                    }
+                    if (key == "id" && maybe_value.Length > 0) {
+                        ref_id = maybe_value;
+                        session.Log("......id " + ref_id);
+                    }
+                } else if (line_listvalue.IsMatch(line)) {
+                    Match m = line_listvalue.Match(line);
+                    multimasters.Add(m.Groups[1].ToString());
+                } else {
+                    look_for_keys_otherwise_look_for_multimasters = true;
+                }
+            }
+            if (multimasters.Count > 0) {
+                ref_master = string.Join(",", multimasters.ToArray());
+                session.Log("......master " + ref_master);
+            }
+        }
+
+
 
         public static ActionResult kill_python_exe(Session session) {
             // because a running process can prevent removal of files
@@ -120,7 +298,16 @@ namespace MinionConfigurationExtension {
         static void Main(string[] args) {
             Console.WriteLine("DebugMe!");
             Session the_session = new Session();
-            del_NSIS_DECAC(the_session);
+            //del_NSIS_DECAC(the_session);
+
+            String the_master= "";
+            String the_id = "bob";
+            List<string> the_multimasters = new List<string>() {"anna1" ,"anna2" };
+
+            //read_master_and_id_from_file_IMCAC(the_session, @"c:\temp\testme.txt", ref the_master, ref the_id);
+
+            write_master_and_id_to_file_IMCAC(the_session, @"c:\temp\testme.txt", the_multimasters, the_id);
+
         }
     }
 }
