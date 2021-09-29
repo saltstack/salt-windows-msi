@@ -52,16 +52,6 @@ IMCAC - Immediate Custom Action - It's immediate
       OR (CONFIG_TYPE = "Custom")
       OR (CONFIG_TYPE = "Default")
     </Condition>
-    <Condition Message='NSIS Salt Minion unexpected uninstall instruction [NSIS_UNINSTALLSTRING]'>
-      NOT Installed AND (nsis_install_found OR NOT NSIS_UNINSTALLSTRING) OR Installed
-    </Condition>
-    <Condition Message='NSIS Salt Minion unexpected version [NSIS_DISPLAYVERSION]'>
-      <![CDATA[NOT Installed AND ((NSIS_DISPLAYVERSION << "v")
-                               OR (NSIS_DISPLAYVERSION << "20")
-                               OR (NSIS_DISPLAYVERSION << "30") OR NOT NSIS_DISPLAYVERSION) OR Installed]]>
-    </Condition>
-    <!-- Abort msi install if NSIS installed -->
-    <Condition Message='Please manually uninstall Salt Minion [NSIS_DISPLAYVERSION]'>NOT nsis_install_found</Condition>
 
     <!-- Properties default values. For Properties unset by default see README.md -->
     <Property Id="CONFIG_TYPE"              Value="Existing"/>
@@ -71,7 +61,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
     <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
     <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLDIR"/>
-    <Property Id="hosts_source"             Value="Default hosts"/>    <!-- Displayed in GUI -->
+    <Property Id="hosts_source"             Value="Default config"/>    <!-- Displayed in GUI -->
 
     <!-- Allow command line alias for Property  -->
     <SetProperty Id="INSTALLDIR"  Value='[INSTALLFOLDER]'   Before="LaunchConditions">INSTALLFOLDER</SetProperty>
@@ -79,9 +69,9 @@ IMCAC - Immediate Custom Action - It's immediate
     <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 
     <!-- Display source of hosts -->
-    <SetProperty Id="hosts_source"  Value='Hosts in use by version [NSIS_DISPLAYVERSION]'    Action="h1" After="LaunchConditions">NSIS_DISPLAYVERSION</SetProperty>
-    <SetProperty Id="hosts_source"  Value='Hosts in use by version [WIX_UPGRADE_DETECTED]'   Action="h2" After="LaunchConditions">WIX_UPGRADE_DETECTED</SetProperty>
-    <SetProperty Id="hosts_source"  Value='Hosts formerly used. No current install'          Action="h3" After="LaunchConditions">CONFIG_FOUND and (not NSIS_DISPLAYVERSION) and (not WIX_UPGRADE_DETECTED)</SetProperty>
+    <SetProperty Id="hosts_source"  Value='Config in use by [NSIS_DISPLAYNAME]' Action="h1" After="LaunchConditions">NSIS_DISPLAYNAME</SetProperty>
+    <SetProperty Id="hosts_source"  Value='Config in use by [WIX_UPGRADE_DETECTED]' Action="h2" After="LaunchConditions">WIX_UPGRADE_DETECTED</SetProperty>
+    <SetProperty Id="hosts_source"  Value='Config formerly used. No current install' Action="h3" After="LaunchConditions">CONFIG_FOUND and (not NSIS_DISPLAYNAME) and (not WIX_UPGRADE_DETECTED)</SetProperty>
 
     <!-- Search for old config minion file -->
     <Property Id="OLD_CONF_EXISTS">
@@ -133,9 +123,9 @@ IMCAC - Immediate Custom Action - It's immediate
       <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="no"  Id="n1"/>
       <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="yes" Id="n2"/>
     </Property>
-    <Property         Id="NSIS_DISPLAYVERSION">
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="no"  Id="n3"/>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayVersion" Type="raw" Win64="yes" Id="n4"/>
+    <Property         Id="NSIS_DISPLAYNAME">
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayName" Type="raw" Win64="no"  Id="n3"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayName" Type="raw" Win64="yes" Id="n4"/>
     </Property>
 
     <!-- Detect NSIS install -->

@@ -1,6 +1,4 @@
-﻿using Microsoft.Deployment.WindowsInstaller;
-using Microsoft.Tools.WindowsInstallerXml;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +8,7 @@ using System.Text.RegularExpressions;
 
 
 namespace MinionConfigurationExtension {
-    public class cutil : WixExtension {
+    public class cutil  {
         //
         // DECAC means you must access data helper properties at session.CustomActionData[*]
         // IMCAC means ou can directly access msi properties at session[*]
@@ -159,37 +157,14 @@ namespace MinionConfigurationExtension {
 
 
 
-        public static string get_property_IMCAC(Session session, string key ) {
-            // IMMEDIATE means
-            //   you can directly access msi properties at session[KEY]
-            // keys are case sensitive
-            // If key does not exist, its value will be empty
-            session.Log("...get_property_IMCAC key {0}", key);
-            string val = session[key];
-            session.Log("...get_property_IMCAC val {0}", val);
-            session.Log("...get_property_IMCAC len {0}", val.Length);
-            return val;
-        }
 
-
-        public static string get_property_DECAC(Session session, string key) {
-            // DEFERRED means
-            //   you may modify the system because the transaction has started
-            //   you must access msi properties via CustomActionData[KEY]
-            // If key does not exist, the msi will fail to install
-            session.Log("...get_property_DECAC key {0}", key);
-            string val = session.CustomActionData[key];
-            session.Log("...get_property_DECAC val {0}", val);
-            session.Log("...get_property_DECAC len {0}", val.Length);
-            return val;
-        }
 
 
 
         public static void just_ExceptionLog(string description, Session session, Exception ex) {
             session.Log(" ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ");
             session.Log(description);
-            session.Log("Exception: {0}", ex.Message.ToString());
+            session.Log("Exception: " + ex.Message.ToString());
             session.Log(ex.StackTrace.ToString());
         }
 

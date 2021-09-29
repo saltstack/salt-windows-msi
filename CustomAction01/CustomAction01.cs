@@ -278,37 +278,54 @@ namespace MinionConfigurationExtension {
              *   remove registry
              *   remove files, except /salt/conf and /salt/var
              *
-             *   Sadly the msi cannot use uninst.exe because the service would no longer start.
+             *   The msi cannot use uninst.exe because the service would no longer start.
             */
             session.Log("...BEGIN del_NSIS_DECAC");
-            RegistryKey reg = Registry.LocalMachine;
-            // ?When this is under    SOFTWARE\WoW6432Node
-            string Salt_uninstall_regpath64 = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
-            string Salt_uninstall_regpath32 = @"SOFTWARE\WoW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
-            var SaltRegSubkey64 = reg.OpenSubKey(Salt_uninstall_regpath64);
-            var SaltRegSubkey32 = reg.OpenSubKey(Salt_uninstall_regpath32);
+            RegistryKey HKLM = Registry.LocalMachine;
 
-            bool NSIS_is_installed64 = (SaltRegSubkey64 != null) && SaltRegSubkey64.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
-            bool NSIS_is_installed32 = (SaltRegSubkey32 != null) && SaltRegSubkey32.GetValue("UninstallString").ToString().Equals(@"c:\salt\uninst.exe", StringComparison.OrdinalIgnoreCase);
-            session.Log("delete_NSIS_files:: NSIS_is_installed64 = " + NSIS_is_installed64);
-            session.Log("delete_NSIS_files:: NSIS_is_installed32 = " + NSIS_is_installed32);
-            if (NSIS_is_installed64 || NSIS_is_installed32) {
-                session.Log("delete_NSIS_files:: Going to stop service salt-minion ...");
-                cutil.shellout(session, "sc stop salt-minion");
-                session.Log("delete_NSIS_files:: Going to delete service salt-minion ...");
-                cutil.shellout(session, "sc delete salt-minion"); // shellout waits, but does sc? Does this work?
+            string ARPstring = @"Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion";
+            RegistryKey ARPreg = cutil.get_registry_SOFTWARE_key(session, ARPstring);
+            string uninstexe = "";
+            if (ARPreg != null) uninstexe = ARPreg.GetValue("UninstallString").ToString();
+            session.Log("from REGISTRY uninstexe = " + uninstexe);
 
-                session.Log("delete_NSIS_files:: Going to delete ARP registry64 entry for salt-minion ...");
-                try { reg.DeleteSubKeyTree(Salt_uninstall_regpath64); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
-                session.Log("delete_NSIS_files:: Going to delete ARP registry32 entry for salt-minion ...");
-                try { reg.DeleteSubKeyTree(Salt_uninstall_regpath32); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
+            string SOFTWAREstring = @"Salt Project\Salt";
+            RegistryKey SOFTWAREreg = cutil.get_registry_SOFTWARE_key(session, SOFTWAREstring);
+            var bin_dir = "";
+            if (SOFTWAREreg != null) bin_dir = SOFTWAREreg.GetValue("bin_dir").ToString();
+            session.Log("from REGISTRY bin_dir = " + bin_dir);
+            if (bin_dir == "") bin_dir = @"C:\salt\bin";
+            session.Log("bin_dir = " + bin_dir);
 
-                session.Log("delete_NSIS_files:: Going to delete files ...");
-                try { Directory.Delete(@"c:\salt\bin", true); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
-                try { File.Delete(@"c:\salt\uninst.exe"); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
-                try { File.Delete(@"c:\salt\nssm.exe"); } catch (Exception ex) { cutil.just_ExceptionLog("", session, ex); }
-                try { foreach (FileInfo fi in new DirectoryInfo(@"c:\salt").GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
+            session.Log("Going to stop service salt-minion ...");
+            cutil.shellout(session, "sc stop salt-minion");
+
+            session.Log("Going to delete service salt-minion ...");
+            cutil.shellout(session, "sc delete salt-minion");
+
+            session.Log("Going to kill ...");
+            kill_python_exe(session);
+
+            session.Log("Going to delete ARP registry entry ...");
+            cutil.del_registry_SOFTWARE_key(session, ARPstring);
+
+            session.Log("Going to delete SOFTWARE registry entry ...");
+            cutil.del_registry_SOFTWARE_key(session, SOFTWAREstring);
+
+            session.Log("Going to delete uninst.exe ...");
+            cutil.del_file(session, uninstexe);
+
+            // This deletes any file that starts with "salt" from the install_dir
+            var bindirparent = Path.GetDirectoryName(bin_dir);
+            session.Log(@"Going to delete bindir\..\salt\*.*    ...   " + bindirparent);
+            if (Directory.Exists(bindirparent)){
+                try { foreach (FileInfo fi in new DirectoryInfo(bindirparent).GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
             }
+
+            // This deletes the bin directory
+            session.Log("Going to delete bindir ... " + bin_dir);
+            cutil.del_dir(session, bin_dir);
+
             session.Log("...END del_NSIS_DECAC");
             return ActionResult.Success;
         }
@@ -419,14 +436,16 @@ namespace MinionConfigurationExtension {
 
             if (CLEAN_INSTALL.Length > 0) {
                 session.Log("...CLEAN_INSTALL -- remove both old and new root_dirs");
-                cutil.del_dir(session, ROOTDIR_old, "");
-                cutil.del_dir(session, ROOTDIR_new, "");
+                cutil.del_dir(session, ROOTDIR_old);
+                cutil.del_dir(session, ROOTDIR_new);
             }
 
-            cutil.del_dir(session, bindir, "");     // msi only deletes what it installed, not *.pyc.
+            session.Log("...deleting bindir (msi only deletes what it installed, not *.pyc)  = " + bindir);
+            cutil.del_dir(session, bindir);
+
             if (REMOVE_CONFIG.Length > 0) {
                 session.Log("...REMOVE_CONFIG -- remove the current root_dir");
-                cutil.del_dir(session, ROOTDIR, "");
+                cutil.del_dir(session, ROOTDIR);
             } else {
                 session.Log("...Not REMOVE_CONFIG -- remove var and srv from the current root_dir");
                 cutil.del_dir(session, ROOTDIR, "var");
