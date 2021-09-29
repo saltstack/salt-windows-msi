@@ -315,12 +315,14 @@ namespace MinionConfigurationExtension {
             session.Log("Going to delete uninst.exe ...");
             cutil.del_file(session, uninstexe);
 
+            // This deletes any file that starts with "salt" from the install_dir
             var bindirparent = Path.GetDirectoryName(bin_dir);
             session.Log(@"Going to delete bindir\..\salt\*.*    ...   " + bindirparent);
             if (Directory.Exists(bindirparent)){
                 try { foreach (FileInfo fi in new DirectoryInfo(bindirparent).GetFiles("salt*.*")) { fi.Delete(); } } catch (Exception) {; }
             }
 
+            // This deletes the bin directory
             session.Log("Going to delete bindir ... " + bin_dir);
             cutil.del_dir(session, bin_dir);
 

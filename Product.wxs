@@ -70,7 +70,7 @@ IMCAC - Immediate Custom Action - It's immediate
 
     <!-- Display source of hosts -->
     <SetProperty Id="hosts_source"  Value='Config in use by [NSIS_DISPLAYNAME]' Action="h1" After="LaunchConditions">NSIS_DISPLAYNAME</SetProperty>
-    <SetProperty Id="hosts_source"  Value='Config  in use by [WIX_UPGRADE_DETECTED]' Action="h2" After="LaunchConditions">WIX_UPGRADE_DETECTED</SetProperty>
+    <SetProperty Id="hosts_source"  Value='Config in use by [WIX_UPGRADE_DETECTED]' Action="h2" After="LaunchConditions">WIX_UPGRADE_DETECTED</SetProperty>
     <SetProperty Id="hosts_source"  Value='Config formerly used. No current install' Action="h3" After="LaunchConditions">CONFIG_FOUND and (not NSIS_DISPLAYNAME) and (not WIX_UPGRADE_DETECTED)</SetProperty>
 
     <!-- Search for old config minion file -->
