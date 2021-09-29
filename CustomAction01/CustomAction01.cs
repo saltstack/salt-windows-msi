@@ -297,14 +297,14 @@ namespace MinionConfigurationExtension {
             if (bin_dir == "") bin_dir = @"C:\salt\bin";
             session.Log("bin_dir = " + bin_dir);
 
-            session.Log("Going to kill ...");
-            kill_python_exe(session);
-
             session.Log("Going to stop service salt-minion ...");
             cutil.shellout(session, "sc stop salt-minion");
 
             session.Log("Going to delete service salt-minion ...");
             cutil.shellout(session, "sc delete salt-minion");
+
+            session.Log("Going to kill ...");
+            kill_python_exe(session);
 
             session.Log("Going to delete ARP registry entry ...");
             cutil.del_registry_SOFTWARE_key(session, ARPstring);
