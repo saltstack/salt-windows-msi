@@ -205,30 +205,197 @@ namespace MinionConfigurationExtension {
         }
 
 
+        private static void write_master_and_id_to_file_DECAC(Session session, String configfile, string csv_multimasters, String id) {
+            /* How to
+             * read line
+             * if line master, read multimaster, replace
+             * if line id, replace
+             * copy through line
+            */
+            char[] separators = new char[] { ',', ' ' };
+            string[] multimasters = csv_multimasters.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+
+            session.Log("...want to write master and id to " + configfile);
+            bool configExists = File.Exists(configfile);
+            session.Log("......file exists " + configExists);
+            string[] configLinesINPUT = new List<string>().ToArray();
+            List<string> configLinesOUTPUT = new List<string>();
+            if (configExists) {
+                configLinesINPUT = File.ReadAllLines(configfile);
+            }
+            session.Log("...found config lines count " + configLinesINPUT.Length);
+            session.Log("...got master count " + multimasters.Length);
+            session.Log("...got id " + id);
+
+            Regex line_contains_key = new Regex(@"^([a-zA-Z_]+):");
+            Regex line_contains_one_multimaster = new Regex(@"^\s*-\s*(.*)$");
+            bool master_emitted = false;
+            bool id_emitted = false;
+
+            bool look_for_multimasters = false;
+            foreach (string line in configLinesINPUT) {
+                // search master and id
+                if (line_contains_key.IsMatch(line)) {
+                    Match m = line_contains_key.Match(line);
+                    string key = m.Groups[1].ToString();
+                    if (key == "master") {
+                        look_for_multimasters = true;
+                        continue; // next line
+                    } else if (key == "id") {
+                        // emit id
+                        configLinesOUTPUT.Add("id: " + id);
+                        id_emitted = true;
+                        continue; // next line
+                    } else {
+                        if (!look_for_multimasters) {
+                            configLinesOUTPUT.Add(line); // copy through
+                            continue; // next line
+                        }
+                    }
+                } else {
+                    if (!look_for_multimasters) {
+                        configLinesOUTPUT.Add(line); // copy through
+                        continue; // next line
+                    }
+                }
+
+                if (look_for_multimasters) {
+                    // consume multimasters
+                    if (line_contains_one_multimaster.IsMatch(line)) {
+                        // consume another multimaster
+                    } else {
+                        look_for_multimasters = false;
+                        // First emit master
+                        if (multimasters.Length == 1) {
+                            configLinesOUTPUT.Add("master: " + multimasters[0]);
+                            master_emitted = true;
+                        }
+                        if (multimasters.Length > 1) {
+                            configLinesOUTPUT.Add("master:");
+                            foreach (string onemultimaster in multimasters) {
+                                configLinesOUTPUT.Add("- " + onemultimaster);
+                            }
+                            master_emitted = true;
+                        }
+                        configLinesOUTPUT.Add(line); // Then copy through whatever is not one multimaster
+                    }
+                }
+            }
+
+            // input is read
+            if (!master_emitted) {
+                // put master after hash master
+                Regex line_contains_hash_master = new Regex(@"^# master:");
+                List<string> configLinesOUTPUT_hash_master = new List<string>();
+                foreach (string output_line in configLinesOUTPUT) {
+                    configLinesOUTPUT_hash_master.Add(output_line);
+                    if(line_contains_hash_master.IsMatch(output_line)) {
+                        if (multimasters.Length == 1) {
+                            configLinesOUTPUT_hash_master.Add("master: " + multimasters[0]);
+                            master_emitted = true;
+                        }
+                        if (multimasters.Length > 1) {
+                            configLinesOUTPUT_hash_master.Add("master:");
+                            foreach (string onemultimaster in multimasters) {
+                                configLinesOUTPUT_hash_master.Add("- " + onemultimaster);
+                            }
+                            master_emitted = true;
+                        }
+                    }
+                }
+                configLinesOUTPUT = configLinesOUTPUT_hash_master;
+            }
+            if (!master_emitted) {
+                // put master at end
+                if (multimasters.Length == 1) {
+                    configLinesOUTPUT.Add("master: " + multimasters[0]);
+                }
+                if (multimasters.Length > 1) {
+                    configLinesOUTPUT.Add("master:");
+                    foreach (string onemultimaster in multimasters) {
+                        configLinesOUTPUT.Add("- " + onemultimaster);
+                    }
+                }
+            }
+
+            if (!id_emitted) {
+                // put after hash
+                Regex line_contains_hash_id = new Regex(@"^# id:");
+                List<string> configLinesOUTPUT_hash_id = new List<string>();
+                foreach (string output_line in configLinesOUTPUT) {
+                    configLinesOUTPUT_hash_id.Add(output_line);
+                    if (line_contains_hash_id.IsMatch(output_line)) {
+                            configLinesOUTPUT_hash_id.Add("id: " + id);
+                            id_emitted = true;
+                    }
+                }
+                configLinesOUTPUT = configLinesOUTPUT_hash_id;
+            }
+            if (!id_emitted) {
+                // put at end
+                configLinesOUTPUT.Add("id: " + id);
+            }
+
+
+            session.Log("...writing to " + configfile);
+            string output = string.Join("\r\n", configLinesOUTPUT.ToArray()) + "\r\n";
+            File.WriteAllText(configfile, output);
+
+        }
+
+
+
+
         private static void read_master_and_id_from_file_IMCAC(Session session, String configfile, ref String ref_master, ref String ref_id) {
+            /* How to match multimasters *
+                match `master: `MASTER*:
+                if MASTER:
+                  master = MASTER
+                else, a list of masters may follow:
+                  while match `- ` MASTER:
+                    master += MASTER
+            */
             session.Log("...searching master and id in " + configfile);
             bool configExists = File.Exists(configfile);
             session.Log("......file exists " + configExists);
             if (!configExists) { return; }
             string[] configLines = File.ReadAllLines(configfile);
-            Regex r = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]+)\s*$");
+            Regex line_key_maybe_value = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]*)\s*$");
+            Regex line_listvalue = new Regex(@"^\s*-\s*(.*)$");
+            bool look_for_keys_otherwise_look_for_multimasters = true;
+            List<string> multimasters = new List<string>();
             foreach (string line in configLines) {
-                if (r.IsMatch(line)) {
-                    Match m = r.Match(line);
+                if (look_for_keys_otherwise_look_for_multimasters && line_key_maybe_value.IsMatch(line)) {
+                    Match m = line_key_maybe_value.Match(line);
                     string key = m.Groups[1].ToString();
-                    string value = m.Groups[2].ToString();
-                    //session.Log("...ANY KEY " + key + " " + value);
+                    string maybe_value = m.Groups[2].ToString();
+                    //session.Log("...ANY KEY " + key + " " + maybe_value);
                     if (key == "master") {
-                        ref_master = value;
-                        session.Log("......master " + ref_master);
+                        if (maybe_value.Length > 0) {
+                            ref_master = maybe_value;
+                            session.Log("......master " + ref_master);
+                        } else {
+                            session.Log("...... now searching multimasters");
+                            look_for_keys_otherwise_look_for_multimasters = false;
+                        }
                     }
-                    if (key == "id") {
-                        ref_id = value;
+                    if (key == "id" && maybe_value.Length > 0) {
+                        ref_id = maybe_value;
                         session.Log("......id " + ref_id);
                     }
+                } else if (line_listvalue.IsMatch(line)) {
+                    Match m = line_listvalue.Match(line);
+                    multimasters.Add(m.Groups[1].ToString());
+                } else {
+                    look_for_keys_otherwise_look_for_multimasters = true;
                 }
             }
+            if (multimasters.Count > 0) {
+                ref_master = string.Join(",", multimasters.ToArray());
+                session.Log("......master " + ref_master);
+            }
         }
+
 
        [CustomAction]
         public static void stop_service(Session session, string a_service) {
@@ -346,25 +513,25 @@ namespace MinionConfigurationExtension {
             // Must have this signature or cannot uninstall not even write to the log
             session.Log("...BEGIN WriteConfig_DECAC");
             // Get msi properties
+            string master = cutil.get_property_DECAC(session, "master");;
+            string id = cutil.get_property_DECAC(session, "id");;
             string MOVE_CONF     = cutil.get_property_DECAC(session, "MOVE_CONF");
             string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string MINION_CONFIG = cutil.get_property_DECAC(session, "MINION_CONFIG");
+            string CONFDIR = cutil.get_property_DECAC(session, "CONFDIR");
+            string MINION_CONFIGFILE = Path.Combine(CONFDIR, "minion");
+            session.Log("... MINION_CONFIGFILE {0}", MINION_CONFIGFILE);
+            bool file_exists = File.Exists(MINION_CONFIGFILE);
+            session.Log("...file exists {0}", file_exists);
+
             // Get environment variables
             string ProgramData = System.Environment.GetEnvironmentVariable("ProgramData");
 
-            // Write, move or delete files
             if (MINION_CONFIG.Length > 0) {
-                apply_minion_config_DECAC(session, MINION_CONFIG);
+                apply_minion_config_DECAC(session, MINION_CONFIG);  // A single msi property is written to file
             } else {
-                string master = "";
-                string id = "";
-                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "master", ref master)) {
-                    append_to_config_DECAC(session, "master", master);
-                }
-                if (!replace_Saltkey_in_previous_configuration_DECAC(session, "id", ref id)) {
-                    append_to_config_DECAC(session, "id", id);
-                }
-                save_custom_config_file_if_config_type_demands_DECAC(session);
+                write_master_and_id_to_file_DECAC(session, MINION_CONFIGFILE, master, id); // Two msi properties are replaced inside files
+                save_custom_config_file_if_config_type_demands_DECAC(session);     // Given file
             }
             session.Log("...END WriteConfig_DECAC");
             return ActionResult.Success;
@@ -516,114 +683,6 @@ namespace MinionConfigurationExtension {
             session.Log(@"...apply_minion_config_DECAC END");
         }
 
-
-        private static bool replace_Saltkey_in_previous_configuration_DECAC(Session session, string SaltKey, ref string CustomActionData_value) {
-            // Read SaltKey properties and convert some from 1 to True or to False
-            bool replaced = false;
-
-            session.Log("...replace_Saltkey_in_previous_configuration_DECAC Key   " + SaltKey);
-            CustomActionData_value = cutil.get_property_DECAC(session, SaltKey);
-
-            // pattern description
-            // ^        start of line
-            //          anything after the colon is ignored and would be removed
-            string pattern = "^" + SaltKey + ":";
-            string replacement = String.Format(SaltKey + ": {0}", CustomActionData_value);
-
-            // Replace in config file
-            replaced = replace_pattern_in_config_file_DECAC(session, pattern, replacement);
-
-            session.Log(@"...replace_Saltkey_in_previous_configuration_DECAC found or replaces " + replaced.ToString());
-            return replaced;
-        }
-
-        public static string getConfigFileLocation_DECAC(Session session) {
-            string CONFDIR           = cutil.get_property_DECAC(session, "CONFDIR");
-            return Path.Combine(CONFDIR, @"minion");
-        }
-
-        private static bool replace_pattern_in_config_file_DECAC(Session session, string pattern, string replacement) {
-            /*
-             * config file means: conf/minion
-             */
-            bool replaced_in_any_file = false;
-            string MINION_CONFIGFILE = getConfigFileLocation_DECAC(session);
-
-            replaced_in_any_file |= replace_in_file_DECAC(session, MINION_CONFIGFILE, pattern, replacement);
-
-            return replaced_in_any_file;
-        }
-
-
-        static private void append_to_config_DECAC(Session session, string key, string value) {
-            insert_value_after_comment_or_end_in_minionconfig_file(session, key, value);
-        }
-
-
-        static private void insert_value_after_comment_or_end_in_minionconfig_file(Session session, string key, string value) {
-            session.Log("...insert_value_after_comment_or_end_in_minionconfig_file");
-            string CONFDIR           = cutil.get_property_DECAC(session, "CONFDIR");
-            string MINION_CONFIGFILE = Path.Combine(CONFDIR, "minion");
-            session.Log("... MINION_CONFIGFILE {0}", MINION_CONFIGFILE);
-            bool file_exists = File.Exists(MINION_CONFIGFILE);
-            session.Log("...file exists {0}", file_exists);
-            if (!file_exists) {
-                Directory.CreateDirectory(CONFDIR);  // Any and all directories specified in path are created
-                File.Create(MINION_CONFIGFILE).Close();
-            }
-            string[] configLines_in = File.ReadAllLines(MINION_CONFIGFILE);
-            string[] configLines_out = new string[configLines_in.Length + 1];
-            int configLines_out_index = 0;
-
-            session.Log("...insert_value_after_comment_or_end  key  {0}", key);
-            session.Log("...insert_value_after_comment_or_end  value  {0}", value);
-            bool found = false;
-            for (int i = 0; i < configLines_in.Length; i++) {
-                configLines_out[configLines_out_index++] = configLines_in[i];
-                if (!found && configLines_in[i].StartsWith("#" + key + ":")) {
-                    found = true;
-                    session.Log("...insert_value_after_comment_or_end..found the # in       {0}", configLines_in[i]);
-                    configLines_out[configLines_out_index++] = key + ": " + value;
-                }
-            }
-            if (!found) {
-                session.Log("...insert_value_after_comment_or_end..end");
-                configLines_out[configLines_out_index++] = key + ": " + value;
-            }
-            File.WriteAllLines(MINION_CONFIGFILE, configLines_out);
-        }
-
-
-        private static bool replace_in_file_DECAC(Session session, string config_file, string pattern, string replacement) {
-            bool replaced = false;
-            bool found = false;
-            session.Log("...replace_in_file_DECAC   config file    {0}", config_file);
-            bool file_exists = File.Exists(config_file);
-            session.Log("...file exists {0}", found);
-            if (!file_exists) {
-                return false;
-            }
-            string[] configLines = File.ReadAllLines(config_file);
-            session.Log("...replace_in_file_DECAC   lines          {0}", configLines.Length);
-
-            for (int i = 0; i < configLines.Length; i++) {
-                if (configLines[i].Equals(replacement)) {
-                    found = true;
-                    session.Log("...found the replacement in line        {0}", configLines[i]);
-                }
-                if (Regex.IsMatch(configLines[i], pattern)) {
-                    session.Log("...matched  line  {0}", configLines[i]);
-                    configLines[i] = replacement;
-                    replaced = true;
-                }
-            }
-            session.Log("...replace_in_file_DECAC   found          {0}", found);
-            session.Log("...replace_in_file_DECAC   replaced       {0}", replaced);
-            if (replaced) {
-                File.WriteAllLines(config_file, configLines);
-            }
-            return replaced || found;
-        }
 
 
         [CustomAction]
