@@ -228,7 +228,7 @@ namespace MinionConfigurationExtension {
             session.Log("...got id " + id);
 
             Regex line_contains_key = new Regex(@"^([a-zA-Z_]+):");
-            Regex line_contains_one_multimaster = new Regex(@"^\s*-\s*([0-9a-zA-Z_.-]+)\s*$");
+            Regex line_contains_one_multimaster = new Regex(@"^\s*-\s*(.*)$");
             bool master_emitted = false;
             bool id_emitted = false;
 
@@ -361,7 +361,7 @@ namespace MinionConfigurationExtension {
             if (!configExists) { return; }
             string[] configLines = File.ReadAllLines(configfile);
             Regex line_key_maybe_value = new Regex(@"^([a-zA-Z_]+):\s*([0-9a-zA-Z_.-]*)\s*$");
-            Regex line_listvalue = new Regex(@"^\s*-\s*([0-9a-zA-Z_.-]+)\s*$");
+            Regex line_listvalue = new Regex(@"^\s*-\s*(.*)$");
             bool look_for_keys_otherwise_look_for_multimasters = true;
             List<string> multimasters = new List<string>();
             foreach (string line in configLines) {
@@ -506,10 +506,6 @@ namespace MinionConfigurationExtension {
             session.Log("... MINION_CONFIGFILE {0}", MINION_CONFIGFILE);
             bool file_exists = File.Exists(MINION_CONFIGFILE);
             session.Log("...file exists {0}", file_exists);
-            if (!file_exists) {
-                Directory.CreateDirectory(CONFDIR);  // Any and all directories specified in path are created
-                File.Create(MINION_CONFIGFILE).Close();
-            }
 
             // Get environment variables
             string ProgramData = System.Environment.GetEnvironmentVariable("ProgramData");
