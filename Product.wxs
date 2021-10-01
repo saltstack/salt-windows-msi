@@ -252,6 +252,12 @@ IMCAC - Immediate Custom Action - It's immediate
       <Merge Id="MSM_VC140_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC140_CRT_x86.msm" DiskId="1" Language="0"/>
     <?endif ?>
     </DirectoryRef>
+    <!-- Add INSTALLDIR to the system Path -->
+    <DirectoryRef Id="TARGETDIR">
+      <Component Id="INSTALLDIR_System_Path" Guid="A9F54641-91F8-4AFB-B812-9409E6EA0192">
+        <Environment Id="Env_PATH" Name="PATH" Value="[INSTALLDIR]" Permanent="no" Part="last" Action="set" System="yes" />
+      </Component>
+    </DirectoryRef>
 
 
     <!-- Assemble fixed and conditional features -->
@@ -268,6 +274,7 @@ IMCAC - Immediate Custom Action - It's immediate
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
       <ComponentRef Id="ROOTDIR_Permissions" />
+      <ComponentRef Id="INSTALLDIR_System_Path" />
       <ComponentRef Id="register_dirs"/>
       <ComponentRef Id="register_remove_config"/>
     </ComponentGroup>
