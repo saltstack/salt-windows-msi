@@ -308,6 +308,8 @@ CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Linking      $PRODUCT-$VERSION-$($ARCH_AKA[$i]).msi"
 # Options https://wixtoolset.org/documentation/manual/v3/overview/light.html
+# Supress LGHT1076 ICE82 warnings caused by the VC++ Runtime merge modules
+#     https://sourceforge.net/p/wix/mailman/message/22945366/
 & "$($ENV:WIX)bin\light"  -nologo `
     -out "$pwd\$PRODUCTFILE-Py$pythonversion-$($ARCH_AKA[$i]).msi" `
     -dDISCOVER_INSTALLDIR="$($DISCOVER_INSTALLDIR[$i])" `
