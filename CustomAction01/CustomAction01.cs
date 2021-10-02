@@ -103,10 +103,10 @@ namespace MinionConfigurationExtension {
                 // Check to see if it's in the list of valid SIDs
                 if (!valid_sids.Contains(sid.Value)) {
                     // If it's not in the list we don't want to use it. Do the following:
-                    // - set INSECURE_CONFIG_FOUND to True
+                    // - set INSECURE_CONFIG_FOUND to the insecure config dir
                     // - set CONFIG_TYPE to Default
                     session.Log("...Insecure config found, using default config");
-                    session["INSECURE_CONFIG_FOUND"] = "True";
+                    session["INSECURE_CONFIG_FOUND"] = minion_config_dir;
                     session["CONFIG_TYPE"] = "Default";
                 }
             }
@@ -541,12 +541,13 @@ namespace MinionConfigurationExtension {
         [CustomAction]
         public static ActionResult MoveInsecureConfig_DECAC(Session session) {
             // This appends .insecure-yyyy-MM-ddTHH-mm-ss to an insecure config directory
-            // C:\salt\conf.insecure-2021-10-01T12:23:32
-
+            // C:\salt\conf.insecure-2021-10-01T12-23-32
+            // Only called when INSECURE_CONFIG_FOUND is set to an insecure minion config dir
             session.Log("...BEGIN MoveInsecureConf_DECAC");
 
+            string minion_config_dir = cutil.get_property_DECAC(session, "INSECURE_CONFIG_FOUND");
             string timestamp_bak = ".insecure-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss");
-            cutil.Move_dir(session, @"C:\salt\conf", timestamp_bak);
+            cutil.Move_dir(session, minion_config_dir, timestamp_bak);
 
             session.Log("...END MoveInsecureConf_DECAC");
 
