@@ -501,6 +501,7 @@ namespace MinionConfigurationExtension {
         [CustomAction]
         public static ActionResult WriteConfig_DECAC(Session session) {
             /*
+             * This funtion must not be called when CONFIG_TYPE = "Existing"
              * This function must leave the config files according to the CONFIG_TYPE's 1-3
              * This function is deferred (_DECAC)
              * This function runs after the msi has created the c:\salt\conf\minion file, which is a comment-only text.
@@ -515,8 +516,6 @@ namespace MinionConfigurationExtension {
             // Get msi properties
             string master = cutil.get_property_DECAC(session, "master");;
             string id = cutil.get_property_DECAC(session, "id");;
-            string MOVE_CONF     = cutil.get_property_DECAC(session, "MOVE_CONF");
-            string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string MINION_CONFIG = cutil.get_property_DECAC(session, "MINION_CONFIG");
             string CONFDIR = cutil.get_property_DECAC(session, "CONFDIR");
             string MINION_CONFIGFILE = Path.Combine(CONFDIR, "minion");
