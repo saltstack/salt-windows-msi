@@ -1,3 +1,4 @@
+*.output
 *.install.log
 *.uninstall.log
 test.msi

@@ -58,7 +58,7 @@ foreach ($batchfile in Get-ChildItem *.bat){
   $output = $test_name + ".output"
   Copy-Item -Path "C:\ProgramData\Salt Project\Salt\conf\minion" -Destination $output
 
-   if((Get-Content $expected) -eq (Get-Content $output)){
+   if((Get-Content -Raw $expected) -eq (Get-Content -Raw $output)){
     Remove-Item $output
     Write-Host -ForegroundColor Green Config as expected
   } else {
