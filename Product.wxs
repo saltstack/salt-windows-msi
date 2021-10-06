@@ -202,9 +202,8 @@ IMCAC - Immediate Custom Action - It's immediate
       <Custom Action='BackupConfig_DECAC'         Before='CreateFolders'        >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
       <Custom Action='MoveConfig_DECAC'           Before='CreateFolders'        >(NOT Installed) and MOVE_CONF</Custom>
 
-      <!-- Write Config, unless CONFIG_TYPE = "Existing" -->
-      <Custom Action='WriteConfig_CADH'           Before='WriteConfig_DECAC'    >(NOT Installed) and (not (CONFIG_TYPE = "Existing"))</Custom>
-      <Custom Action='WriteConfig_DECAC'          After='WriteIniValues'        >(NOT Installed) and (not (CONFIG_TYPE = "Existing"))</Custom>
+      <Custom Action='WriteConfig_CADH'           Before='WriteConfig_DECAC'    >NOT Installed</Custom>
+      <Custom Action='WriteConfig_DECAC'          After='WriteIniValues'        >NOT Installed</Custom>
 
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900">START_MINION</StartServices>

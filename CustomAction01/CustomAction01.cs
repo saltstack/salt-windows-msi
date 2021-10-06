@@ -501,7 +501,6 @@ namespace MinionConfigurationExtension {
         [CustomAction]
         public static ActionResult WriteConfig_DECAC(Session session) {
             /*
-             * This funtion must not be called when CONFIG_TYPE = "Existing"
              * This function must leave the config files according to the CONFIG_TYPE's 1-3
              * This function is deferred (_DECAC)
              * This function runs after the msi has created the c:\salt\conf\minion file, which is a comment-only text.
