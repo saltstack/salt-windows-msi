@@ -439,7 +439,7 @@ IMCAC - Immediate Custom Action - It's immediate
           <RegistryKey Key="Parameters">
             <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLDIR]bin" />
             <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLDIR]bin\python.exe" />
-            <RegistryValue Type="expandable" Name="AppParameters"        Value="-E -s &quot;[INSTALLDIR]bin\Scripts\salt-minion&quot; -c &quot;[ROOTDIR]conf&quot; -l quiet" />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value='-E -s "[INSTALLDIR]bin\Scripts\salt-minion" -c "[ROOTDIR]conf" -l quiet' />
             <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
             <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
             <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
