@@ -3,8 +3,7 @@
 
 ### UpgradeCode
 GUID defining the product across versions. E.g. a previous version is uninstalled during upgrade.
-In other words:
-For update (or upgrade), Windows Installer relies on the UpgradeCode attribute of the Product tag.
+In other words: for update (or upgrade), Windows Installer relies on the UpgradeCode attribute of the Product tag.
 Keep the same UpgradeCode GUID as long as you want the products to be upgraded by the installer.
 
 ### Id
