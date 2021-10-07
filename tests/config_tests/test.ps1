@@ -33,7 +33,7 @@ Copy-Item -Path $msi -Destination "test.msi"
 foreach ($batchfile in Get-ChildItem *.bat){
   $test_name = $batchfile.basename
   $config_input = $test_name + ".input"
-  Write-Host -ForegroundColor Yellow -NoNewline ("{0,-38}" -f  $test_name)
+  Write-Host -ForegroundColor Yellow -NoNewline ("{0,-55}" -f $test_name)
   if(Test-Path $config_input){
     Copy-Item -Path $config_input -Destination "C:\ProgramData\Salt Project\Salt\conf\minion"
   }
@@ -47,7 +47,7 @@ foreach ($batchfile in Get-ChildItem *.bat){
     "Verb" = "runas"
     "PassThru" = $true
   }
-  $exe_handling = start-process @params
+  $exe_handling = start-process @params -WindowStyle hidden
   $exe_handling.WaitForExit()
   if (-not $?) {
     Write-Host -ForegroundColor Red "Install failed"
@@ -85,7 +85,18 @@ foreach ($batchfile in Get-ChildItem *.bat){
     exit 1
   }
 
+  Write-Host "    config exists after Uninstall " (Test-Path "C:\ProgramData\Salt Project\Salt\conf\minion")
+
+  # Clean up system from the last test config and create an empty dir
+  if (Test-Path "C:\ProgramData\Salt Project\Salt") {
+    Remove-Item "C:\ProgramData\Salt Project\Salt" -Recurse -Force
+  }
+  (New-Item -ItemType directory -Path "C:\ProgramData\Salt Project\Salt\conf") | out-null
+
 }
 
-Remove-Item "C:\ProgramData\Salt Project\Salt" -Recurse -Force
+# Clean up system
+if (Test-Path "C:\ProgramData\Salt Project\Salt") {
+  Remove-Item "C:\ProgramData\Salt Project\Salt" -Recurse -Force
+}
 Remove-Item test.msi
