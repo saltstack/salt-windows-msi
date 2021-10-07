@@ -124,6 +124,13 @@ namespace MinionConfigurationExtension {
                     read_master_and_id_from_file_IMCAC(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
                 }
             }
+            // Read id from minion_id (if it exists)
+            // Assume the minion_id file next to the minion config file
+            string minion_id_file = minion_config_file.Length == 0? "": minion_config_file + "_id";
+            if (File.Exists(minion_id_file)) {
+                session["MINION_ID_FILE_FOUND"] = "True";
+                id_from_previous_installation = File.ReadAllLines(minion_id_file)[0];
+            }
 
             session.Log("...CONFIG_TYPE msi property  = " + session["CONFIG_TYPE"]);
             session.Log("...MASTER      msi property  = " + session["MASTER"]);
