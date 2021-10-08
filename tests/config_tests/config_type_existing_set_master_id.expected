@@ -1,7 +1,7 @@
 # This is the template from the msi store line 1/6
-master: default_master111
+master: master.commandline.1
 # This is the template from the msi store line 2/6
-id: default_id111
+id: minion_id.commandline.1
 # This is the template from the msi store line 3/6
 # This is the template from the msi store line 4/6
 # This is the template from the msi store line 5/6
