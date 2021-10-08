@@ -199,6 +199,8 @@ IMCAC - Immediate Custom Action - It's immediate
               Before='DeleteConfig2_DECAC'                                      >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
       <Custom Action='DeleteConfig2_DECAC'        After='InstallInitialize'     >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
 
+      <Custom Action='MoveInsecureConfig_CADH'
+              Before='MoveInsecureConfig_DECAC'                                 >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
       <Custom Action='MoveInsecureConfig_DECAC'   Before='CreateFolders'        >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
       <Custom Action='BackupConfig_DECAC'         Before='CreateFolders'        >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
       <Custom Action='MoveConfig_DECAC'           Before='CreateFolders'        >(NOT Installed) and MOVE_CONF</Custom>
@@ -236,6 +238,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
     <CustomAction Id="DeleteConfig_CADH"  Property="DeleteConfig_DECAC"  Value="CLEAN_INSTALL=[CLEAN_INSTALL];REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
     <CustomAction Id="DeleteConfig2_CADH" Property="DeleteConfig2_DECAC" Value="CLEAN_INSTALL=[CLEAN_INSTALL];REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
+    <CustomAction Id="MoveInsecureConfig_CADH" Property="MoveInsecureConfig_DECAC" Value="INSECURE_CONFIG_FOUND=[INSECURE_CONFIG_FOUND];" />
 
 
     <!-- Prevent downgrade -->
