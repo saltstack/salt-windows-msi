@@ -106,9 +106,12 @@ namespace MinionConfigurationExtension {
                     // - set INSECURE_CONFIG_FOUND to True
                     // - set CONFIG_TYPE to Default
                     session.Log("...Insecure config found, using default config");
-                    session["INSECURE_CONFIG_FOUND"] = "True";
+                    session["INSECURE_CONFIG_FOUND"] = "True";      // Will trigger rename of the folder
                     session["CONFIG_TYPE"] = "Default";
+                    session["GET_CONFIG_TEMPLATE_FROM_MSI_STORE"] = "True";    // Use template instead
                 }
+            } else {
+                session["GET_CONFIG_TEMPLATE_FROM_MSI_STORE"] = "True";    // Use template
             }
 
             // Set the default values for master and id
