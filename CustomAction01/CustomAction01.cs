@@ -103,12 +103,15 @@ namespace MinionConfigurationExtension {
                 // Check to see if it's in the list of valid SIDs
                 if (!valid_sids.Contains(sid.Value)) {
                     // If it's not in the list we don't want to use it. Do the following:
-                    // - set INSECURE_CONFIG_FOUND to True
+                    // - set INSECURE_CONFIG_FOUND to the insecure config dir
                     // - set CONFIG_TYPE to Default
                     session.Log("...Insecure config found, using default config");
-                    session["INSECURE_CONFIG_FOUND"] = "True";
+                    session["INSECURE_CONFIG_FOUND"] = minion_config_dir;
                     session["CONFIG_TYPE"] = "Default";
+                    session["GET_CONFIG_TEMPLATE_FROM_MSI_STORE"] = "True";    // Use template instead
                 }
+            } else {
+                session["GET_CONFIG_TEMPLATE_FROM_MSI_STORE"] = "True";    // Use template
             }
 
             // Set the default values for master and id
@@ -123,6 +126,13 @@ namespace MinionConfigurationExtension {
                     if (conf_file.Equals("_schedule.conf")) { continue; }            // skip _schedule.conf
                     read_master_and_id_from_file_IMCAC(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
                 }
+            }
+            // Read id from minion_id (if it exists)
+            // Assume the minion_id file next to the minion config file
+            string minion_id_file = minion_config_file.Length == 0? "": minion_config_file + "_id";
+            if (File.Exists(minion_id_file)) {
+                session["MINION_ID_FILE_FOUND"] = minion_id_file;
+                id_from_previous_installation = File.ReadAllLines(minion_id_file)[0];
             }
 
             session.Log("...CONFIG_TYPE msi property  = " + session["CONFIG_TYPE"]);
@@ -515,8 +525,6 @@ namespace MinionConfigurationExtension {
             // Get msi properties
             string master = cutil.get_property_DECAC(session, "master");;
             string id = cutil.get_property_DECAC(session, "id");;
-            string MOVE_CONF     = cutil.get_property_DECAC(session, "MOVE_CONF");
-            string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string MINION_CONFIG = cutil.get_property_DECAC(session, "MINION_CONFIG");
             string CONFDIR = cutil.get_property_DECAC(session, "CONFDIR");
             string MINION_CONFIGFILE = Path.Combine(CONFDIR, "minion");
@@ -541,12 +549,13 @@ namespace MinionConfigurationExtension {
         [CustomAction]
         public static ActionResult MoveInsecureConfig_DECAC(Session session) {
             // This appends .insecure-yyyy-MM-ddTHH-mm-ss to an insecure config directory
-            // C:\salt\conf.insecure-2021-10-01T12:23:32
-
+            // C:\salt\conf.insecure-2021-10-01T12-23-32
+            // Only called when INSECURE_CONFIG_FOUND is set to an insecure minion config dir
             session.Log("...BEGIN MoveInsecureConf_DECAC");
 
+            string minion_config_dir = cutil.get_property_DECAC(session, "INSECURE_CONFIG_FOUND");
             string timestamp_bak = ".insecure-" + DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss");
-            cutil.Move_dir(session, @"C:\salt\conf", timestamp_bak);
+            cutil.Move_dir(session, minion_config_dir, timestamp_bak);
 
             session.Log("...END MoveInsecureConf_DECAC");
 

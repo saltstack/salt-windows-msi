@@ -1,11 +1,11 @@
-## How to use the msi builder toolkit
+# How to build the msi
 
 ## Build client requirements
 
 The build client is where the msi installer is built.
 
 - 64bit Windows 10
-- The Git repositories `salt` and `salt-windows-msi`
+- Git repositories `salt` and `salt-windows-msi`
 - .Net 3.5 SDK (for WiX)<sup>*</sup>
 - [Wix 3](http://wixtoolset.org/releases/)<sup>**</sup>
 - [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>**</sup>
@@ -15,25 +15,12 @@ The build client is where the msi installer is built.
 - Microsoft_VC120_CRT_x86.msm from Visual Studio 2013<sup>**</sup>
 
 Notes:
-- <sup>*</sup> `build_env.cmd` will open `optionalfeatures` if necessary.
-- <sup>**</sup> `build_env.cmd` will download to `.\_cache.dir` and install if necessary.
-
-How to include 64bit `rc.exe` (resource compiler) from the Windows SDK into path
-
-Open "Build Tools for Visual Studio 2017"
-- Select workload "Visual C++ build tools"
-- Check options
-  -  "C++/CLI support"
-  -  "VC++ 2015.3 v14.00 (v140) toolset for desktop"
-- Download 2 GB in 177 packages.
-
-    set ttt=C:\Program Files (x86)\Windows Kits\8.1\bin\x64
-    set path=%ttt%;%path%
-
+- <sup>*</sup> `build.cmd` will open `optionalfeatures` if necessary.
+- <sup>**</sup> `build.cmd` will download to `.\_cache.dir` and install if necessary.
 
 ### Step 1: build the Nullsoft (NSIS) exe installer
 
-Read [Building and Developing on Windows](https://docs.saltstack.com/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
+Read [Building and Developing on Windows](https://docs.saltproject.io/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
 
 Execute
 
@@ -52,27 +39,30 @@ until `git status` returns
 First **clean the Python environment** then build
 
     clean_env.bat
-    build.bat Python=3
+    build.bat
+
+How to include 64bit `rc.exe` (resource compiler) from the Windows SDK into path
+
+Open "Build Tools for Visual Studio 2017"
+- Select workload "Visual C++ build tools"
+- Check options
+  -  "C++/CLI support"
+  -  "VC++ 2015.3 v14.00 (v140) toolset for desktop"
+- Download 2 GB in 177 packages.
+
+    set ttt=C:\Program Files (x86)\Windows Kits\8.1\bin\x64
+    set path=%ttt%;%path%
 
 ### Step 2: build the msi installer
 
 Execute
 
-    cd c:\dev\salt-windows-msi
-    build_env.cmd
     build.cmd
-
-`build_env.cmd` uses a cache in `c:\salt_msi_resources`
-
-
-[LGHT1076 ICE82 warnings are caused by the VC++ Runtime merge modules](https://sourceforge.net/p/wix/mailman/message/22945366/) and supressed.
-
 
 ### Remark on transaction safety
 
-Wix is transaction safe: either the product is installed or the prior state is restored.
-
-C# is not.
+- Wix is transaction safe: either the product is installed or the prior state is restored/rolled back.
+- C# is not.
 
 ### Directory structure
 
@@ -84,39 +74,19 @@ C# is not.
 
 ### Naming conventions
 
-Immediate custom actions serve initialization (before the install transaction starts) and must not change the system.
-Deferred custom action change the system (within the installation transaction).
+- **Immediate** custom actions serve initialization (before the install transaction starts) and must not change the system.
+- **Deferred** custom action may change the system but run in a "sandbox".
 
 Postfix  | Example                            | Meaning
 -------- | ---------------------------------- | -------
 `_IMCAC` | `ReadConfig_IMCAC`                 | Immediate custom action written in C#
-`_DECAX` | `uninst_NSIS_DECAX`                | Deferred custom action written in XML
 `_DECAC` | `WriteConfig_DECAC`                | Deferred custom action written in C#
 `_CADH`  | `WriteConfig_CADH`                 | Custom action data helper (only for deferred custom action)
 
-### Extending
-
-Additional configuration manipulations may be able to use the existing
-MinionConfigurationExtension project. Current manipulations read the
-value of a particular property (e.g. MASTER\_HOSTNAME) and apply to the
-existing configuration file using a regular expression replace. Each new
-manipulation will require changes to the following files:
-
-- MinionConfiguration.cs: new method (i.e. new custom action).
-- Product.wxs:
-  - a &lt;CustomAction /&gt; entry to make the new method available.
-  - a &lt;Custom /&gt; entry in the &lt;InstallSequence /&gt; to make the configuration change.
-  - a &lt;Property /&gt; entry containing a default for the manipulated configuration setting.
-- README.md: explain the new configuration option and log the property name.
-
-If the new custom action requires its own dialog, these additional changes are required:
-
-- GUI: &lt;Publish /&gt; entries hooking up the dialog buttons to other dialogs.
-  Other dialogs will also have to be adjusted to maintain correct sequencing.
-
+"Custom action data helper" send properties to the deferreed actions in the sandbox.
 
 ### Other Notes
-msi conditions for Customm Actions in a table with install, uninstall, updgrade:
+msi conditions for install, uninstall, upgrade:
 - https://stackoverflow.com/a/17608049
 
 
@@ -132,9 +102,8 @@ The Windows installer restricts the maximum values of the [ProductVersion proper
 - major.minor.build
 - `255.255.65535`
 
-Because of this restriction, the builder generates an internal version:
- - Salt 3012.1 becomes `30.12.1`
- - Salt 2018.3.4 becomes `18.3.4`
+Therefore we generate an "internal version":
+ - Salt 3002.1 becomes `30.02.1`
 
 
 [Which Python version uses which MS VC CRT version](https://wiki.python.org/moin/WindowsCompilers)

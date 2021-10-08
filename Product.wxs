@@ -190,7 +190,8 @@ IMCAC - Immediate Custom Action - It's immediate
       -->
       <Custom Action="stopSalt"                  Before="InstallValidate"       >1</Custom>
 
-      <Custom Action="ReadConfig_IMCAC"          Before="InstallInitialize"     >NOT Installed</Custom>
+      <!-- ReadConfig_IMCAC must be called before CostInitialize so features can depend on properties set-->
+      <Custom Action="ReadConfig_IMCAC"          Before="CostInitialize"        >NOT Installed</Custom>
       <Custom Action="del_NSIS_DECAC"            After="InstallInitialize"      >nsis_install_found</Custom>
 
       <!-- If CLEAN_INSTALL, on install or upgrade: delete config and cache -->
@@ -198,6 +199,8 @@ IMCAC - Immediate Custom Action - It's immediate
               Before="DeleteConfig2_DECAC"                                      >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
       <Custom Action="DeleteConfig2_DECAC"        After="InstallInitialize"     >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
 
+      <Custom Action="MoveInsecureConfig_CADH"
+              Before="MoveInsecureConfig_DECAC"                                 >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
       <Custom Action="MoveInsecureConfig_DECAC"   Before="CreateFolders"        >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
       <Custom Action="BackupConfig_DECAC"         Before="CreateFolders"        >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
       <Custom Action="MoveConfig_DECAC"           Before="CreateFolders"        >(NOT Installed) and MOVE_CONF</Custom>
@@ -235,6 +238,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <CustomAction Id="WriteConfig_CADH"  Property="WriteConfig_DECAC"  Value="master=[MASTER];id=[MINION_ID];MOVE_CONF=[MOVE_CONF];sourcedir=[SOURCEDIR];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];CONFDIR=[CONFDIR];config_type=[CONFIG_TYPE];MINION_CONFIG=[MINION_CONFIG];custom_config=[CUSTOM_CONFIG];" />
     <CustomAction Id="DeleteConfig_CADH"  Property="DeleteConfig_DECAC"  Value="CLEAN_INSTALL=[CLEAN_INSTALL];REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
     <CustomAction Id="DeleteConfig2_CADH" Property="DeleteConfig2_DECAC" Value="CLEAN_INSTALL=[CLEAN_INSTALL];REMOVE_CONFIG=[REMOVE_CONFIG];INSTALLDIR=[INSTALLDIR];ROOTDIR=[ROOTDIR];" />
+    <CustomAction Id="MoveInsecureConfig_CADH" Property="MoveInsecureConfig_DECAC" Value="INSECURE_CONFIG_FOUND=[INSECURE_CONFIG_FOUND];" />
 
 
     <!-- Prevent downgrade -->
@@ -268,9 +272,15 @@ IMCAC - Immediate Custom Action - It's immediate
       <Feature Id="VC120" Title="VC++ 2013" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC120_CRT" /></Feature>
       <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT" /></Feature>
     </Feature>
+
+    <!-- Get the config file template from the msi store only if no config is present -->
+    <Feature Id='GetConfigTemplate' Level='0'>
+        <ComponentGroupRef Id="DiscoveredConfigFiles" />
+        <Condition Level="1">GET_CONFIG_TEMPLATE_FROM_MSI_STORE or (REMOVE ~= "ALL")</Condition>
+    </Feature>
+
     <ComponentGroup Id="ProductComponents" Directory="INSTALLDIR">
       <ComponentGroupRef Id="DiscoveredBinaryFiles" />
-      <ComponentGroupRef Id="DiscoveredConfigFiles" />
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
       <ComponentRef Id="ROOTDIR_Permissions" />
