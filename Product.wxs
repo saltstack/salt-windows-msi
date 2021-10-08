@@ -24,7 +24,7 @@ IMCAC - Immediate Custom Action - It's immediate
 
 
     <!--  Install per Machine -->
-    <Package InstallScope="perMachine" InstallerVersion="500" Compressed="yes"/>
+    <Package InstallScope="perMachine" InstallerVersion="500" Compressed="yes" />
 
 
     <!--  Abort installation if conditions are met -->
@@ -46,7 +46,7 @@ IMCAC - Immediate Custom Action - It's immediate
       currently configured master and minion id.
     -->
     <Condition Message="Searching for configuration requires Administrator privileges. Please open from an elevated command prompt.">Privileged</Condition>
-    <Condition Message='CONFIG_TYPE must not be "[CONFIG_TYPE]". Please use "Existing", "Custom" or "Default".'>
+    <Condition Message="CONFIG_TYPE must not be &quot;[CONFIG_TYPE]&quot;. Please use &quot;Existing&quot;, &quot;Custom&quot; or &quot;Default&quot;.">
       Installed
       OR (CONFIG_TYPE = "Existing")
       OR (CONFIG_TYPE = "Custom")
@@ -54,36 +54,36 @@ IMCAC - Immediate Custom Action - It's immediate
     </Condition>
 
     <!-- Properties default values. For Properties unset by default see README.md -->
-    <Property Id="CONFIG_TYPE"              Value="Existing"/>
-    <Property Id="START_MINION"             Value="1"/>
-    <Property Id="ROOTDRIVE"                Value="C:\"/>  <!-- prevent msi to chose the drive with most space left -->
-    <Property Id="ARPPRODUCTICON"           Value="icon.ico"/>
-    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable"/>
-    <Property Id="MSIUSEREALADMINDETECTION" Value="1"/>
-    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLDIR"/>
-    <Property Id="hosts_source"             Value="Default config"/>    <!-- Displayed in GUI -->
+    <Property Id="CONFIG_TYPE"              Value="Existing" />
+    <Property Id="START_MINION"             Value="1" />
+    <Property Id="ROOTDRIVE"                Value="C:\" />  <!-- prevent msi to chose the drive with most space left -->
+    <Property Id="ARPPRODUCTICON"           Value="icon.ico" />
+    <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable" />
+    <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
+    <Property Id="WIXUI_INSTALLDIR"         Value="INSTALLDIR" />
+    <Property Id="hosts_source"             Value="Default config" />    <!-- Displayed in GUI -->
 
     <!-- Allow command line alias for Property  -->
-    <SetProperty Id="INSTALLDIR"  Value='[INSTALLFOLDER]'   Before="LaunchConditions">INSTALLFOLDER</SetProperty>
+    <SetProperty Id="INSTALLDIR"  Value="[INSTALLFOLDER]"   Before="LaunchConditions">INSTALLFOLDER</SetProperty>
     <!-- MINION_CONFIG implies REMOVE_CONFIG  -->
-    <SetProperty Id="REMOVE_CONFIG" Value='1'               Before="LaunchConditions">MINION_CONFIG</SetProperty>
+    <SetProperty Id="REMOVE_CONFIG" Value="1"               Before="LaunchConditions">MINION_CONFIG</SetProperty>
 
     <!-- Display source of hosts -->
-    <SetProperty Id="hosts_source"  Value='Config in use by [NSIS_DISPLAYNAME]' Action="h1" After="LaunchConditions">NSIS_DISPLAYNAME</SetProperty>
-    <SetProperty Id="hosts_source"  Value='Config in use by [WIX_UPGRADE_DETECTED]' Action="h2" After="LaunchConditions">WIX_UPGRADE_DETECTED</SetProperty>
-    <SetProperty Id="hosts_source"  Value='Config formerly used. No current install' Action="h3" After="LaunchConditions">CONFIG_FOUND and (not NSIS_DISPLAYNAME) and (not WIX_UPGRADE_DETECTED)</SetProperty>
+    <SetProperty Id="hosts_source"  Value="Config in use by [NSIS_DISPLAYNAME]" Action="h1" After="LaunchConditions">NSIS_DISPLAYNAME</SetProperty>
+    <SetProperty Id="hosts_source"  Value="Config in use by [WIX_UPGRADE_DETECTED]" Action="h2" After="LaunchConditions">WIX_UPGRADE_DETECTED</SetProperty>
+    <SetProperty Id="hosts_source"  Value="Config formerly used. No current install" Action="h3" After="LaunchConditions">CONFIG_FOUND and (not NSIS_DISPLAYNAME) and (not WIX_UPGRADE_DETECTED)</SetProperty>
 
     <!-- Search for old config minion file -->
     <Property Id="OLD_CONF_EXISTS">
       <DirectorySearch Id="conf_old" Path="C:\salt\conf">
-        <FileSearch Name="minion"/>
+        <FileSearch Name="minion" />
       </DirectorySearch>
     </Property>
 
     <!-- Search for new config minion file -->
     <Property Id="NEW_CONF_EXISTS">
       <DirectorySearch Id="conf_new" Path="C:\ProgramData\Salt Project\Salt\conf">
-        <FileSearch Name="minion"/>
+        <FileSearch Name="minion" />
       </DirectorySearch>
     </Property>
 
@@ -91,41 +91,41 @@ IMCAC - Immediate Custom Action - It's immediate
     <Property Id="PREVIOUS_ROOTDIR">
       <!-- new layout is C:\ProgramData\Salt Project\Salt -->
           <?if $(var.WIN64)=yes ?>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="yes" Type="raw" Id="p1"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="yes" Type="raw" Id="p1" />
           <?endif ?>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="no"  Type="raw" Id="p2"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="no"  Type="raw" Id="p2" />
     </Property>
     <!-- Search registry for option to remove config uninstall, set in previous install -->
     <Property Id="REMOVE_CONFIG">
           <?if $(var.WIN64)=yes ?>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="yes" Type="raw" Id="p3"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="yes" Type="raw" Id="p3" />
           <?endif ?>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="no"  Type="raw" Id="p4"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="REMOVE_CONFIG" Win64="no"  Type="raw" Id="p4" />
     </Property>
 
     <!-- Write registry (declare components) and delete on uninstall -->
     <Component Id="register_dirs" Directory="TARGETDIR">
       <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)">
-        <RegistryValue Name="install_dir" Value="[INSTALLDIR]" Type="string"/>
-        <RegistryValue Name="root_dir"    Value="[ROOTDIR]"    Type="string"/>
+        <RegistryValue Name="install_dir" Value="[INSTALLDIR]" Type="string" />
+        <RegistryValue Name="root_dir"    Value="[ROOTDIR]"    Type="string" />
       </RegistryKey>
     </Component>
     <Component Id="register_remove_config" Directory="TARGETDIR">
       <Condition>REMOVE_CONFIG</Condition>
       <RegistryKey Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" ForceDeleteOnUninstall="yes" >
-        <RegistryValue Name="REMOVE_CONFIG" Value="1"            Type="string"/>
+        <RegistryValue Name="REMOVE_CONFIG" Value="1"            Type="string" />
       </RegistryKey>
     </Component>
 
 
     <!-- Search registry for NSIS install  -->
     <Property         Id="NSIS_UNINSTALLSTRING">
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="no"  Id="n1"/>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="yes" Id="n2"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="no"  Id="n1" />
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="UninstallString" Type="raw" Win64="yes" Id="n2" />
     </Property>
     <Property         Id="NSIS_DISPLAYNAME">
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayName" Type="raw" Win64="no"  Id="n3"/>
-      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayName" Type="raw" Win64="yes" Id="n4"/>
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayName" Type="raw" Win64="no"  Id="n3" />
+      <RegistrySearch Root="HKLM" Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Salt Minion" Name="DisplayName" Type="raw" Win64="yes" Id="n4" />
     </Property>
 
     <!-- Detect NSIS install -->
@@ -151,7 +151,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- This is the import statement for the Custom Actions:
             IMCAC, DECAC, etc...
     -->
-    <Binary Id='MinionConfigExt' SourceFile='CustomAction01\CustomAction01.CA.dll'/>
+    <Binary Id="MinionConfigExt" SourceFile="CustomAction01\CustomAction01.CA.dll" />
 
     <!--  The GUI Sequence (ask for input from the user) -->
     <!--
@@ -161,7 +161,7 @@ IMCAC - Immediate Custom Action - It's immediate
       If this sequence is left out, this is a "silent install".
       -->
     <InstallUISequence>
-      <Custom Action='ReadConfig_IMCAC' Before='LaunchConditions'>NOT Installed</Custom>
+      <Custom Action="ReadConfig_IMCAC" Before="LaunchConditions">NOT Installed</Custom>
 
       <LaunchConditions After="AppSearch" /> <!-- Benefit  unclear. -->
     </InstallUISequence>
@@ -188,50 +188,50 @@ IMCAC - Immediate Custom Action - It's immediate
         stopSalt to release log file, installValidate requires access to all
         files, including the log file
       -->
-      <Custom Action='stopSalt'                  Before='InstallValidate'       >1</Custom>
+      <Custom Action="stopSalt"                  Before="InstallValidate"       >1</Custom>
 
       <!-- ReadConfig_IMCAC must be called before CostInitialize so features can depend on properties set-->
-      <Custom Action='ReadConfig_IMCAC'          Before='CostInitialize'        >NOT Installed</Custom>
-      <Custom Action='del_NSIS_DECAC'            After='InstallInitialize'      >nsis_install_found</Custom>
+      <Custom Action="ReadConfig_IMCAC"          Before="CostInitialize"        >NOT Installed</Custom>
+      <Custom Action="del_NSIS_DECAC"            After="InstallInitialize"      >nsis_install_found</Custom>
 
       <!-- If CLEAN_INSTALL, on install or upgrade: delete config and cache -->
-      <Custom Action='DeleteConfig2_CADH'
-              Before='DeleteConfig2_DECAC'                                      >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
-      <Custom Action='DeleteConfig2_DECAC'        After='InstallInitialize'     >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
+      <Custom Action="DeleteConfig2_CADH"
+              Before="DeleteConfig2_DECAC"                                      >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
+      <Custom Action="DeleteConfig2_DECAC"        After="InstallInitialize"     >CLEAN_INSTALL and ((NOT Installed) or WIX_UPGRADE_DETECTED)</Custom>
 
-      <Custom Action='MoveInsecureConfig_CADH'
-              Before='MoveInsecureConfig_DECAC'                                 >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
-      <Custom Action='MoveInsecureConfig_DECAC'   Before='CreateFolders'        >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
-      <Custom Action='BackupConfig_DECAC'         Before='CreateFolders'        >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
-      <Custom Action='MoveConfig_DECAC'           Before='CreateFolders'        >(NOT Installed) and MOVE_CONF</Custom>
+      <Custom Action="MoveInsecureConfig_CADH"
+              Before="MoveInsecureConfig_DECAC"                                 >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
+      <Custom Action="MoveInsecureConfig_DECAC"   Before="CreateFolders"        >(NOT Installed) and INSECURE_CONFIG_FOUND</Custom>
+      <Custom Action="BackupConfig_DECAC"         Before="CreateFolders"        >(NOT Installed) and (not INSECURE_CONFIG_FOUND) and (not MINION_CONFIG) and ((CONFIG_TYPE = "Custom") or (CONFIG_TYPE = "Default"))</Custom>
+      <Custom Action="MoveConfig_DECAC"           Before="CreateFolders"        >(NOT Installed) and MOVE_CONF</Custom>
 
-      <Custom Action='WriteConfig_CADH'           Before='WriteConfig_DECAC'    >NOT Installed</Custom>
-      <Custom Action='WriteConfig_DECAC'          After='WriteIniValues'        >NOT Installed</Custom>
+      <Custom Action="WriteConfig_CADH"           Before="WriteConfig_DECAC"    >NOT Installed</Custom>
+      <Custom Action="WriteConfig_DECAC"          After="WriteIniValues"        >NOT Installed</Custom>
 
       <!-- Optionally start the service  -->
       <StartServices Sequence="5900">START_MINION</StartServices>
 
       <!-- On uninstall or upgrade: stop salt python.exe processes that would lock dll's -->
-      <Custom Action='kill_python_exe'            After='StopServices'           >(REMOVE ~= "ALL") or WIX_UPGRADE_DETECTED</Custom>
+      <Custom Action="kill_python_exe"            After="StopServices"           >(REMOVE ~= "ALL") or WIX_UPGRADE_DETECTED</Custom>
 
       <!-- On uninstall (not upgrade): delete config and cache -->
-      <Custom Action='DeleteConfig_CADH'
-              Before='DeleteConfig_DECAC'                                        >REMOVE ~= "ALL"</Custom>
-      <Custom Action='DeleteConfig_DECAC'         After='RemoveFolders'          >REMOVE ~= "ALL"</Custom>
+      <Custom Action="DeleteConfig_CADH"
+              Before="DeleteConfig_DECAC"                                        >REMOVE ~= "ALL"</Custom>
+      <Custom Action="DeleteConfig_DECAC"         After="RemoveFolders"          >REMOVE ~= "ALL"</Custom>
 
     </InstallExecuteSequence>
 
     <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom actions. -->
     <!-- These are the entry points into the DLL -->
-    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey='MinionConfigExt' DllEntry='ReadConfig_IMCAC'       Execute='firstSequence'/>
-    <CustomAction Id="del_NSIS_DECAC"       BinaryKey='MinionConfigExt' DllEntry='del_NSIS_DECAC'         Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="MoveInsecureConfig_DECAC"  BinaryKey='MinionConfigExt' DllEntry='MoveInsecureConfig_DECAC' Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="MoveConfig_DECAC"     BinaryKey='MinionConfigExt' DllEntry='MoveConfig_DECAC'       Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="WriteConfig_DECAC"    BinaryKey='MinionConfigExt' DllEntry='WriteConfig_DECAC'      Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="DeleteConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="DeleteConfig2_DECAC"  BinaryKey='MinionConfigExt' DllEntry='DeleteConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="BackupConfig_DECAC"   BinaryKey='MinionConfigExt' DllEntry='BackupConfig_DECAC'     Execute='deferred' Return='check' Impersonate='no'/>
-    <CustomAction Id="kill_python_exe"      BinaryKey='MinionConfigExt' DllEntry='kill_python_exe'        Execute='deferred' Return='check' Impersonate='no'/>
+    <CustomAction Id="ReadConfig_IMCAC"     BinaryKey="MinionConfigExt" DllEntry="ReadConfig_IMCAC"       Execute="firstSequence" />
+    <CustomAction Id="del_NSIS_DECAC"       BinaryKey="MinionConfigExt" DllEntry="del_NSIS_DECAC"         Execute="deferred" Return="check" Impersonate="no" />
+    <CustomAction Id="MoveInsecureConfig_DECAC"  BinaryKey="MinionConfigExt" DllEntry="MoveInsecureConfig_DECAC" Execute="deferred" Return="check" Impersonate="no" />
+    <CustomAction Id="MoveConfig_DECAC"     BinaryKey="MinionConfigExt" DllEntry="MoveConfig_DECAC"       Execute="deferred" Return="check" Impersonate="no" />
+    <CustomAction Id="WriteConfig_DECAC"    BinaryKey="MinionConfigExt" DllEntry="WriteConfig_DECAC"      Execute="deferred" Return="check" Impersonate="no" />
+    <CustomAction Id="DeleteConfig_DECAC"   BinaryKey="MinionConfigExt" DllEntry="DeleteConfig_DECAC"     Execute="deferred" Return="check" Impersonate="no" />
+    <CustomAction Id="DeleteConfig2_DECAC"  BinaryKey="MinionConfigExt" DllEntry="DeleteConfig_DECAC"     Execute="deferred" Return="check" Impersonate="no" />
+    <CustomAction Id="BackupConfig_DECAC"   BinaryKey="MinionConfigExt" DllEntry="BackupConfig_DECAC"     Execute="deferred" Return="check" Impersonate="no" />
+    <CustomAction Id="kill_python_exe"      BinaryKey="MinionConfigExt" DllEntry="kill_python_exe"        Execute="deferred" Return="check" Impersonate="no" />
     <!-- Custom Action Data Helper for deferred custom actions  -->
     <!-- master and id must be named like in YAML configuration -->
     <!-- Send all this stuff down to the sandbox -->
@@ -249,11 +249,11 @@ IMCAC - Immediate Custom Action - It's immediate
     <DirectoryRef Id="TARGETDIR">
     <!-- Visual C++ runtimes depend on the target platform -->
     <?if $(var.WIN64)=yes ?>
-      <Merge Id="MSM_VC120_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC120_CRT_x64.msm" DiskId="1" Language="0"/>
-      <Merge Id="MSM_VC140_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0"/>
+      <Merge Id="MSM_VC120_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC120_CRT_x64.msm" DiskId="1" Language="0" />
+      <Merge Id="MSM_VC140_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC140_CRT_x64.msm" DiskId="1" Language="0" />
     <?else ?>
-      <Merge Id="MSM_VC120_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC120_CRT_x86.msm" DiskId="1" Language="0"/>
-      <Merge Id="MSM_VC140_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC140_CRT_x86.msm" DiskId="1" Language="0"/>
+      <Merge Id="MSM_VC120_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC120_CRT_x86.msm" DiskId="1" Language="0" />
+      <Merge Id="MSM_VC140_CRT" SourceFile="$(var.WEBCACHE_DIR)\Microsoft_VC140_CRT_x86.msm" DiskId="1" Language="0" />
     <?endif ?>
     </DirectoryRef>
     <!-- Add INSTALLDIR to the system Path -->
@@ -269,8 +269,8 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- Leaving registry keys would mean the product is still installed -->
     <Feature Id="ProductFeature" Title="Minion" Level="1">
       <ComponentGroupRef Id="ProductComponents" />
-      <Feature Id="VC120" Title="VC++ 2013" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC120_CRT"/></Feature>
-      <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT"/></Feature>
+      <Feature Id="VC120" Title="VC++ 2013" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC120_CRT" /></Feature>
+      <Feature Id="VC140" Title="VC++ 2015" AllowAdvertise="no" Display="hidden"><MergeRef Id="MSM_VC140_CRT" /></Feature>
     </Feature>
 
     <!-- Get the config file template from the msi store only if no config is present -->
@@ -285,8 +285,8 @@ IMCAC - Immediate Custom Action - It's immediate
       <ComponentRef Id="INSTALLDIR_Permissions" />
       <ComponentRef Id="ROOTDIR_Permissions" />
       <ComponentRef Id="INSTALLDIR_System_Path" />
-      <ComponentRef Id="register_dirs"/>
-      <ComponentRef Id="register_remove_config"/>
+      <ComponentRef Id="register_dirs" />
+      <ComponentRef Id="register_remove_config" />
     </ComponentGroup>
 
 
@@ -348,11 +348,11 @@ IMCAC - Immediate Custom Action - It's immediate
           <Condition Action="show">not (MINION_CONFIG or INSECURE_CONFIG_FOUND or (not CONFIG_FOUND))</Condition>
           <Condition Action="hide">     MINION_CONFIG or INSECURE_CONFIG_FOUND or (not CONFIG_FOUND)</Condition>
         </Control>
-        <Control Id="StartService" Type="CheckBox"   X="25"  Y="150" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately"/>
-        <Control Id="HideInARP"    Type="CheckBox"   X="25"  Y="165" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'"/>
-        <Control Id="conf_txt"     Type="Text"       X="36"  Y="182" Width="130" Height="15"                                                 Text="Remove configuration and cache:"/>
-        <Control Id="clean_inst"   Type="CheckBox"   X="166" Y="180" Width="70"  Height="15" Property="CLEAN_INSTALL"      CheckBoxValue="1" Text="B&amp;efore upgrade"/>
-        <Control Id="remove_conf"  Type="CheckBox"   X="244" Y="180" Width="60"  Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;On uninstall"/>
+        <Control Id="StartService" Type="CheckBox"   X="25"  Y="150" Width="280" Height="15" Property="START_MINION"       CheckBoxValue="1" Text="&amp;Start salt-minion service immediately" />
+        <Control Id="HideInARP"    Type="CheckBox"   X="25"  Y="165" Width="280" Height="15" Property="ARPSYSTEMCOMPONENT" CheckBoxValue="1" Text="&amp;Hide in 'Programs and Features'" />
+        <Control Id="conf_txt"     Type="Text"       X="36"  Y="182" Width="130" Height="15"                                                 Text="Remove configuration and cache:" />
+        <Control Id="clean_inst"   Type="CheckBox"   X="166" Y="180" Width="70"  Height="15" Property="CLEAN_INSTALL"      CheckBoxValue="1" Text="B&amp;efore upgrade" />
+        <Control Id="remove_conf"  Type="CheckBox"   X="244" Y="180" Width="60"  Height="15" Property="REMOVE_CONFIG"      CheckBoxValue="1" Text="&amp;On uninstall" />
         <Control Id="move_conf"    Type="CheckBox"   X="25"  Y="195" Width="280" Height="15" Property="MOVE_CONF"          CheckBoxValue="1" Text="&amp;Move configuration from &quot;C:\salt&quot; to &quot;C:\ProgramData\Salt Project&quot;">
           <Condition Action="show">     OLD_CONF_EXISTS</Condition>
           <Condition Action="hide">not (OLD_CONF_EXISTS)</Condition>
@@ -387,7 +387,7 @@ IMCAC - Immediate Custom Action - It's immediate
 
         <Control Id="Back"         Type="PushButton" X="180" Y="243" Width="56"  Height="17"               Text="!(loc.WixUIBack)" />
         <Control Id="Next"         Type="PushButton" X="236" Y="243" Width="56"  Height="17" Default="yes" Text="!(loc.WixUINext)" />
-        <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)"/>
+        <Control Id="Cancel"       Type="PushButton" X="304" Y="243" Width="56"  Height="17" Cancel="yes"  Text="!(loc.WixUICancel)" />
       </Dialog>
     </UI>
 
@@ -396,7 +396,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <Directory Id="TARGETDIR" Name="SourceDir">                   <!-- Fixed expression. Location of the msi file -->
       <Directory Id="$(var.PROGRAMFILES)">                        <!-- C:\Program Files  or  C:\Program Files (x86) -->
         <Directory Id="installparent" Name="$(var.MANUFACTURER)">
-          <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)"/>
+          <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)" />
         </Directory>
       </Directory>
       <Directory Id="CommonAppDataFolder">                        <!-- C:\ProgramData -->
@@ -463,7 +463,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <?else ?>
     <ComponentGroup Id="service">
       <Component        Id="servicec1" Directory="INSTALLDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
-        <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes"/>
+        <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes" />
         <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltstack.com"
                         Arguments="[INSTALLDIR]\bin\Scripts\salt-minion -c [ROOTDIR]conf -l quiet"
                         Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
@@ -481,6 +481,6 @@ IMCAC - Immediate Custom Action - It's immediate
 
 
     <!-- Do not create cab files -->
-    <MediaTemplate EmbedCab="yes" CompressionLevel="high"/>
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
   </Product>
 </Wix>
