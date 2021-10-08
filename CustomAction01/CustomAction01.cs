@@ -108,7 +108,10 @@ namespace MinionConfigurationExtension {
                     session.Log("...Insecure config found, using default config");
                     session["INSECURE_CONFIG_FOUND"] = minion_config_dir;
                     session["CONFIG_TYPE"] = "Default";
+                    session["GET_CONFIG_TEMPLATE_FROM_MSI_STORE"] = "True";    // Use template instead
                 }
+            } else {
+                session["GET_CONFIG_TEMPLATE_FROM_MSI_STORE"] = "True";    // Use template
             }
 
             // Set the default values for master and id
@@ -123,6 +126,13 @@ namespace MinionConfigurationExtension {
                     if (conf_file.Equals("_schedule.conf")) { continue; }            // skip _schedule.conf
                     read_master_and_id_from_file_IMCAC(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
                 }
+            }
+            // Read id from minion_id (if it exists)
+            // Assume the minion_id file next to the minion config file
+            string minion_id_file = minion_config_file.Length == 0? "": minion_config_file + "_id";
+            if (File.Exists(minion_id_file)) {
+                session["MINION_ID_FILE_FOUND"] = minion_id_file;
+                id_from_previous_installation = File.ReadAllLines(minion_id_file)[0];
             }
 
             session.Log("...CONFIG_TYPE msi property  = " + session["CONFIG_TYPE"]);
@@ -515,8 +525,6 @@ namespace MinionConfigurationExtension {
             // Get msi properties
             string master = cutil.get_property_DECAC(session, "master");;
             string id = cutil.get_property_DECAC(session, "id");;
-            string MOVE_CONF     = cutil.get_property_DECAC(session, "MOVE_CONF");
-            string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string MINION_CONFIG = cutil.get_property_DECAC(session, "MINION_CONFIG");
             string CONFDIR = cutil.get_property_DECAC(session, "CONFDIR");
             string MINION_CONFIGFILE = Path.Combine(CONFDIR, "minion");
