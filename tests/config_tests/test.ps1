@@ -33,9 +33,13 @@ Copy-Item -Path $msi -Destination "test.msi"
 foreach ($batchfile in Get-ChildItem *.bat){
   $test_name = $batchfile.basename
   $config_input = $test_name + ".input"
+  $minion_id = $test_name + ".minion_id"
   Write-Host -ForegroundColor Yellow -NoNewline ("{0,-55}" -f $test_name)
   if(Test-Path $config_input){
     Copy-Item -Path $config_input -Destination "C:\ProgramData\Salt Project\Salt\conf\minion"
+  }
+  if(Test-Path $minion_id){
+    Copy-Item -Path $minion_id -Destination "C:\ProgramData\Salt Project\Salt\conf\minion_id"
   }
 
   $params = @{
