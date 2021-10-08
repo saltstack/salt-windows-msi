@@ -525,8 +525,6 @@ namespace MinionConfigurationExtension {
             // Get msi properties
             string master = cutil.get_property_DECAC(session, "master");;
             string id = cutil.get_property_DECAC(session, "id");;
-            string MOVE_CONF     = cutil.get_property_DECAC(session, "MOVE_CONF");
-            string INSTALLDIR    = cutil.get_property_DECAC(session, "INSTALLDIR");
             string MINION_CONFIG = cutil.get_property_DECAC(session, "MINION_CONFIG");
             string CONFDIR = cutil.get_property_DECAC(session, "CONFDIR");
             string MINION_CONFIGFILE = Path.Combine(CONFDIR, "minion");
