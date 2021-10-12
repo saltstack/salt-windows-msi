@@ -1,0 +1,1 @@
+properties START_MINION="" MASTER=master.rr4 MINION_ID=minion_id.rr4 REMOVE_CONFIG=1

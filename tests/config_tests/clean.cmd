@@ -1,4 +1,5 @@
-del *.output
+del *.bat
 del *.install.log
+del *.output
 del *.uninstall.log
-del test.msi
+

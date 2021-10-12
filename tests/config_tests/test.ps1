@@ -23,18 +23,58 @@ if (Test-Path *.output) {
 }
 
 
+$msis = Get-ChildItem ..\..\*.msi
+
+$nof_msis = ($msis | Measure-Object).Count
+
+if ($nof_msis -eq 0) {
+  Write-Host -ForegroundColor Red *.msi must exist
+  exit 1
+}
+
+if ($nof_msis -gt 1) {
+  Write-Host -ForegroundColor Red Only one *.msi must exist
+  exit 1
+}
+
+
 (New-Item -ItemType directory -Path "C:\ProgramData\Salt Project\Salt\conf") | out-null
 
-$msis = Get-ChildItem ..\..\*.msi
 $msi = $msis[0]
 Write-Host -ForegroundColor Yellow Testing ([System.IO.Path]::GetFileName($msi))
 Copy-Item -Path $msi -Destination "test.msi"
 
-foreach ($batchfile in Get-ChildItem *.bat){
-  $test_name = $batchfile.basename
+$array_allowed_test_words = "dormant", "properties"
+foreach ($testfilename in Get-ChildItem *.test){
+  $dormant = $false
+  $test_name = $testfilename.basename
+  $batchfile = $test_name + ".bat"
   $config_input = $test_name + ".input"
   $minion_id = $test_name + ".minion_id"
   Write-Host -ForegroundColor Yellow -NoNewline ("{0,-55}" -f $test_name)
+
+  foreach($line in Get-Content $testfilename) {
+  if ($line.Length -eq 0) {continue}
+  $words = $line -split " " , 2
+  $head = $words[0]
+  if ($words.length -eq 2){
+    $tail = $words[1]
+  } else {
+    $tail = ""
+  }
+  if($array_allowed_test_words.Contains($head)){
+    if ($head -eq "dormant") {
+      $dormant = $true
+    }
+    if ($head -eq "properties") {
+      Set-Content -Path $batchfile -Value "msiexec /i $msi $tail /l*v $test_name.install.log /qb"
+    }
+  } else {
+    Write-Host -ForegroundColor Red $testfilename must not contain $head
+    exit 1
+    }
+}
+
   if(Test-Path $config_input){
     Copy-Item -Path $config_input -Destination "C:\ProgramData\Salt Project\Salt\conf\minion"
   }
@@ -64,9 +104,9 @@ foreach ($batchfile in Get-ChildItem *.bat){
 
    if((Get-Content -Raw $expected) -eq (Get-Content -Raw $output)){
     Remove-Item $output
-    Write-Host -ForegroundColor Green Config as expected
+    Write-Host -ForegroundColor Green -NoNewline content Pass
   } else {
-    Write-Host -ForegroundColor Red Config is not as expected
+    Write-Host -ForegroundColor Red -NoNewline content Fail
   }
 
 
@@ -89,7 +129,13 @@ foreach ($batchfile in Get-ChildItem *.bat){
     exit 1
   }
 
-  Write-Host "    config exists after Uninstall " (Test-Path "C:\ProgramData\Salt Project\Salt\conf\minion")
+#  Write-Host "    config exists after Uninstall $dormant  " (Test-Path "C:\ProgramData\Salt Project\Salt\conf\minion")
+  if($dormant -eq (Test-Path "C:\ProgramData\Salt Project\Salt\conf\minion")){
+    Write-Host -ForegroundColor Green " dormancy Pass"
+  } else {
+    Write-Host -ForegroundColor Red " dormancy Fail"
+  }
+
 
   # Clean up system from the last test config and create an empty dir
   if (Test-Path "C:\ProgramData\Salt Project\Salt") {

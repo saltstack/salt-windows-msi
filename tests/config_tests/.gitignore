@@ -1,4 +1,4 @@
-*.output
+*.bat
 *.install.log
+*.output
 *.uninstall.log
-test.msi
