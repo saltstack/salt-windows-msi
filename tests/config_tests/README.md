@@ -1,3 +1,5 @@
+### Use test configuration
+Copy files from ../../_mock_salt_pkg_windows/* to the github/salt repo
 
 ### Edit a `*.test` file
 - Contains the msi-properties, of which master and minion_id simulate user input via the GUI
