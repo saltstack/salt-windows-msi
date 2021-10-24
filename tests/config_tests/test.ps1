@@ -1,14 +1,34 @@
 Set-PSDebug -Strict
 Set-strictmode -version latest
 
+function Get-IsAdministrator {
+    $Identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $Principal = New-Object System.Security.Principal.WindowsPrincipal($Identity)
+    $Principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+#==============================================================================
+# Check for Elevated Privileges
+#==============================================================================
+If (!(Get-IsAdministrator)) {
+  Write-Host -ForegroundColor Red You must be administrator to run $MyInvocation.InvocationName
+  exit 1
+}
+
+#==============================================================================
+# Check for Salt installation
+#==============================================================================
 $scrambled_salt_upgradecode = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UpgradeCodes\2A3BF6CFED569A14DA191DA004B26D14'
 if (Test-Path $scrambled_salt_upgradecode) {
   Write-Host -ForegroundColor Red Salt must not be installed
   exit 1
 }
 
+#==============================================================================
+# Check for Salt folders
+#==============================================================================
 if (Test-Path "C:\ProgramData\Salt Project\Salt") {
-  Write-Host -ForegroundColor Red C:\ProgramData\Salt Project\Salt must not exist
+  Write-Host -ForegroundColor Red `"C:\ProgramData\Salt Project\Salt`" must not exist
   exit 1
 }
 
