@@ -1,3 +1,3 @@
 pushd tests\config_tests
-clean
+call clean
 popd

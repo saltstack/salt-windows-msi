@@ -1,0 +1,2 @@
+properties START_MINION="" MASTER=master.commandline.1 MINION_ID=minion_id.commandline.1
+dormant
