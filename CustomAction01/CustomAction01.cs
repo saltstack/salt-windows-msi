@@ -539,6 +539,7 @@ namespace MinionConfigurationExtension {
                 apply_minion_config_DECAC(session, MINION_CONFIG);  // A single msi property is written to file
             } else {
                 write_master_and_id_to_file_DECAC(session, MINION_CONFIGFILE, master, id); // Two msi properties are replaced inside files
+                // NICE TO HAVE copy custom file before using the template from the msi store
                 save_custom_config_file_if_config_type_demands_DECAC(session);     // Given file
             }
             session.Log("...END WriteConfig_DECAC");
@@ -589,7 +590,8 @@ namespace MinionConfigurationExtension {
                 }
             }
             // lay down a custom config passed via the command line
-            string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(custom_config_final));
+            // NICE TO HAVE copy file instead of write content
+            string content_of_custom_config_file = string.Join(Environment.NewLine, File.ReadAllLines(custom_config_final)) + Environment.NewLine;
             cutil.Write_file(session, CONFDIR, "minion", content_of_custom_config_file);
         }
 
