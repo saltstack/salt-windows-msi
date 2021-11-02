@@ -67,8 +67,8 @@ if (ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") {
     VerifyOrDownload $wixInstaller `
         "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe" `
         "32BB76C478FCB356671D4AAF006AD81CA93EEA32C22A9401B168FC7471FECCD2"
-    Write-Host -ForegroundColor Yellow "    *** Please install the Wix toolset (by clicking the fancy Install button) ***"
-    Start-Process $wixInstaller -Wait -NoNewWindow
+    Write-Host -ForegroundColor Yellow "    *** Installing the Wix toolset ***"
+    Start-Process $wixInstaller -ArgumentList "/install","/quiet","/norestart" -Wait -NoNewWindow
 }
 if ($null -eq $ENV:WIX) {
     Write-Host -ForegroundColor Yellow "    *** Please open a new Shell for the Wix enviornment variable ***"
