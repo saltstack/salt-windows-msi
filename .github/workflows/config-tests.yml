@@ -4,22 +4,16 @@ jobs:
   Run-Config-Tests:
     runs-on: windows-latest
     steps:
-      - name: Job Information
-        run: |
-          Write-Host "🎉 The job was automatically triggered by a ${{ github.event_name}} event."
-          Write-Host "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-          Write-Host "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
+      - name: STEP 1 - Check out repository code
         uses: actions/checkout@v2
-      - name: Check out salt repository
+      - name: STEP 2 - Check out salt repository
         run: git clone https://github.com/saltstack/salt.git ..\salt
-      - name: Create Mock Salt Repo
+      - name: STEP 3 - Create Mock Salt Repo
         run: |
           Write-Host "Copying mock files: " -NoNewLine
           Copy-Item -Path .\_mock_salt_pkg_windows\* -Destination ..\salt\pkg\windows -Recurse -Force | Out-Null
           Write-Host "Completed" -ForegroundColor Green
-      - name: Build Test MSI
+      - name: STEP 4 - Build Test MSI
         run: .\build.cmd
-      - name: Run Config Tests
+      - name: STEP 5 - Run Config Tests
         run: .\test.cmd
-      - run: Write-Host "🍏 This job's status is ${{ job.status }}."
