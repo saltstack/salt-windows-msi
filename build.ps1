@@ -55,12 +55,8 @@ if (ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") {
     $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
     $dotnet3enabled = $dotnet3state -Eq "Enabled"
     if (-Not ($dotnet3enabled)) {
-        Write-Host -ForegroundColor Yellow "    ***  Please enable .Net Framework 3.5 (rquired for or WiX 3)***"
-        if([Environment]::OSVersion.Version -ge (new-object 'Version' 10,0)) {
-          # Windows 10 or higher
-          Start-Process optionalfeatures -Wait -NoNewWindow
-        }
-        Read-Host -Prompt "Press any key to continue"
+        Write-Host -ForegroundColor Yellow "    ***  Enabling Feature .Net Framework 3.5 (rquired for or WiX 3) ***"
+        Dism /online /enable-feature /featurename:NetFx3 /all
     }
 
     $wixInstaller = "$WEBCACHE_DIR/wix3-11-2-Setup.exe"
@@ -91,9 +87,9 @@ if ((ProductcodeExists "{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") -or
         "https://download.microsoft.com/download/E/E/D/EEDF18A8-4AED-4CE0-BEBE-70A83094FC5A/BuildTools_Full.exe" `
         "92CFB3DE1721066FF5A93F14A224CC26F839969706248B8B52371A8C40A9445B"
 
-    Write-Host -ForegroundColor Yellow "    *** Please install Microsoft Build Tools 2015 (and wait up to 40 seconds for all processes to end) ***"
+    Write-Host -ForegroundColor Yellow "    *** Installing Microsoft Build Tools 2015 (and wait up to 40 seconds for all processes to end) ***"
     #Start-Process $BuildToolsInstaller -Wait -NoNewWindow   // waits forever (for the "process group"?)
-    $p = start-process -passthru $BuildToolsInstaller
+    $p = Start-Process -FilePath $BuildToolsInstaller -ArgumentList "/quiet","/norestart" -PassThru
     $p.WaitForExit()
 }
 
