@@ -1,7 +1,7 @@
 name: Config Tests
 on: [push, pull_request]
 jobs:
-  Explore-GitHub-Actions:
+  Run-Config-Tests:
     runs-on: windows-latest
     steps:
       - name: Job Information
