@@ -55,7 +55,7 @@ if (ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") {
     $dotnet3state = (Get-WindowsOptionalFeature -Online -FeatureName "NetFx3").State
     $dotnet3enabled = $dotnet3state -Eq "Enabled"
     if (-Not ($dotnet3enabled)) {
-        Write-Host -ForegroundColor Yellow "    ***  Enabling Feature .Net Framework 3.5 (rquired for or WiX 3) ***"
+        Write-Host -ForegroundColor Yellow "    ***  Enabling Feature .Net Framework 3.5 (required for or WiX 3) ***"
         Dism /online /enable-feature /featurename:NetFx3 /all
     }
 
