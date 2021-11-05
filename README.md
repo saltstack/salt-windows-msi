@@ -66,7 +66,7 @@ Example `MINION_CONFIG="master: Anna^id: Bob"` results in:
 
 There are 3 scenarios the installer tries to account for:
 
-1. existing-config (default)
+1. existing-config
 2. custom-config
 3. default-config
 
