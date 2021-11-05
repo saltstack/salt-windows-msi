@@ -327,6 +327,11 @@ namespace MinionConfigurationExtension {
                         session.Log("......ERROR Found multiple matches for single master");
                     }
                 }
+                if (!master_emitted) {
+                    session.Log("......No master found in config, appending master");
+                    config_content = config_content + master_value;
+                    master_emitted = true;
+                }
             }
 
             // Only attempt to replace the minion id if a minion id is passed
@@ -364,6 +369,27 @@ namespace MinionConfigurationExtension {
                     } else if (id_matches.Count > 1) {
                         session.Log("......ERROR Found multiple matches for commented id");
                     }
+                }
+
+                if (!id_emitted) {
+                    // commented id entry
+                    Regex regx_commented_id_empty = new Regex(@"(^# *id: *\r?\n?)", RegexOptions.Multiline);
+                    // Search config using commented id matcher
+                    session.Log("...Searching for commented id");
+                    id_matches = regx_commented_id_empty.Matches(config_content);
+                    // If one is found, replace with the new id value and done
+                    if (id_matches.Count == 1) {
+                        session.Log("......Found commented id, setting new id value");
+                        config_content = regx_commented_id_empty.Replace(config_content, "$1" + id_value);
+                        id_emitted = true;
+                    } else if (id_matches.Count > 1) {
+                        session.Log("......ERROR Found multiple matches for commented id");
+                    }
+                }
+                if (!id_emitted) {
+                    session.Log("......No minion ID found in config, appending minion ID");
+                    config_content = config_content + id_value;
+                    id_emitted = true;
                 }
             }
             session.Log("...Writing config content to: {0}", config_file);
