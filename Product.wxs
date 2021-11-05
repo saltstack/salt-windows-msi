@@ -54,7 +54,7 @@ IMCAC - Immediate Custom Action - It's immediate
     </Condition>
 
     <!-- Properties default values. For Properties unset by default see README.md -->
-    <Property Id="CONFIG_TYPE"              Value="Existing" />
+    <Property Id="CONFIG_TYPE"              Value="Default" />
     <Property Id="START_MINION"             Value="1" />
     <Property Id="ROOTDRIVE"                Value="C:\" />  <!-- prevent msi to chose the drive with most space left -->
     <Property Id="ARPPRODUCTICON"           Value="icon.ico" />

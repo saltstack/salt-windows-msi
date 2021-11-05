@@ -71,7 +71,7 @@ foreach ($testfilename in Get-ChildItem *.test) {
     $batchfile = $test_name + ".bat"
     $config_input = $test_name + ".input"
     $minion_id = $test_name + ".minion_id"
-    Write-Host -ForegroundColor Yellow -NoNewline ("{0,-55}" -f $test_name)
+    Write-Host -ForegroundColor Yellow -NoNewline ("{0,-65}" -f $test_name)
 
     foreach($line in Get-Content $testfilename) {
         if ($line.Length -eq 0) {continue}
@@ -178,3 +178,4 @@ if ($exit_code -eq 0) {
 }
 
 exit $exit_code
+
