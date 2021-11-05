@@ -2,7 +2,7 @@
 #master: salt
 master: cli.master
 # This is the template from the msi store line 2/6
-#id: hostname
+#id:
 id: cli.minion
 # This is the template from the msi store line 3/6
 # This is the template from the msi store line 4/6
