@@ -82,7 +82,7 @@ IMCAC - Immediate Custom Action - It's immediate
     </Property>
 
     <!-- Search registry for previous msi and Nullsoft install dirs -->
-    <Property Id="PREVIOUS_ROOTDIR">
+    <Property Id="REGISTRY_ROOTDIR">
       <!-- new layout is C:\ProgramData\Salt Project\Salt -->
           <?if $(var.WIN64)=yes ?>
       <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="yes" Type="raw" Id="p1" />
