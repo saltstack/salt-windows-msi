@@ -102,6 +102,7 @@ foreach ($testfilename in Get-ChildItem *.test) {
         Copy-Item -Path $minion_id -Destination "C:\ProgramData\Salt Project\Salt\conf\minion_id"
     }
 
+    # Run the install (via the batch file), which generates configuration (file conf/minion).
     $params = @{
         "FilePath" = "$Env:SystemRoot\system32\cmd.exe"
         "ArgumentList" = @(
@@ -118,18 +119,20 @@ foreach ($testfilename in Get-ChildItem *.test) {
         exit 1
     }
 
+    # Compare expected and generated configuration
     $expected = $test_name + ".expected"
-    $output = $test_name + ".output"
-    Copy-Item -Path "C:\ProgramData\Salt Project\Salt\conf\minion" -Destination $output
+    $generated = $test_name + ".output"
+    Copy-Item -Path "C:\ProgramData\Salt Project\Salt\conf\minion" -Destination $generated
 
-     if((Get-Content -Raw $expected) -eq (Get-Content -Raw $output)){
-        Remove-Item $output
-        Write-Host -ForegroundColor Green -NoNewline content Pass
+     if((Get-Content -Raw $expected) -eq (Get-Content -Raw $generated)){
+        Remove-Item $generated
+        Write-Host -ForegroundColor Green -NoNewline "content Pass "
     } else {
-        Write-Host -ForegroundColor Red -NoNewline content Fail
+        Write-Host -ForegroundColor Red -NoNewline "content Fail "
         $exit_code = 1
     }
 
+    # Run uninstall
     $params = @{
         "FilePath" = "$Env:SystemRoot\system32\msiexec.exe"
         "ArgumentList" = @(
@@ -153,6 +156,7 @@ foreach ($testfilename in Get-ChildItem *.test) {
     if($dormant -eq (Test-Path "C:\ProgramData\Salt Project\Salt\conf\minion")){
         Write-Host -ForegroundColor Green " dormancy Pass"
     } else {
+        # If a dormancy test fails, overall testing will be a failure, but continue testing
         Write-Host -ForegroundColor Red " dormancy Fail"
         $exit_code = 1
     }
