@@ -19,35 +19,37 @@ namespace MinionConfigurationExtension {
         [CustomAction]
         public static ActionResult ReadConfig_IMCAC(Session session) {
             /*
-            When installatioin starts,there might be a previous installation.
-            From the previous installation we read only two properties that we present in the installer:
-              - master
-              - id
+            When the installation begins, there may be a previous installation with existing config.
+            If existing config is found, we need to verify that it is in a secure state. If it is
+            secure then it will be used as is, unchanged.
 
-            This function reads these two properties from
-              - the 2 msi properties:
-                - MASTER
-                - MINION_ID
-              - files from a provious installations:
-                - the number of file the function searches depend on CONFIGURATION_TYPE
-              - dependend on CONFIGURATION_TYPE, default values can be:
-                - master = "salt"
-                - id = "hostname"
+            We will read the values from existing config to possibly display in the GUI, but it will
+            be for informational purposes only. The only CONFIG_TYPES that will be edited are
+            DEFAULT and CUSTOM.
+
+            The two config options and their defaults are:
+              - master: salt
+              - id: hostname
+
+            If the CONFIG_TYPE is not "Existing", and the master and minion id are not the defaults,
+            then those values will be used to update either the Default config or a Custom config.
 
             This function writes msi properties:
               - MASTER
               - MINION_ID
+              - CONFIG_TYPE
 
             A GUI installation can show these msi properties because this function is called before the GUI.
             */
             session.Log("...BEGIN ReadConfig_IMCAC");
             string ProgramData    = System.Environment.GetEnvironmentVariable("ProgramData");
 
-            string ROOTDIR_old = @"C:\salt";
-            string ROOTDIR_new =  Path.Combine(ProgramData, @"Salt Project\Salt");
+            string oldRootDir = @"C:\salt";
+            string newRootDir =  Path.Combine(ProgramData, @"Salt Project\Salt");
+
             // Create msi proporties
-            session["ROOTDIR_old"] = ROOTDIR_old;
-            session["ROOTDIR_new"] = ROOTDIR_new;
+            session["ROOTDIR_old"] = oldRootDir;
+            session["ROOTDIR_new"] = newRootDir;
 
             string abortReason = "";
             // Insert the first abort reason here
@@ -55,20 +57,20 @@ namespace MinionConfigurationExtension {
                 session["AbortReason"] = abortReason;
             }
 
-            session.Log("...Searching minion config file for reading master and id");
-            string PREVIOUS_ROOTDIR = session["PREVIOUS_ROOTDIR"];          // From registry
-            string previous_conf_config = "";
-            if (PREVIOUS_ROOTDIR.Length > 0){
-                previous_conf_config = PREVIOUS_ROOTDIR + @"\conf\minion";
+            session.Log("...Looking for existing config");
+            string REGISTRY_ROOTDIR = session["EXISTING_ROOTDIR"];          // From registry
+            string reg_config = "";
+            if (REGISTRY_ROOTDIR.Length > 0){
+                reg_config = REGISTRY_ROOTDIR + @"\conf\minion";
             }
             // Search for configuration in this order: registry, new layout, old layout
             string minion_config_file = cutil.get_file_that_exist(session, new string[] {
-                previous_conf_config,
-                ROOTDIR_new + @"\conf\minion",
-                ROOTDIR_old + @"\conf\minion"});
+                reg_config,
+                newRootDir + @"\conf\minion",
+                oldRootDir + @"\conf\minion"});
             string minion_config_dir = "";
 
-
+            // Check for a minion.d directory
             if (File.Exists(minion_config_file)) {
                 string minion_dot_d_dir = minion_config_file + ".d";
                 session.Log("...minion_dot_d_dir = " + minion_dot_d_dir);
@@ -78,16 +80,20 @@ namespace MinionConfigurationExtension {
                     IdentityReference sid = dirSecurity.GetOwner(typeof(SecurityIdentifier));
                     session.Log("...owner of the minion config dir " + sid.Value);
                 } else {
-                    session.Log("... folder  does not exists minion_dot_d_dir = " + minion_dot_d_dir);
+                    session.Log("... folder does not exist: " + minion_dot_d_dir);
                 }
             }
 
             // Check for existing config
             if (File.Exists(minion_config_file)) {
+                // We found an existing config
+                session["CONFIG_TYPE"] = "Existing";
+
+                // Make sure the directory where the config was found is secure
                 minion_config_dir = Path.GetDirectoryName(minion_config_file);
                 // Owner must be one of "Local System" or "Administrators"
                 // It looks like the NullSoft installer sets the owner to
-                // Administrators while the MIS installer sets the owner to
+                // Administrators while the MSI installer sets the owner to
                 // Local System. Salt only sets the owner of the `C:\salt`
                 // directory when it starts and doesn't concern itself with the
                 // conf directory. So we have to check for both.
@@ -95,7 +101,7 @@ namespace MinionConfigurationExtension {
                 valid_sids.Add("S-1-5-18");      //Local System
                 valid_sids.Add("S-1-5-32-544");  //Administrators
 
-                // Get the SID for the conf directory
+                // Get the SID for the owner of the conf directory
                 FileSecurity fileSecurity = File.GetAccessControl(minion_config_dir);
                 IdentityReference sid = fileSecurity.GetOwner(typeof(SecurityIdentifier));
                 session.Log("...owner of the minion config file " + sid.Value);
@@ -118,7 +124,9 @@ namespace MinionConfigurationExtension {
             String master_from_previous_installation = "";
             String id_from_previous_installation = "";
             // Read master and id from main config file (if such a file exists)
-            read_master_and_id_from_file_IMCAC(session, minion_config_file, ref master_from_previous_installation, ref id_from_previous_installation);
+            if (minion_config_file.Length > 0) {
+                read_master_and_id_from_file_IMCAC(session, minion_config_file, ref master_from_previous_installation, ref id_from_previous_installation);
+            }
             // Read master and id from minion.d/*.conf (if they exist)
             if (Directory.Exists(minion_config_dir)) {
                 var conf_files = System.IO.Directory.GetFiles(minion_config_dir, "*.conf");
@@ -127,54 +135,36 @@ namespace MinionConfigurationExtension {
                     read_master_and_id_from_file_IMCAC(session, conf_file, ref master_from_previous_installation, ref id_from_previous_installation);
                 }
             }
-            // Read id from minion_id (if it exists)
-            // Assume the minion_id file next to the minion config file
-            string minion_id_file = minion_config_file.Length == 0? "": minion_config_file + "_id";
-            if (File.Exists(minion_id_file)) {
-                session["MINION_ID_FILE_FOUND"] = minion_id_file;
-                id_from_previous_installation = File.ReadAllLines(minion_id_file)[0];
+
+            if (session["MASTER"] == "") {
+                session["MASTER"] = "salt";
+            }
+            if (session["MINION_ID"] == "") {
+                session["MINION_ID"] = "hostname";
             }
 
             session.Log("...CONFIG_TYPE msi property  = " + session["CONFIG_TYPE"]);
             session.Log("...MASTER      msi property  = " + session["MASTER"]);
             session.Log("...MINION_ID   msi property  = " + session["MINION_ID"]);
 
-            if (session["CONFIG_TYPE"] == "Default") {
-                /* Overwrite the existing config if present with the default config for salt.
-                 */
-
-                if (session["MASTER"] == "") {
-                    session["MASTER"] = "salt";
-                    session.Log("...MASTER set to salt because it was unset and CONFIG_TYPE=Default");
+            // A list of config types that will be edited. Existing config will NOT be edited
+            List<string> editable_types = new List<string>();
+            editable_types.Add("Default");
+            editable_types.Add("Custom");
+            if (editable_types.Contains(session["CONFIG_TYPE"])) {
+                // master
+                if (master_from_previous_installation != "") {
+                    session.Log("...MASTER      kept config   =" + master_from_previous_installation);
+                    session["MASTER"] = master_from_previous_installation;
+                    session["CONFIG_FOUND"] = "True";
+                    session.Log("...MASTER set to kept config");
                 }
-                if (session["MINION_ID"] == "") {
-                    session["MINION_ID"] = "hostname";
-                    session.Log("...MINION_ID set to hostname because it was unset and CONFIG_TYPE=Default");
-                }
-            } else {
-                /////////////////master
-                if (session["MASTER"] == "") {
-                    session.Log("...MASTER       kept config   =" + master_from_previous_installation);
-                    if (master_from_previous_installation != "") {
-                        session["MASTER"] = master_from_previous_installation;
-                        session["CONFIG_FOUND"] = "True";
-                        session.Log("...MASTER set to kept config");
-                    } else {
-                        session["MASTER"] = "salt";
-                        session.Log("...MASTER set to salt because it was unset and no kept config");
-                    }
-                }
-
-                ///////////////// minion id
-                if (session["MINION_ID"] == "") {
+ 
+                // minion id
+                if (id_from_previous_installation != "") {
                     session.Log("...MINION_ID   kept config   =" + id_from_previous_installation);
-                    if (id_from_previous_installation != "") {
-                        session.Log("...MINION_ID set to kept config ");
-                        session["MINION_ID"] = id_from_previous_installation;
-                    } else {
-                        session["MINION_ID"] = "hostname";
-                        session.Log("...MINION_ID set to hostname because it was unset and no previous installation and CONFIG_TYPE!=Default");
-                    }
+                    session.Log("...MINION_ID set to kept config ");
+                    session["MINION_ID"] = id_from_previous_installation;
                 }
             }
 
@@ -408,6 +398,14 @@ namespace MinionConfigurationExtension {
                   while match `- ` MASTER:
                     master += MASTER
             */
+            if (configfile.Length == 0) {
+                session.Log("...configfile not passed");
+                return;
+            }
+            if (!File.Exists(configfile)) {
+                session.Log("...configfile does not exist: " + configfile);
+                return;
+            }
             session.Log("...searching master and id in " + configfile);
             bool configExists = File.Exists(configfile);
             session.Log("......file exists " + configExists);
