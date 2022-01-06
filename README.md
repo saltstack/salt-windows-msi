@@ -33,7 +33,8 @@ Example: uninstall and remove configuration
  `CLEAN_INSTALL`        |                         | Set to `1` to remove configuration and cache before install or upgrade.
  `CONFIG_TYPE`          | `Existing`              | Set to `Custom` or `Default` for scenarios below.
  `CUSTOM_CONFIG`        |                         | Name of a custom config file in the same path as the installer or full path. Requires `CONFIG_TYPE=Custom`. __ONLY FROM COMMANDLINE__
- `INSTALLDIR`           | Windows default         | Where to install
+ `INSTALLDIR`           | Windows default         | Where to install binaries.
+ `ROOTDIR`              | `C:\ProgramData\Salt Project\Salt` | Where to install configuration.
  `ARPSYSTEMCOMPONENT`   |                         | Set to `1` to hide "Salt Minion" in "Programs and Features".
 
 
@@ -94,6 +95,10 @@ Therefore, all existing config files should be backed up
 3. `minion.d` directory renamed to `minion.d-<timestamp>.bak`
 Then the default config file is laid down by the installer... settings for `master` and `minion id` should be applied to the default config if passed
 
+
+### Previous installation in C:\salt and how to install into C:\salt
+A previous installation or configuration in `C:\salt` causes an upgrade into `C:\salt`, unless you set `MOVE_CONF=1`.
+Set the two properties `INSTALLDIR=c:\salt ROOTDIR=c:\salt` to install binaries and configuration into `C:\salt`.
 
 ## Client requirements
 

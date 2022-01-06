@@ -1,6 +1,9 @@
 Set-PSDebug -Strict
 Set-strictmode -version latest
 
+$oldrootdir = "C:\Salt"
+$newrootdir = "C:\ProgramData\Salt Project\Salt"
+
 function Get-IsAdministrator {
     $Identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
     $Principal = New-Object System.Security.Principal.WindowsPrincipal($Identity)
@@ -27,13 +30,13 @@ if (Test-Path $scrambled_salt_upgradecode) {
 #==============================================================================
 # Check for Salt folders
 #==============================================================================
-if (Test-Path "C:\ProgramData\Salt Project\Salt") {
-    Write-Host -ForegroundColor Red `"C:\ProgramData\Salt Project\Salt`" must not exist
+if (Test-Path $newrootdir) {
+    Write-Host -ForegroundColor Red "`"$newrootdir`" must not exist"
     exit 1
 }
 
-if (Test-Path "C:\Salt") {
-    Write-Host -ForegroundColor Red C:\Salt must not exist
+if (Test-Path $oldrootdir) {
+    Write-Host -ForegroundColor Red "$oldrootdir must not exist"
     exit 1
 }
 
@@ -57,8 +60,6 @@ if ($nof_msis -gt 1) {
     exit 1
 }
 
-(New-Item -ItemType directory -Path "C:\ProgramData\Salt Project\Salt\conf") | out-null
-
 $msi = $msis[0]
 Write-Host -ForegroundColor Yellow Testing ([System.IO.Path]::GetFileName($msi))
 Copy-Item -Path $msi -Destination "test.msi"
@@ -66,7 +67,8 @@ Copy-Item -Path $msi -Destination "test.msi"
 $array_allowed_test_words = "dormant", "properties"
 $exit_code = 0
 foreach ($testfilename in Get-ChildItem *.test) {
-    $dormant = $false
+    $dormant = $false    # test passes if and only if configuration is deleted on uninstall
+    $rootdir = $newrootdir     # default for each test
     $test_name = $testfilename.basename
     $batchfile = $test_name + ".bat"
     $config_input = $test_name + ".input"
@@ -88,6 +90,9 @@ foreach ($testfilename in Get-ChildItem *.test) {
             }
             if ($head -eq "properties") {
                 Set-Content -Path $batchfile -Value "msiexec /i $msi $tail /l*v $test_name.install.log /qb"
+                if($tail.Contains("ROOTDIR=c:\salt")){
+                    $rootdir = $oldrootdir
+                }
             }
         } else {
             Write-Host -ForegroundColor Red $testfilename must not contain $head
@@ -95,11 +100,14 @@ foreach ($testfilename in Get-ChildItem *.test) {
         }
     }
 
+    # Ensure rootdir/conf exists
+    (New-Item -ItemType directory -Path "$rootdir\conf" -ErrorAction Ignore) | out-null
+
     if(Test-Path $config_input){
-        Copy-Item -Path $config_input -Destination "C:\ProgramData\Salt Project\Salt\conf\minion"
+        Copy-Item -Path $config_input -Destination "$rootdir\conf\minion"
     }
     if(Test-Path $minion_id){
-        Copy-Item -Path $minion_id -Destination "C:\ProgramData\Salt Project\Salt\conf\minion_id"
+        Copy-Item -Path $minion_id -Destination "$rootdir\conf\minion_id"
     }
 
     # Run the install (via the batch file), which generates configuration (file conf/minion).
@@ -122,12 +130,13 @@ foreach ($testfilename in Get-ChildItem *.test) {
     # Compare expected and generated configuration
     $expected = $test_name + ".expected"
     $generated = $test_name + ".output"
-    Copy-Item -Path "C:\ProgramData\Salt Project\Salt\conf\minion" -Destination $generated
+    Copy-Item -Path "$rootdir\conf\minion" -Destination $generated
 
      if((Get-Content -Raw $expected) -eq (Get-Content -Raw $generated)){
         Remove-Item $generated
         Write-Host -ForegroundColor Green -NoNewline "content Pass "
     } else {
+        # Leave generated config for analysis
         Write-Host -ForegroundColor Red -NoNewline "content Fail "
         $exit_code = 1
     }
@@ -152,8 +161,8 @@ foreach ($testfilename in Get-ChildItem *.test) {
         exit 1
     }
 
-    #  Write-Host "    config exists after Uninstall $dormant  " (Test-Path "C:\ProgramData\Salt Project\Salt\conf\minion")
-    if($dormant -eq (Test-Path "C:\ProgramData\Salt Project\Salt\conf\minion")){
+    #  Write-Host "    config exists after Uninstall $dormant  " (Test-Path "$rootdir\conf\minion")
+    if($dormant -eq (Test-Path "$rootdir\conf\minion")){
         Write-Host -ForegroundColor Green " dormancy Pass"
     } else {
         # If a dormancy test fails, overall testing will be a failure, but continue testing
@@ -161,18 +170,12 @@ foreach ($testfilename in Get-ChildItem *.test) {
         $exit_code = 1
     }
 
-    # Clean up system from the last test config and create an empty dir
-    if (Test-Path "C:\ProgramData\Salt Project\Salt") {
-        Remove-Item "C:\ProgramData\Salt Project\Salt" -Recurse -Force
-    }
-    (New-Item -ItemType directory -Path "C:\ProgramData\Salt Project\Salt\conf") | out-null
+    # Clean up system from the last test config
+    Remove-Item -Path $oldrootdir -Recurse -Force -ErrorAction Ignore | Out-Null
+    Remove-Item -Path $newrootdir -Recurse -Force -ErrorAction Ignore | Out-Null
 }
 
-# Clean up system
-if (Test-Path "C:\ProgramData\Salt Project\Salt") {
-    Remove-Item "C:\ProgramData\Salt Project\Salt" -Recurse -Force
-}
-
+# Clean up copied msi
 Remove-Item test.msi
 
 if ($exit_code -eq 0) {
@@ -182,4 +185,3 @@ if ($exit_code -eq 0) {
 }
 
 exit $exit_code
-
