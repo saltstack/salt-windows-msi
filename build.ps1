@@ -48,7 +48,10 @@ $WEBCACHE_DIR = "$pwd\_cache.dir"
 ## Verify or install WiX toolset from https://wixtoolset.org/releases
 ##   Wix 3.11.2  released Sep 19, 2019
 
-if (ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") {
+# 64bit: {03368010-193D-4AE2-B275-DD2EB32CD427}
+# 32bit: {07188017-A460-4C0D-A386-6B3CEB8E20CD}
+if ((ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") -or
+    (ProductcodeExists "{07188017-A460-4C0D-A386-6B3CEB8E20CD}")) {
     Write-Host -ForegroundColor Green  ("{0,-38} Installed" -f  "Wix 3.11.2")
 } else {
     ## Verify or install dotnet 3
@@ -77,9 +80,14 @@ if ($null -eq $ENV:WIX) {
 #  There is a bugfix upgrade
 #  14.0.23107    from link     {8C918E5B-E238-401F-9F6E-4FB84B024CA2}   Appears in appwiz.cpl
 #  14.0.25420    from where?   {79750C81-714E-45F2-B5DE-42DEF00687B8}   Doesn't appear in appwiz.cpl
-#
+
+# 64bit (23107): {8C918E5B-E238-401F-9F6E-4FB84B024CA2}
+# 32bit (23107): Add it here and to the if statement once we find out what it is
+# 64bit (25420): {79750C81-714E-45F2-B5DE-42DEF00687B8}
+# 32bit (25420): {6BF8837D-67E1-4359-89FB-C08BFD6F2138}
 if ((ProductcodeExists "{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") -or
-    (ProductcodeExists "{79750C81-714E-45F2-B5DE-42DEF00687B8}")) {
+    (ProductcodeExists "{79750C81-714E-45F2-B5DE-42DEF00687B8}") -or
+    (ProductcodeExists "{6BF8837D-67E1-4359-89FB-C08BFD6F2138}")) {
       Write-Host -ForegroundColor Green ("{0,-38} Installed" -f  "Build Tools 2015")
 } else {
     $BuildToolsInstaller = "$WEBCACHE_DIR/BuildTools_Full.exe"
