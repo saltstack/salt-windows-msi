@@ -155,10 +155,10 @@ Write-Host -ForegroundColor Green "Internal version  $internalversion"
 
 #### Detecting target platform from NSIS exe
 $targetplatform = 0
-if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*AMD64*.exe) {$targetplatform="64"}
-if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*x86*.exe)   {$targetplatform="32"}
+if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*AMD64*.exe) {$targetplatform="64"}
+if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*x86*.exe)   {$targetplatform="32"}
 if ($targetplatform -eq 0) {
-  Write-Host -ForegroundColor Red "Cannot determine target platform from ..\salt\pkg\windows\installer\Salt-Minion*.exe"
+  Write-Host -ForegroundColor Red "Cannot determine target platform from ..\salt-windows-nsis\build\Salt-Minion*.exe"
   Write-Host -ForegroundColor Red "Have you build the NSIS Nullsoft exe installer?"
   exit(1)
 }
@@ -166,9 +166,9 @@ Write-Host -ForegroundColor Green "Architecture      $targetplatform"
 
 #### Detecting Python version from NSIS exe
 $pythonversion = 0
-if (Test-Path ..\salt\pkg\windows\installer\Salt-Minion*Py3*.exe) {$pythonversion=3}
+if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*Py3*.exe) {$pythonversion=3}
 if ($pythonversion -eq 0) {
-  Write-Host -ForegroundColor Red "Cannot determine Python version from ..\salt\pkg\windows\installer\Salt-Minion*.exe"
+  Write-Host -ForegroundColor Red "Cannot determine Python version from ..\salt-windows-nsis\build\Salt-Minion*.exe"
   Write-Host -ForegroundColor Red "Have you build the NSIS Nullsoft exe installer?"
   exit(1)
 }
@@ -182,8 +182,8 @@ $PRODUCT        = "Salt Minion"
 $PRODUCTFILE    = "Salt-Minion-$displayversion"
 $PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
-$DISCOVER_INSTALLDIR = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
-$DISCOVER_CONFDIR    = "..\salt\pkg\windows\buildenv\conf"
+$DISCOVER_INSTALLDIR = "..\salt-windows-nsis\scripts\buildenv", "..\salt-windows-nsis\scripts\buildenv"
+$DISCOVER_CONFDIR    = "..\salt-windows-nsis\scripts\buildenv\configs"
 
 # MSBuild needed to compile C#
 If ( (Get-CimInstance Win32_OperatingSystem).OSArchitecture -eq "64-bit" ) {
