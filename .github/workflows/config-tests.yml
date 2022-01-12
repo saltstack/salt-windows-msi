@@ -10,8 +10,15 @@ jobs:
         run: git clone https://github.com/saltstack/salt.git ..\salt
       - name: STEP 3 - Create Mock Salt Repo
         run: |
-          Write-Host "Copying mock files: " -NoNewLine
-          Copy-Item -Path .\_mock_salt_pkg_windows\* -Destination ..\salt\pkg\windows -Recurse -Force | Out-Null
+          Write-Host "Creating mock salt-windows-nsis\build directory: " -NoNewLine
+          New-Item -Path ..\salt-windows-nsis\build -Type Directory -Force | Out-Null
+          Write-Host "Completed" -ForegroundColor Green
+          Write-Host "Creating mock salt-windows-nsis\scripts directory: " -NoNewLine
+          New-Item -Path ..\salt-windows-nsis\scripts -Type Directory -Force | Out-Null
+          Write-Host "Completed" -ForegroundColor Green
+          Write-Host "Copying mock files: " -NoNewLine | Out-Null
+          Copy-Item -Path .\_mock_salt_pkg_windows\build\* -Destination ..\salt-windows-nsis\build\ -Recurse -Force | Out-Null
+          Copy-Item -Path .\_mock_salt_pkg_windows\buildenv -Destination ..\salt-windows-nsis\scripts\ -Recurse -Force | Out-Null
           Write-Host "Completed" -ForegroundColor Green
       - name: STEP 4 - Build Test MSI
         run: .\build.cmd
