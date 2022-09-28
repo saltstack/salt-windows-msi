@@ -274,6 +274,12 @@ IMCAC - Immediate Custom Action - It's immediate
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
       <ComponentRef Id="ROOTDIR_Permissions" />
+      <ComponentRef Id="CreateMinionDDir" />
+      <ComponentRef Id="CreatePKIMinionDir" />
+      <ComponentRef Id="CreateRunDir" />
+      <ComponentRef Id="CreateLogSaltDir" />
+      <ComponentRef Id="CreateProcDir" />
+      <ComponentRef Id="CreateGrainsDir" />
       <ComponentRef Id="INSTALLDIR_System_Path" />
       <ComponentRef Id="register_dirs" />
       <ComponentRef Id="register_remove_config" />
