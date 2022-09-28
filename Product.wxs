@@ -274,6 +274,12 @@ IMCAC - Immediate Custom Action - It's immediate
       <ComponentGroupRef Id="service" />
       <ComponentRef Id="INSTALLDIR_Permissions" />
       <ComponentRef Id="ROOTDIR_Permissions" />
+      <ComponentRef Id="CreateMinionDDir" />
+      <ComponentRef Id="CreatePKIMinionDir" />
+      <ComponentRef Id="CreateRunDir" />
+      <ComponentRef Id="CreateLogSaltDir" />
+      <ComponentRef Id="CreateProcDir" />
+      <ComponentRef Id="CreateGrainsDir" />
       <ComponentRef Id="INSTALLDIR_System_Path" />
       <ComponentRef Id="register_dirs" />
       <ComponentRef Id="register_remove_config" />
@@ -389,10 +395,32 @@ IMCAC - Immediate Custom Action - It's immediate
           <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)" />
         </Directory>
       </Directory>
+      <!-- Default layout for the ROOTDIR, this is always in ProgramData -->
       <Directory Id="CommonAppDataFolder">                        <!-- C:\ProgramData -->
         <Directory Id="rootparent" Name="$(var.MANUFACTURER)">
           <Directory Id="ROOTDIR" Name="$(var.PRODUCTDIR)">
-            <Directory Id="CONFDIR" Name="conf" />
+            <Directory Id="CONFDIR" Name="conf">
+              <Directory Id="MINIONDDIR" Name="minion.d" />
+              <Directory Id="PKIDIR" Name="pki">
+                <Directory Id="PKIMINIONDIR" Name="minion" />
+              </Directory>
+            </Directory>
+            <Directory Id="VARDIR" Name="var">
+              <Directory Id="RUNDIR" Name="run" />
+              <Directory Id="LOGDIR" Name="log">
+                <Directory Id="LOGSALTDIR" Name="salt" />
+              </Directory>
+              <Directory Id="CACHEDIR" Name="cache">
+                <Directory Id="CACHESALTDIR" Name="salt">
+                  <Directory Id="CACHESALTMINIONDIR" Name="minion">
+                    <Directory Id="PROCDIR" Name="proc" />
+                    <Directory Id="EXTMODSDIR" Name="extmods">
+                      <Directory Id="GRAINSDIR" Name="grains" />
+                    </Directory>
+                  </Directory>
+                </Directory>
+              </Directory>
+            </Directory>
           </Directory>
         </Directory>
       </Directory>
@@ -411,6 +439,24 @@ IMCAC - Immediate Custom Action - It's immediate
       <CreateFolder>
         <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
       </CreateFolder>
+    </Component>
+    <Component Id="CreateMinionDDir" Directory="MINIONDDIR" Guid="59E64BE0-284C-4482-987C-416F4BD20A4C">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreatePKIMinionDir" Directory="PKIMINIONDIR" Guid="F907613B-3669-4AB2-9630-A8ECDD50F157">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreateRunDir" Directory="RUNDIR" Guid="BB3727B5-4C46-4622-BF08-F69E5004D817">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreateLogSaltDir" Directory="LOGSALTDIR" Guid="BE111495-EE66-4BD0-9111-1373C2F78AE1">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreateProcDir" Directory="PROCDIR" Guid="3B92D253-189F-4100-A21D-4FD7C45F5CD9">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreateGrainsDir" Directory="GRAINSDIR" Guid="2F08218A-45C6-4E51-970C-DCB2530D36C5">
+      <CreateFolder />
     </Component>
 
 
