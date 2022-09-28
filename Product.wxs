@@ -434,6 +434,24 @@ IMCAC - Immediate Custom Action - It's immediate
         <Permission User="[WIX_ACCOUNT_ADMINISTRATORS]" GenericAll="yes" TakeOwnership="yes" />
       </CreateFolder>
     </Component>
+    <Component Id="CreateMinionDDir" Name="MINIONDDIR" Guid="59E64BE0-284C-4482-987C-416F4BD20A4C">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreatePKIMinionDir" Name="PKIMINIONDIR" Guid="F907613B-3669-4AB2-9630-A8ECDD50F157">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreateRunDir" Name="RUNDIR" Guid="BB3727B5-4C46-4622-BF08-F69E5004D817">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreateLogSaltDir" Name="LOGSALTDIR" Guid="BE111495-EE66-4BD0-9111-1373C2F78AE1">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreateProcDir" Name="PROCDIR" Guid="3B92D253-189F-4100-A21D-4FD7C45F5CD9">
+      <CreateFolder />
+    </Component>
+    <Component Id="CreateGrainsDir" Name="GRAINSDIR" Guid="2F08218A-45C6-4E51-970C-DCB2530D36C5">
+      <CreateFolder />
+    </Component>
 
 
     <!--  Install Windows service (nssm and without)-->
