@@ -389,10 +389,32 @@ IMCAC - Immediate Custom Action - It's immediate
           <Directory Id="INSTALLDIR" Name="$(var.PRODUCTDIR)" />
         </Directory>
       </Directory>
+      <!-- Default layout for the ROOTDIR, this is always in ProgramData -->
       <Directory Id="CommonAppDataFolder">                        <!-- C:\ProgramData -->
         <Directory Id="rootparent" Name="$(var.MANUFACTURER)">
           <Directory Id="ROOTDIR" Name="$(var.PRODUCTDIR)">
-            <Directory Id="CONFDIR" Name="conf" />
+            <Directory Id="CONFDIR" Name="conf">
+              <Directory Id="MINIONDDIR" Name="minion.d" />
+              <Directory Id="PKIDIR" Name="pki">
+                <Directory Id="PKIMINIONDIR" Name="minion" />
+              </Directory>
+            </Directory>
+            <Directory Id="VARDIR" Name="var">
+              <Directory Id="RUNDIR" Name="run" />
+              <Directory Id="LOGDIR" Name="log">
+                <Directory Id="LOGSALTDIR" Name="salt" />
+              </Directory>
+              <Directory Id="CACHEDIR" Name="cache">
+                <Directory Id="CACHESALTDIR" Name="salt">
+                  <Directory Id="CACHESALTMINIONDIR" Name="minion">
+                    <Directory Id="PROCDIR" Name="proc" />
+                    <Directory Id="EXTMODSDIR" Name="extmods">
+                      <Directory Id="GRAINSDIR" Name="grains" />
+                    </Directory>
+                  </Directory>
+                </Directory>
+              </Directory>
+            </Directory>
           </Directory>
         </Directory>
       </Directory>
