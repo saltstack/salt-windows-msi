@@ -132,7 +132,7 @@ if ($gitexe.length -eq 0) {
 
 if (-Not (Test-Path ..\salt)) {
   Write-Host -ForegroundColor Red "No directory ..\salt"
-  Write-Host -ForegroundColor Yellow "Have you build the NSIS Nullsoft exe installer?"
+  Write-Host -ForegroundColor Yellow "Have you built the NSIS Nullsoft exe installer?"
   Write-Host -ForegroundColor Yellow "Or do you want to run test-copy_mock_files_to_salt_repo.cmd?"
   exit(1)
 }
@@ -168,7 +168,7 @@ if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*AMD64*.exe) {$targetplatfor
 if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*x86*.exe)   {$targetplatform="32"}
 if ($targetplatform -eq 0) {
   Write-Host -ForegroundColor Red "Cannot determine target platform from ..\salt-windows-nsis\build\Salt-Minion*.exe"
-  Write-Host -ForegroundColor Yellow "Have you build the NSIS Nullsoft exe installer?"
+  Write-Host -ForegroundColor Yellow "Have you built the NSIS Nullsoft exe installer?"
   Write-Host -ForegroundColor Yellow "Or do you want to run test-copy_mock_files_to_salt_repo.cmd?"
   exit(1)
 }
@@ -179,7 +179,7 @@ $pythonversion = 0
 if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*Py3*.exe) {$pythonversion=3}
 if ($pythonversion -eq 0) {
   Write-Host -ForegroundColor Red "Cannot determine Python version from ..\salt-windows-nsis\build\Salt-Minion*.exe"
-  Write-Host -ForegroundColor Yellow "Have you build the NSIS Nullsoft exe installer?"
+  Write-Host -ForegroundColor Yellow "Have you built the NSIS Nullsoft exe installer?"
   Write-Host -ForegroundColor Yellow "Or do you want to run test-copy_mock_files_to_salt_repo.cmd?"
   exit(1)
 }
