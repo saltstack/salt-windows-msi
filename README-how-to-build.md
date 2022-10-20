@@ -19,7 +19,7 @@ Notes:
 - <sup>*</sup> `build.cmd` will open `optionalfeatures` if necessary.
 - <sup>**</sup> `build.cmd` will download them to `.\_cache.dir` and install if necessary.
 
-### Step 1: build the Nullsoft (NSIS) exe installer or a copy the mockup exe installer
+### Step 1: build the Nullsoft (NSIS) exe installer or copy the mockup exe installer from _mock_salt_pkg_windows
 
 - Build the Nullsoft (NSIS) exe installer
 
