@@ -4,8 +4,9 @@
 
 The build client is where the msi installer is built.
 
+You need
 - 64bit Windows 10
-- Git repositories `salt` and `salt-windows-msi`
+- Git repositories `salt`, `salt-windows-nsis` and `salt-windows-msi`
 - .Net 3.5 SDK (for WiX)<sup>*</sup>
 - [Wix 3](http://wixtoolset.org/releases/)<sup>**</sup>
 - [Build tools 2015](https://www.microsoft.com/en-US/download/confirmation.aspx?id=48159)<sup>**</sup>
@@ -16,42 +17,13 @@ The build client is where the msi installer is built.
 
 Notes:
 - <sup>*</sup> `build.cmd` will open `optionalfeatures` if necessary.
-- <sup>**</sup> `build.cmd` will download to `.\_cache.dir` and install if necessary.
+- <sup>**</sup> `build.cmd` will download them to `.\_cache.dir` and install if necessary.
 
-### Step 1: build the Nullsoft (NSIS) exe installer
+### Step 1: build the Nullsoft (NSIS) exe installer or use the mockup
 
-Read [Building and Developing on Windows](https://docs.saltproject.io/en/latest/topics/installation/windows.html#building-and-developing-on-windows)
+- Build the Nullsoft (NSIS) exe installer
 
-Execute
-
-    git checkout v3002.5
-
-Repeat
-
-    git clean -fxd
-    git checkout .
-
-until `git status` returns
-
-    HEAD detached at v3002.5
-    nothing to commit, working tree clean
-
-First **clean the Python environment** then build
-
-    clean_env.bat
-    build.bat
-
-How to include 64bit `rc.exe` (resource compiler) from the Windows SDK into path
-
-Open "Build Tools for Visual Studio 2017"
-- Select workload "Visual C++ build tools"
-- Check options
-  -  "C++/CLI support"
-  -  "VC++ 2015.3 v14.00 (v140) toolset for desktop"
-- Download 2 GB in 177 packages.
-
-    set ttt=C:\Program Files (x86)\Windows Kits\8.1\bin\x64
-    set path=%ttt%;%path%
+- Or execute `test-copy_mock_files_to_salt_repo.cmd` for only testing configuration
 
 ### Step 2: build the msi installer
 

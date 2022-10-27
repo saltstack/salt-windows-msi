@@ -56,7 +56,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- Properties default values. For Properties unset by default see README.md -->
     <Property Id="CONFIG_TYPE"              Value="Default" />
     <Property Id="START_MINION"             Value="1" />
-    <Property Id="ROOTDRIVE"                Value="C:\" />  <!-- prevent msi to chose the drive with most space left -->
+    <Property Id="ROOTDRIVE"                Value="C:\" />  <!-- Prevent msi to choose the drive with most free space -->
     <Property Id="ARPPRODUCTICON"           Value="icon.ico" />
     <Property Id="MSIRESTARTMANAGERCONTROL" Value="Disable" />
     <Property Id="MSIUSEREALADMINDETECTION" Value="1" />
@@ -83,7 +83,7 @@ IMCAC - Immediate Custom Action - It's immediate
 
     <!-- Search registry for previous msi and Nullsoft install dirs -->
     <Property Id="REGISTRY_ROOTDIR">
-      <!-- new layout is C:\ProgramData\Salt Project\Salt -->
+      <!-- New layout is C:\ProgramData\Salt Project\Salt -->
           <?if $(var.WIN64)=yes ?>
       <RegistrySearch Root="HKLM" Key="SOFTWARE\$(var.MANUFACTURER)\$(var.PRODUCTDIR)" Name="root_dir" Win64="yes" Type="raw" Id="p1" />
           <?endif ?>
@@ -123,8 +123,9 @@ IMCAC - Immediate Custom Action - It's immediate
 
 
     <!--
-    We need to stop the salt-minion before validating the installation. Part
-    of validation looks at the log file. If it is locked, it will fail.
+    Workaround.
+    We stop the salt-minion service before validating the installation.
+    Part of validation is checking the log file. If the log file is locked, the check can fail and the install can fail.
     Something has a lock on the minion log file, either salt-minion or
     ssm.exe
 
@@ -211,7 +212,7 @@ IMCAC - Immediate Custom Action - It's immediate
 
     </InstallExecuteSequence>
 
-    <!-- Declare Immediate (*_IMCAC) and deferred (*_DECAC) custom actions. -->
+    <!-- Declare Immediate (*_IMCAC) and Deferred (*_DECAC) Custom Actions. -->
     <!-- These are the entry points into the DLL -->
     <CustomAction Id="ReadConfig_IMCAC"     BinaryKey="MinionConfigExt" DllEntry="ReadConfig_IMCAC"       Execute="firstSequence" />
     <CustomAction Id="del_NSIS_DECAC"       BinaryKey="MinionConfigExt" DllEntry="del_NSIS_DECAC"         Execute="deferred" Return="check" Impersonate="no" />
@@ -497,6 +498,7 @@ IMCAC - Immediate Custom Action - It's immediate
       </Component>
     </ComponentGroup>
     <?else ?>
+    <!-- For the far future, in which nssm.exe is no longer used -->
     <ComponentGroup Id="service">
       <Component        Id="servicec1" Directory="INSTALLDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
         <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes" />
