@@ -74,7 +74,6 @@ if ($null -eq $ENV:WIX) {
 }
 
 
-
 ## Build tools 2015
 #  https://www.microsoft.com/en-us/download/details.aspx?id=48159
 #  There is a bugfix upgrade
@@ -164,8 +163,9 @@ Write-Host -ForegroundColor Green "Internal version  $internalversion"
 
 #### Detecting target platform from NSIS exe
 $targetplatform = 0
-if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*AMD64*.exe) {$targetplatform="64"}
-if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*x86*.exe)   {$targetplatform="32"}
+$BUILD_DIR = "..\salt\pkg\windows\build"
+if (Test-Path -Path "$BUILD_DIR\Salt-Minion*AMD64*.exe") {$targetplatform="64"}
+if (Test-Path -Path "$BUILD_DIR\Salt-Minion*x86*.exe")   {$targetplatform="32"}
 if ($targetplatform -eq 0) {
   Write-Host -ForegroundColor Red "Cannot determine target platform from ..\salt-windows-nsis\build\Salt-Minion*.exe"
   Write-Host -ForegroundColor Yellow "Have you built the NSIS Nullsoft exe installer?"
@@ -173,16 +173,6 @@ if ($targetplatform -eq 0) {
   exit(1)
 }
 Write-Host -ForegroundColor Green "Architecture      $targetplatform"
-
-#### Detecting Python version from NSIS exe
-$pythonversion = 0
-if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*Py3*.exe) {$pythonversion=3}
-if ($pythonversion -eq 0) {
-  Write-Host -ForegroundColor Red "Cannot determine Python version from ..\salt-windows-nsis\build\Salt-Minion*.exe"
-  Write-Host -ForegroundColor Yellow "Have you built the NSIS Nullsoft exe installer?"
-  Write-Host -ForegroundColor Yellow "Or do you want to run test-copy_mock_files_to_salt_repo.cmd?"
-  exit(1)
-}
 
 
 #### #### Build
@@ -193,8 +183,8 @@ $PRODUCT        = "Salt Minion"
 $PRODUCTFILE    = "Salt-Minion-$displayversion"
 $PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
-$DISCOVER_INSTALLDIR = "..\salt-windows-nsis\scripts\buildenv", "..\salt-windows-nsis\scripts\buildenv"
-$DISCOVER_CONFDIR    = "..\salt-windows-nsis\scripts\buildenv\configs"
+$DISCOVER_INSTALLDIR = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
+$DISCOVER_CONFDIR    = "..\salt\pkg\windows\buildenv\configs"
 
 # MSBuild needed to compile C#
 If ( (Get-CimInstance Win32_OperatingSystem).OSArchitecture -eq "64-bit" ) {
@@ -208,7 +198,6 @@ if ($targetplatform -eq "32") {$i = 1} else {$i = 0}
 $WIN64        = "yes",                  "no"                   # Used in wxs
 $ARCHITECTURE = "x64",                  "x86"                  # WiX dictionary values
 $ARCH_AKA     = "AMD64",                "x86"                  # For filename
-$PLATFORM     = "x64",                  "Win32"                # Unused
 $PROGRAMFILES = "ProgramFiles64Folder", "ProgramFilesFolder"   # msi dictionary values
 
 function CheckExitCode() {   # Exit on failure
@@ -285,7 +274,7 @@ Move-Item $DISCOVER_CONFDIR $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folde
 Move-Item $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONFDIR
 CheckExitCode
 
-# Config shall remain, so delete all Guid (TODO)
+# TODO: Config shall remain, so delete all Guid
 Write-Host -ForegroundColor Yellow "Discovering  CONFDIR    from $DISCOVER_CONFDIR to *.wxs"
 & "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFDIR" -out "Product-discovered-files-config.wxs" `
    -cg DiscoveredConfigFiles -var var.DISCOVER_CONFDIR `
@@ -318,7 +307,7 @@ Write-Host -ForegroundColor Yellow "Linking      $PRODUCT-$VERSION-$($ARCH_AKA[$
 # Supress LGHT1076 ICE82 warnings caused by the VC++ Runtime merge modules
 #     https://sourceforge.net/p/wix/mailman/message/22945366/
 & "$($ENV:WIX)bin\light"  -nologo `
-    -out "$pwd\$PRODUCTFILE-Py$pythonversion-$($ARCH_AKA[$i]).msi" `
+    -out "$pwd\$PRODUCTFILE-Py3-$($ARCH_AKA[$i]).msi" `
     -dDISCOVER_INSTALLDIR="$($DISCOVER_INSTALLDIR[$i])" `
     -dDISCOVER_CONFDIR="$DISCOVER_CONFDIR" `
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `
