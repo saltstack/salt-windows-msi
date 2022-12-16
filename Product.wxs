@@ -24,7 +24,12 @@ IMCAC - Immediate Custom Action - It's immediate
 
 
     <!--  Install per Machine -->
-    <Package InstallScope="perMachine" InstallerVersion="500" Compressed="yes" />
+    <Package
+      InstallScope      = "perMachine"
+      InstallerVersion  = "500"
+      Compressed        = "yes"
+      InstallPrivileges = "elevated"
+    />
 
 
     <!--  Abort installation if conditions are met -->

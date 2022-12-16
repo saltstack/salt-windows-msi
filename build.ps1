@@ -62,7 +62,7 @@ if ((ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") -or
         Dism /online /enable-feature /featurename:NetFx3 /all
     }
 
-    $wixInstaller = "$WEBCACHE_DIR/wix3-11-2-Setup.exe"
+    $wixInstaller = "$WEBCACHE_DIR\wix3-11-2-Setup.exe"
     VerifyOrDownload $wixInstaller `
         "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe" `
         "32BB76C478FCB356671D4AAF006AD81CA93EEA32C22A9401B168FC7471FECCD2"
@@ -89,7 +89,7 @@ if ((ProductcodeExists "{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") -or
     (ProductcodeExists "{6BF8837D-67E1-4359-89FB-C08BFD6F2138}")) {
       Write-Host -ForegroundColor Green ("{0,-38} Installed" -f  "Build Tools 2015")
 } else {
-    $BuildToolsInstaller = "$WEBCACHE_DIR/BuildTools_Full.exe"
+    $BuildToolsInstaller = "$WEBCACHE_DIR\BuildTools_Full.exe"
     VerifyOrDownload $BuildToolsInstaller `
         "https://download.microsoft.com/download/E/E/D/EEDF18A8-4AED-4CE0-BEBE-70A83094FC5A/BuildTools_Full.exe" `
         "92CFB3DE1721066FF5A93F14A224CC26F839969706248B8B52371A8C40A9445B"
@@ -123,7 +123,7 @@ VerifyOrDownload "$pwd\_cache.dir\Microsoft_VC140_CRT_x86.msm" `
 
 #### Detecting Salt version from Git
 #################################################################################################################
-[string]$gitexe = where.exe git
+[string]$gitexe = $(where.exe git)
 if ($gitexe.length -eq 0) {
   Write-Host -ForegroundColor Red "Please install git"
   exit -1
@@ -184,7 +184,7 @@ $PRODUCTFILE    = "Salt-Minion-$displayversion"
 $PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
 $DISCOVER_INSTALLDIR = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
-$DISCOVER_CONFDIR    = "..\salt\pkg\windows\buildenv\configs"
+$DISCOVER_CONFDIR    = Get-Item "..\salt\pkg\windows\buildenv\configs"
 
 # MSBuild needed to compile C#
 If ( (Get-CimInstance Win32_OperatingSystem).OSArchitecture -eq "64-bit" ) {
@@ -251,10 +251,12 @@ Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll (because In
     "$pwd\CustomAction01\CustomAction.config" > build.tmp
 CheckExitCode
 
+# move conf folder up one dir because it must not be discovered twice and xslt is difficult
+Move-Item -Path "$DISCOVER_CONFDIR" `
+          -Destination "$($DISCOVER_CONFDIR.Parent.Parent.FullName)\temporarily_moved_conf_folder"
+CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Discovering  INSTALLDIR from $($DISCOVER_INSTALLDIR[$i]) to *$($ARCHITECTURE[$i])*.wxs"
-# move conf folder up one dir because it must not be discoverd twice and xslt is difficult
-Move-Item $DISCOVER_CONFDIR $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folder
 # https://wixtoolset.org/documentation/manual/v3/overview/heat.html
 # -cg <ComponentGroupName> Component group name (cannot contain spaces e.g -cg MyComponentGroup).
 # -sfrag   Suppress generation of fragments for directories and components.
@@ -271,7 +273,11 @@ Move-Item $DISCOVER_CONFDIR $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folde
    -cg DiscoveredBinaryFiles -var var.DISCOVER_INSTALLDIR `
    -dr INSTALLDIR -t Product-discover-files.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -srd -ke -template fragment
-Move-Item $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONFDIR
+CheckExitCode
+
+# Move the configs back
+Move-Item -Path "$($DISCOVER_CONFDIR.Parent.Parent.FullName)\temporarily_moved_conf_folder" `
+          -Destination "$DISCOVER_CONFDIR"
 CheckExitCode
 
 # TODO: Config shall remain, so delete all Guid

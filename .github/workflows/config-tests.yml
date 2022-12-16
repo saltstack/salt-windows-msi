@@ -20,6 +20,9 @@ jobs:
           Copy-Item -Path .\_mock_salt_pkg_windows\build\* -Destination ..\salt\pkg\windows\build\ -Recurse -Force | Out-Null
           Copy-Item -Path .\_mock_salt_pkg_windows\buildenv -Destination ..\salt\pkg\windows\buildenv\ -Recurse -Force | Out-Null
           Write-Host "Completed" -ForegroundColor Green
+          Get-ChildItem ..\salt\pkg\windows
+          Get-ChildItem ..\salt\pkg\windows\build
+          Get-ChildItem ..\salt\pkg\windows\buildenv
       - name: STEP 4 - Build Test MSI
         run: .\build.cmd
       - name: STEP 5 - Run Config Tests
