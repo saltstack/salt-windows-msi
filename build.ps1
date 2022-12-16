@@ -62,7 +62,7 @@ if ((ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") -or
         Dism /online /enable-feature /featurename:NetFx3 /all
     }
 
-    $wixInstaller = "$WEBCACHE_DIR/wix3-11-2-Setup.exe"
+    $wixInstaller = "$WEBCACHE_DIR\wix3-11-2-Setup.exe"
     VerifyOrDownload $wixInstaller `
         "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311.exe" `
         "32BB76C478FCB356671D4AAF006AD81CA93EEA32C22A9401B168FC7471FECCD2"
@@ -72,7 +72,6 @@ if ((ProductcodeExists "{03368010-193D-4AE2-B275-DD2EB32CD427}") -or
 if ($null -eq $ENV:WIX) {
     Write-Host -ForegroundColor Yellow "    *** Please open a new Shell for the Wix enviornment variable ***"
 }
-
 
 
 ## Build tools 2015
@@ -90,7 +89,7 @@ if ((ProductcodeExists "{8C918E5B-E238-401F-9F6E-4FB84B024CA2}") -or
     (ProductcodeExists "{6BF8837D-67E1-4359-89FB-C08BFD6F2138}")) {
       Write-Host -ForegroundColor Green ("{0,-38} Installed" -f  "Build Tools 2015")
 } else {
-    $BuildToolsInstaller = "$WEBCACHE_DIR/BuildTools_Full.exe"
+    $BuildToolsInstaller = "$WEBCACHE_DIR\BuildTools_Full.exe"
     VerifyOrDownload $BuildToolsInstaller `
         "https://download.microsoft.com/download/E/E/D/EEDF18A8-4AED-4CE0-BEBE-70A83094FC5A/BuildTools_Full.exe" `
         "92CFB3DE1721066FF5A93F14A224CC26F839969706248B8B52371A8C40A9445B"
@@ -124,7 +123,7 @@ VerifyOrDownload "$pwd\_cache.dir\Microsoft_VC140_CRT_x86.msm" `
 
 #### Detecting Salt version from Git
 #################################################################################################################
-[string]$gitexe = where.exe git
+[string]$gitexe = $(where.exe git)
 if ($gitexe.length -eq 0) {
   Write-Host -ForegroundColor Red "Please install git"
   exit -1
@@ -164,8 +163,9 @@ Write-Host -ForegroundColor Green "Internal version  $internalversion"
 
 #### Detecting target platform from NSIS exe
 $targetplatform = 0
-if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*AMD64*.exe) {$targetplatform="64"}
-if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*x86*.exe)   {$targetplatform="32"}
+$BUILD_DIR = "..\salt\pkg\windows\build"
+if (Test-Path -Path "$BUILD_DIR\Salt-Minion*AMD64*.exe") {$targetplatform="64"}
+if (Test-Path -Path "$BUILD_DIR\Salt-Minion*x86*.exe")   {$targetplatform="32"}
 if ($targetplatform -eq 0) {
   Write-Host -ForegroundColor Red "Cannot determine target platform from ..\salt-windows-nsis\build\Salt-Minion*.exe"
   Write-Host -ForegroundColor Yellow "Have you built the NSIS Nullsoft exe installer?"
@@ -173,16 +173,6 @@ if ($targetplatform -eq 0) {
   exit(1)
 }
 Write-Host -ForegroundColor Green "Architecture      $targetplatform"
-
-#### Detecting Python version from NSIS exe
-$pythonversion = 0
-if (Test-Path ..\salt-windows-nsis\build\Salt-Minion*Py3*.exe) {$pythonversion=3}
-if ($pythonversion -eq 0) {
-  Write-Host -ForegroundColor Red "Cannot determine Python version from ..\salt-windows-nsis\build\Salt-Minion*.exe"
-  Write-Host -ForegroundColor Yellow "Have you built the NSIS Nullsoft exe installer?"
-  Write-Host -ForegroundColor Yellow "Or do you want to run test-copy_mock_files_to_salt_repo.cmd?"
-  exit(1)
-}
 
 
 #### #### Build
@@ -193,8 +183,8 @@ $PRODUCT        = "Salt Minion"
 $PRODUCTFILE    = "Salt-Minion-$displayversion"
 $PRODUCTDIR     = "Salt"
 $VERSION        = $internalversion
-$DISCOVER_INSTALLDIR = "..\salt-windows-nsis\scripts\buildenv", "..\salt-windows-nsis\scripts\buildenv"
-$DISCOVER_CONFDIR    = "..\salt-windows-nsis\scripts\buildenv\configs"
+$DISCOVER_INSTALLDIR = "..\salt\pkg\windows\buildenv", "..\salt\pkg\windows\buildenv"
+$DISCOVER_CONFDIR    = Get-Item "..\salt\pkg\windows\buildenv\configs"
 
 # MSBuild needed to compile C#
 If ( (Get-CimInstance Win32_OperatingSystem).OSArchitecture -eq "64-bit" ) {
@@ -208,7 +198,6 @@ if ($targetplatform -eq "32") {$i = 1} else {$i = 0}
 $WIN64        = "yes",                  "no"                   # Used in wxs
 $ARCHITECTURE = "x64",                  "x86"                  # WiX dictionary values
 $ARCH_AKA     = "AMD64",                "x86"                  # For filename
-$PLATFORM     = "x64",                  "Win32"                # Unused
 $PROGRAMFILES = "ProgramFiles64Folder", "ProgramFilesFolder"   # msi dictionary values
 
 function CheckExitCode() {   # Exit on failure
@@ -262,10 +251,12 @@ Write-Host -ForegroundColor Yellow "Packaging    *.dll's to *.CA.dll (because In
     "$pwd\CustomAction01\CustomAction.config" > build.tmp
 CheckExitCode
 
+# move conf folder up one dir because it must not be discovered twice and xslt is difficult
+Move-Item -Path "$DISCOVER_CONFDIR" `
+          -Destination "$($DISCOVER_CONFDIR.Parent.Parent.FullName)\temporarily_moved_conf_folder"
+CheckExitCode
 
 Write-Host -ForegroundColor Yellow "Discovering  INSTALLDIR from $($DISCOVER_INSTALLDIR[$i]) to *$($ARCHITECTURE[$i])*.wxs"
-# move conf folder up one dir because it must not be discoverd twice and xslt is difficult
-Move-Item $DISCOVER_CONFDIR $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folder
 # https://wixtoolset.org/documentation/manual/v3/overview/heat.html
 # -cg <ComponentGroupName> Component group name (cannot contain spaces e.g -cg MyComponentGroup).
 # -sfrag   Suppress generation of fragments for directories and components.
@@ -282,10 +273,14 @@ Move-Item $DISCOVER_CONFDIR $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folde
    -cg DiscoveredBinaryFiles -var var.DISCOVER_INSTALLDIR `
    -dr INSTALLDIR -t Product-discover-files.xsl `
    -nologo -indent 1 -gg -sfrag -sreg -srd -ke -template fragment
-Move-Item $DISCOVER_CONFDIR\..\..\temporarily_moved_conf_folder $DISCOVER_CONFDIR
 CheckExitCode
 
-# Config shall remain, so delete all Guid (TODO)
+# Move the configs back
+Move-Item -Path "$($DISCOVER_CONFDIR.Parent.Parent.FullName)\temporarily_moved_conf_folder" `
+          -Destination "$DISCOVER_CONFDIR"
+CheckExitCode
+
+# TODO: Config shall remain, so delete all Guid
 Write-Host -ForegroundColor Yellow "Discovering  CONFDIR    from $DISCOVER_CONFDIR to *.wxs"
 & "$($ENV:WIX)bin\heat" dir "$DISCOVER_CONFDIR" -out "Product-discovered-files-config.wxs" `
    -cg DiscoveredConfigFiles -var var.DISCOVER_CONFDIR `
@@ -318,7 +313,7 @@ Write-Host -ForegroundColor Yellow "Linking      $PRODUCT-$VERSION-$($ARCH_AKA[$
 # Supress LGHT1076 ICE82 warnings caused by the VC++ Runtime merge modules
 #     https://sourceforge.net/p/wix/mailman/message/22945366/
 & "$($ENV:WIX)bin\light"  -nologo `
-    -out "$pwd\$PRODUCTFILE-Py$pythonversion-$($ARCH_AKA[$i]).msi" `
+    -out "$pwd\$PRODUCTFILE-Py3-$($ARCH_AKA[$i]).msi" `
     -dDISCOVER_INSTALLDIR="$($DISCOVER_INSTALLDIR[$i])" `
     -dDISCOVER_CONFDIR="$DISCOVER_CONFDIR" `
     -ext "$($ENV:WIX)bin\WixUtilExtension.dll" `

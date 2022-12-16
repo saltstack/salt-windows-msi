@@ -24,7 +24,12 @@ IMCAC - Immediate Custom Action - It's immediate
 
 
     <!--  Install per Machine -->
-    <Package InstallScope="perMachine" InstallerVersion="500" Compressed="yes" />
+    <Package
+      InstallScope      = "perMachine"
+      InstallerVersion  = "500"
+      Compressed        = "yes"
+      InstallPrivileges = "elevated"
+    />
 
 
     <!--  Abort installation if conditions are met -->
@@ -465,7 +470,7 @@ IMCAC - Immediate Custom Action - It's immediate
     <?if 1=1 ?>
     <ComponentGroup Id="service">
       <Component Id="cmp906378FA53882935FD2EC0CC58D32FAC" Directory="INSTALLDIR" Guid="{E27F3682-194D-4CC2-9F9B-F3E1D53ADCDB}">
-        <File Id="ssm.exe" KeyPath="yes" Source="$(var.DISCOVER_INSTALLDIR)\bin\ssm.exe" />
+        <File Id="ssm.exe" KeyPath="yes" Source="$(var.DISCOVER_INSTALLDIR)\ssm.exe" />
         <ServiceInstall
           Account="LocalSystem" ErrorControl="normal" Start="auto" Type="ownProcess" Vital="yes"
           Name="salt-minion"
@@ -481,12 +486,12 @@ IMCAC - Immediate Custom Action - It's immediate
           <ServiceArgument />
         </ServiceControl>
         <CreateFolder />
-        <util:EventSource Log="Application" Name="nssm" EventMessageFile="[#ssm.exe]" />
+        <util:EventSource Log="Application" Name="ssm" EventMessageFile="[#ssm.exe]" />
         <RegistryKey Root="HKLM" Key="System\CurrentControlSet\Services\salt-minion">
           <RegistryKey Key="Parameters">
-            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLDIR]bin" />
-            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLDIR]bin\python.exe" />
-            <RegistryValue Type="expandable" Name="AppParameters"        Value='-E -s "[INSTALLDIR]bin\Scripts\salt-minion" -c "[ROOTDIR]conf" -l quiet' />
+            <RegistryValue Type="expandable" Name="AppDirectory"         Value="[INSTALLDIR]" />
+            <RegistryValue Type="expandable" Name="Application"          Value="[INSTALLDIR]salt-minion.exe" />
+            <RegistryValue Type="expandable" Name="AppParameters"        Value='-c "[ROOTDIR]conf" -l quiet' />
             <RegistryValue Type="integer"    Name="AppStopMethodConsole" Value="24000" />
             <RegistryValue Type="integer"    Name="AppStopMethodWindow"  Value="2000" />
             <RegistryValue Type="integer"    Name="AppRestartDelay"      Value="60000" />
@@ -501,9 +506,9 @@ IMCAC - Immediate Custom Action - It's immediate
     <!-- For the far future, in which nssm.exe is no longer used -->
     <ComponentGroup Id="service">
       <Component        Id="servicec1" Directory="INSTALLDIR" Guid="51713960-fbe7-4e87-9472-66e3c18f76cd">
-        <File           Source="$(var.DISCOVER_INSTALLDIR)\bin\python.exe"  KeyPath="yes" />
+        <File           Source="$(var.DISCOVER_INSTALLDIR)\salt-minion.exe"  KeyPath="yes" />
         <ServiceInstall Name="salt-minion"  DisplayName="Salt Minion"  Description="Salt Minion from saltproject.io"
-                        Arguments="[INSTALLDIR]\bin\Scripts\salt-minion -c [ROOTDIR]conf -l quiet"
+                        Arguments="-c [ROOTDIR]conf -l quiet"
                         Account="LocalSystem"  ErrorControl="normal" Start="auto"  Type="ownProcess"  Vital="yes" >
           <util:ServiceConfig
             FirstFailureActionType="none"
