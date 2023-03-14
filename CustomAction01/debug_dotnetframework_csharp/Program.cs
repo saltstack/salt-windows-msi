@@ -223,7 +223,7 @@ namespace MinionConfigurationExtension {
             session.Log("...BEGIN kill_python_exe (CustomAction01.cs)");
             using (
                 var wmi_searcher = new ManagementObjectSearcher(
-                    "SELECT ProcessID, ExecutablePath, CommandLine FROM Win32_Process WHERE CommandLine LIKE '%salt-minion%'"
+                    "SELECT ProcessID, ExecutablePath, CommandLine FROM Win32_Process WHERE CommandLine LIKE '%salt-minion%' AND NOT CommandLine LIKE '%msiexec%'"
                 )
             ) {
                 foreach (ManagementObject wmi_obj in wmi_searcher.Get()) {
